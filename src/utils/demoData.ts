@@ -1,0 +1,119 @@
+import { CompanySettings, Invoice } from '../types/invoice';
+import { calculateInvoiceTotals } from './formatters';
+
+export const DEFAULT_COMPANY_SETTINGS: CompanySettings = {
+  companyName: '[COMPANY NAME]',
+  companyNameAr: '[اسم الشركة / المؤسسة]',
+  logoUrl: '', // Empty means show clean "COMPANY LOGO" placeholder
+  phone: '[PHONE]',
+  whatsapp: '[WHATSAPP]',
+  email: '[EMAIL]',
+  address: '[ADDRESS]',
+  addressAr: '[العنوان]',
+  vatNumber: '[VAT NUMBER]',
+  crNumber: '',
+  bankName: '',
+  iban: '',
+};
+
+function getRecentDate(daysAgo: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - daysAgo);
+  return d.toISOString().split('T')[0];
+}
+
+const item1 = calculateInvoiceTotals(1, 1000, 'VAT 15%');
+const item2 = calculateInvoiceTotals(2, 1850, 'VAT 15%');
+const item3 = calculateInvoiceTotals(1, 2600, 'VAT 15%');
+const item4 = calculateInvoiceTotals(4, 2900, 'VAT 15%');
+
+export const INITIAL_INVOICES: Invoice[] = [
+  {
+    id: 'inv-1',
+    invoiceNumber: 'INV-001',
+    invoiceDate: getRecentDate(0), // Today
+    dueDate: getRecentDate(-14),
+    paymentStatus: 'Unpaid',
+    customerName: 'Al-Bawani Contracting Co.',
+    customerPhone: '+966 50 112 3456',
+    customerVatNumber: '300184920100003',
+    city: 'Riyadh',
+    truckCapacity: '20 Ton',
+    serviceDescription: '20-Ton Boom Truck lifting & transport for precast concrete elements',
+    quantity: 1,
+    rate: 1000,
+    vatOption: 'VAT 15%',
+    subtotal: item1.subtotal,
+    vatAmount: item1.vatAmount,
+    total: item1.total,
+    notes: 'Certified operator included. Certified lifting belts and slings provided.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'inv-2',
+    invoiceNumber: 'INV-002',
+    invoiceDate: getRecentDate(2),
+    dueDate: getRecentDate(-12),
+    paymentStatus: 'Partially Paid',
+    customerName: 'Modern Architecture Construction',
+    customerPhone: '+966 56 789 0123',
+    customerVatNumber: '310984729100003',
+    city: 'Jeddah',
+    truckCapacity: '15 Ton',
+    serviceDescription: '15-Ton Boom Truck rental for structural steel beam placement at terminal zone',
+    quantity: 2,
+    rate: 1850,
+    vatOption: 'VAT 15%',
+    subtotal: item2.subtotal,
+    vatAmount: item2.vatAmount,
+    total: item2.total,
+    notes: 'Advance deposit of SAR 2,000 received. Balance due upon job signoff.',
+    createdAt: new Date(Date.now() - 2 * 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 2 * 86400000).toISOString(),
+  },
+  {
+    id: 'inv-3',
+    invoiceNumber: 'INV-003',
+    invoiceDate: getRecentDate(5),
+    dueDate: getRecentDate(9),
+    paymentStatus: 'Paid',
+    customerName: 'Nesma & Partners Logistics Hub',
+    customerPhone: '+966 54 321 9876',
+    customerVatNumber: '301294820100003',
+    city: 'Dammam',
+    truckCapacity: '10 Ton',
+    serviceDescription: 'Offloading 2 heavy-duty industrial backup diesel generators to foundation plinth',
+    quantity: 1,
+    rate: 2600,
+    vatOption: 'VAT 15%',
+    subtotal: item3.subtotal,
+    vatAmount: item3.vatAmount,
+    total: item3.total,
+    notes: 'Paid in full on site via electronic bank transfer.',
+    createdAt: new Date(Date.now() - 5 * 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 5 * 86400000).toISOString(),
+  },
+  {
+    id: 'inv-4',
+    invoiceNumber: 'INV-004',
+    invoiceDate: getRecentDate(16),
+    dueDate: getRecentDate(2),
+    paymentStatus: 'Overdue',
+    customerName: 'Arabian Gulf Scaffolding & Rigging',
+    customerPhone: '+966 53 456 7812',
+    customerVatNumber: '310239485700003',
+    city: 'Jubail',
+    truckCapacity: '25 Ton',
+    serviceDescription: '25-Ton high-reach boom truck support for industrial shutdown maintenance',
+    quantity: 4,
+    rate: 2900,
+    vatOption: 'VAT 15%',
+    subtotal: item4.subtotal,
+    vatAmount: item4.vatAmount,
+    total: item4.total,
+    notes: 'Payment overdue. Follow-up reminder sent via WhatsApp.',
+    createdAt: new Date(Date.now() - 16 * 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 16 * 86400000).toISOString(),
+  },
+];

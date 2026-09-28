@@ -1,0 +1,6 @@
+{
+  "name": "Saudi Boom Truck Invoice Generator",
+  "description": "Professional bilingual (English & Arabic) invoice generator tailored for Saudi Arabia boom truck and heavy equipment rental services.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
