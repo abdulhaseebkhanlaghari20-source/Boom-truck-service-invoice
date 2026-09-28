@@ -6,8 +6,9 @@ on:
       - main
   workflow_dispatch:
 
+# Permissions required for GitHub Pages deployment
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -28,16 +29,16 @@ jobs:
           node-version: 20
           cache: 'npm'
 
+      # Using npm install --include=dev ensures all dependencies and devDependencies install smoothly
       - name: Install dependencies
-        run: npm ci
+        run: npm install --include=dev
 
       - name: Build application
         run: npm run build
         env:
-          NODE_ENV: production
           BASE_PATH: /Boom-truck-service-invoice/
 
-      - name: Upload artifact
+      - name: Upload artifact for GitHub Pages
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
