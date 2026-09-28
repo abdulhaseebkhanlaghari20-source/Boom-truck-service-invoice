@@ -300,7 +300,7 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
           <div className="space-y-1.5 pt-1">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold text-slate-600">
-                {lang === 'ar' ? 'معاينة نص الرسالة المُجهزة:' : 'Pre-filled WhatsApp Message Preview:'}
+                {lang === 'ar' ? 'نص مرافقة المستند (PDF):' : 'PDF Document Note:'}
               </span>
               <button
                 onClick={handleCopy}
@@ -310,9 +310,14 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
                 <span>{copied ? t.copiedText : t.copySummaryBtn}</span>
               </button>
             </div>
-            <pre className="p-3 bg-slate-100 rounded-md text-[11px] font-mono text-slate-800 whitespace-pre-wrap max-h-28 overflow-y-auto border border-slate-200 leading-relaxed">
-              {messageText}
-            </pre>
+            <div className="p-3 bg-slate-50 rounded-md text-[11px] font-sans text-slate-800 border border-slate-200 leading-relaxed">
+              <p className="font-semibold text-slate-900">{messageText}</p>
+              <p className="text-[10px] text-emerald-700 mt-1 font-medium">
+                {lang === 'ar'
+                  ? '✓ يتم إرسال الفاتورة الرسمية كملف PDF مرفق، وليس كنص مجرد.'
+                  : '✓ The full official invoice is shared as an attached PDF document, not as plain text.'}
+              </p>
+            </div>
           </div>
         </div>
 

@@ -88,41 +88,19 @@ export function buildWhatsAppMessage(
   companyName: string = '[COMPANY NAME]',
   lang: Language = 'en'
 ): string {
-  const city = invoice.city === 'Other' && invoice.customCity ? invoice.customCity : invoice.city;
-  const isAr = lang === 'ar';
-  const subtotalFormatted = formatCurrency(invoice.subtotal, 'en');
-  const vatFormatted = formatCurrency(invoice.vatAmount, 'en');
-  const totalFormatted = formatCurrency(invoice.total, 'en');
-  const vatLabel = invoice.vatOption === 'VAT 15%' ? 'VAT 15%' : 'No VAT (0%)';
-
-  if (isAr) {
-    const cityAr = SAUDI_CITIES_AR[city] || city;
-    const vatLabelAr = invoice.vatOption === 'VAT 15%' ? 'ضريبة القيمة المضافة ١٥٪' : 'بدون ضريبة (٠٪)';
-    return `فاتورة شاحنة رافعة (بوم ترَك)
+  if (lang === 'ar') {
+    return `فاتورة شاحنة رافعة رقم: ${invoice.invoiceNumber} (مستند PDF)
 المنشأة: ${companyName}
--------------------------
-رقم الفاتورة: ${invoice.invoiceNumber}
 العميل: ${invoice.customerName}
-الخدمة: شاحنة رافعة (Boom Truck)
-الحمولة: ${invoice.truckCapacity.replace('Ton', 'طن')}
-الموقع: ${cityAr}
-المجموع الفرعي: ${subtotalFormatted}
-${vatLabelAr}: ${vatFormatted}
-الإجمالي النهائي: ${totalFormatted}
--------------------------
-مرفق نسخة الفاتورة الرسمية PDF. شكراً لتعاملكم معنا.`;
+
+مرفق لكم ملف الفاتورة الرسمية بصيغة PDF. شكراً لتعاملكم معنا.`;
   }
 
-  return `Invoice No: ${invoice.invoiceNumber}
+  return `Invoice ${invoice.invoiceNumber} (PDF Document)
+From: ${companyName}
 Customer: ${invoice.customerName}
-Service: Boom Truck
-Capacity: ${invoice.truckCapacity}
-Location: ${city}
-Subtotal: ${subtotalFormatted}
-${vatLabel}: ${vatFormatted}
-Total: ${totalFormatted}
 
-Official PDF invoice attached. Thank you for your business.`;
+Please find the attached official Boom Truck service invoice PDF document.`;
 }
 
 /**

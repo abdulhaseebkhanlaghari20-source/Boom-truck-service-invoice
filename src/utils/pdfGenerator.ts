@@ -1,6 +1,8 @@
 import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import { Invoice, CompanySettings } from '../types/invoice';
+import { generateQrCodeDataUrl } from './zatcaQr';
+import { formatDate, formatCurrency, SAUDI_CITIES_AR } from './formatters';
 
 export interface SharePdfResult {
   success: boolean;
@@ -44,17 +46,17 @@ export async function generateInvoicePdfBlob(
   companySettings?: CompanySettings
 ): Promise<Blob> {
   // Allow pending font renders and layout ticks
-  await new Promise((resolve) => setTimeout(resolve, 80));
+  await new Promise((resolve) => setTimeout(resolve, 100));
 
   let imgData: string | null = null;
 
   try {
     imgData = await toPng(element, {
-      quality: 0.96,
+      quality: 0.98,
       pixelRatio: 2,
       backgroundColor: '#ffffff',
       cacheBust: true,
-      skipFonts: false,
+      skipFonts: true, // Prevents CORS or font fetch errors on mobile devices
     });
   } catch (canvasErr) {
     console.warn('html-to-image capture encountered error, attempting fallback:', canvasErr);
@@ -73,7 +75,9 @@ export async function generateInvoicePdfBlob(
   const margin = 8; // 8mm margins
   const printableWidth = pageWidth - margin * 2; // 194mm
 
-  if (imgData) {
+  let usedVector = false;
+
+  if (imgData && imgData.length > 200) {
     try {
       const imgProps = pdf.getImageProperties(imgData);
       const canvasRatio = imgProps.height / imgProps.width;
@@ -88,96 +92,224 @@ export async function generateInvoicePdfBlob(
         pdf.addImage(imgData, 'PNG', offsetX, margin, scaledWidth, maxHeight, undefined, 'FAST');
       }
     } catch (addErr) {
-      console.warn('Failed to place image on PDF, falling back to vector layout:', addErr);
-      if (invoice) {
-        renderDirectVectorInvoice(pdf, invoice, companySettings);
-      }
+      console.warn('Failed to place snapshot image on PDF, using direct vector layout:', addErr);
+      usedVector = true;
     }
-  } else if (invoice) {
-    renderDirectVectorInvoice(pdf, invoice, companySettings);
+  } else {
+    usedVector = true;
+  }
+
+  if (usedVector && invoice) {
+    await renderDirectVectorInvoice(pdf, invoice, companySettings);
   }
 
   return pdf.output('blob');
 }
 
 /**
- * Direct vector invoice renderer used as an infallible fallback.
+ * Direct comprehensive vector invoice renderer used as an infallible fallback.
+ * Contains ALL required invoice fields, QR code, bank info, and signature/stamp lines.
  */
-function renderDirectVectorInvoice(
+async function renderDirectVectorInvoice(
   pdf: jsPDF,
   invoice: Invoice,
   companySettings?: CompanySettings
-): void {
+): Promise<void> {
   const company = companySettings?.companyName || 'Boom Truck Rental Services';
+  const address = companySettings?.address || 'Kingdom of Saudi Arabia';
   const vatNo = companySettings?.vatNumber || '300000000000003';
   const phone = companySettings?.phone || '+966 50 000 0000';
+  const email = companySettings?.email || 'info@boomtruckservices.sa';
+  const crNo = companySettings?.crNumber || '';
+  const city = invoice.city === 'Other' && invoice.customCity ? invoice.customCity : invoice.city;
 
-  // Title Box
+  // 1. Top Header Bar: Slate-900 with Title
   pdf.setFillColor(15, 23, 42); // slate-900
-  pdf.rect(10, 10, 190, 22, 'F');
+  pdf.rect(10, 10, 190, 24, 'F');
   pdf.setTextColor(255, 255, 255);
+  pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(16);
-  pdf.text('TAX INVOICE / فاتورة ضريبية', 15, 22);
-  pdf.setFontSize(10);
-  pdf.text(`No: ${invoice.invoiceNumber}`, 150, 22);
-
-  // Company & Customer Details
-  pdf.setTextColor(30, 41, 59);
+  pdf.text('TAX INVOICE / فاتورة ضريبية', 16, 22);
   pdf.setFontSize(11);
-  pdf.text(company, 15, 40);
-  pdf.setFontSize(9);
-  pdf.text(`VAT No: ${vatNo} | Phone: ${phone}`, 15, 46);
-  pdf.text(`Date: ${invoice.invoiceDate} | Due: ${invoice.dueDate || invoice.invoiceDate}`, 15, 52);
+  pdf.text(`No: ${invoice.invoiceNumber}`, 148, 22);
 
-  pdf.setDrawColor(203, 213, 225);
-  pdf.line(10, 58, 200, 58);
-
-  // Customer block
-  pdf.setFontSize(10);
-  pdf.text('Billed To / العميل:', 15, 66);
-  pdf.setFontSize(11);
-  pdf.text(invoice.customerName || 'Valued Customer', 15, 73);
-  pdf.setFontSize(9);
-  pdf.text(`Location: ${invoice.city} | Truck: ${invoice.truckCapacity}`, 15, 80);
-
-  // Service Table Header
-  pdf.setFillColor(241, 245, 249);
-  pdf.rect(10, 90, 190, 8, 'F');
-  pdf.setFontSize(9);
-  pdf.setTextColor(51, 65, 85);
-  pdf.text('Description / الخدمة', 15, 95);
-  pdf.text('Qty', 110, 95);
-  pdf.text('Rate (SAR)', 140, 95);
-  pdf.text('Total (SAR)', 175, 95);
-
-  // Line item
+  // 2. Company Details (Left) + ZATCA QR Code (Right)
   pdf.setTextColor(15, 23, 42);
-  pdf.text(`Boom Truck Service (${invoice.truckCapacity})`, 15, 105);
-  pdf.text(`${invoice.quantity}`, 112, 105);
-  pdf.text(`${invoice.rate.toFixed(2)}`, 142, 105);
-  pdf.text(`${invoice.subtotal.toFixed(2)}`, 175, 105);
-
-  pdf.line(10, 112, 200, 112);
-
-  // Totals Box
-  pdf.setFontSize(10);
-  pdf.text('Subtotal / المجموع:', 120, 122);
-  pdf.text(`SAR ${invoice.subtotal.toFixed(2)}`, 175, 122);
-
-  pdf.text(`VAT (${invoice.vatOption}) / الضريبة:`, 120, 130);
-  pdf.text(`SAR ${invoice.vatAmount.toFixed(2)}`, 175, 130);
-
-  pdf.setFillColor(240, 253, 244);
-  pdf.rect(115, 136, 85, 12, 'F');
-  pdf.setTextColor(21, 128, 61);
+  pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(12);
-  pdf.text('Grand Total / الإجمالي:', 120, 144);
-  pdf.text(`SAR ${invoice.total.toFixed(2)}`, 170, 144);
+  pdf.text(company, 12, 42);
 
-  // Payment Status
-  pdf.setTextColor(100, 116, 139);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(8.5);
+  pdf.setTextColor(71, 85, 105);
+  pdf.text(address, 12, 47);
+  pdf.text(`VAT No: ${vatNo} | Phone: ${phone}`, 12, 52);
+  pdf.text(`Email: ${email}${crNo ? ` | CR: ${crNo}` : ''}`, 12, 57);
+
+  // Generate & draw ZATCA QR Code on top right
+  try {
+    const qrDataUrl = await generateQrCodeDataUrl(
+      company,
+      vatNo,
+      invoice.invoiceDate,
+      invoice.total,
+      invoice.vatAmount
+    );
+    if (qrDataUrl) {
+      pdf.addImage(qrDataUrl, 'PNG', 166, 36, 26, 26);
+    }
+  } catch (qrErr) {
+    console.warn('QR code render skipped in vector fallback:', qrErr);
+  }
+
+  // Horizontal divider
+  pdf.setDrawColor(203, 213, 225);
+  pdf.line(10, 64, 200, 64);
+
+  // 3. Bill To (Customer) & Invoice Metadata Zone
+  pdf.setFillColor(248, 250, 252);
+  pdf.rect(10, 67, 92, 30, 'F');
+  pdf.rect(106, 67, 94, 30, 'F');
+
+  // Customer Details Box
+  pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(9);
-  pdf.text(`Payment Status: ${invoice.paymentStatus.toUpperCase()}`, 15, 144);
+  pdf.setTextColor(100, 116, 139);
+  pdf.text('BILLED TO / العميل:', 14, 73);
+  pdf.setFontSize(11);
+  pdf.setTextColor(15, 23, 42);
+  pdf.text(invoice.customerName || 'Valued Customer', 14, 79);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(8.5);
+  pdf.setTextColor(71, 85, 105);
+  pdf.text(`Phone: ${invoice.customerPhone || 'N/A'}`, 14, 85);
+  pdf.text(`VAT No: ${invoice.customerVatNumber || 'N/A'}`, 14, 91);
+
+  // Invoice Details Box
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(9);
+  pdf.setTextColor(100, 116, 139);
+  pdf.text('INVOICE DETAILS / بيانات الفاتورة:', 110, 73);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(8.5);
+  pdf.setTextColor(15, 23, 42);
+  pdf.text(`Date: ${formatDate(invoice.invoiceDate)}`, 110, 79);
+  pdf.text(`Due Date: ${formatDate(invoice.dueDate)}`, 110, 85);
+  pdf.text(`Location: ${city} | Capacity: ${invoice.truckCapacity}`, 110, 91);
+
+  // 4. Service Line Items Table
+  pdf.setFillColor(15, 23, 42);
+  pdf.rect(10, 103, 190, 8, 'F');
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(8.5);
+  pdf.text('#', 13, 108.5);
+  pdf.text('Boom Truck Service Description / بيان الخدمة', 22, 108.5);
+  pdf.text('Capacity', 105, 108.5);
+  pdf.text('Qty', 128, 108.5);
+  pdf.text('Rate (SAR)', 146, 108.5);
+  pdf.text('Amount (SAR)', 175, 108.5);
+
+  // Table Row
+  pdf.setTextColor(15, 23, 42);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(9);
+  pdf.text('1', 13, 118);
+  const desc = invoice.serviceDescription || `Boom Truck Equipment Rental (${city})`;
+  pdf.text(desc, 22, 118);
+  pdf.text(invoice.truckCapacity, 105, 118);
+  pdf.text(`${invoice.quantity}`, 130, 118);
+  pdf.text(`${invoice.rate.toFixed(2)}`, 150, 118);
+  pdf.text(`${invoice.subtotal.toFixed(2)}`, 180, 118);
+
+  pdf.setDrawColor(226, 232, 240);
+  pdf.line(10, 124, 200, 124);
+
+  // 5. Notes & Bank Info (Left) + Calculations (Right)
+  const calcTop = 130;
+
+  // Notes & Bank details (Left)
+  if (invoice.notes) {
+    pdf.setFillColor(248, 250, 252);
+    pdf.rect(10, calcTop, 90, 18, 'F');
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(8);
+    pdf.setTextColor(100, 116, 139);
+    pdf.text('Notes / Terms:', 13, calcTop + 5);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8);
+    pdf.setTextColor(51, 65, 85);
+    pdf.text(invoice.notes, 13, calcTop + 11);
+  }
+
+  if (companySettings?.bankName) {
+    const bankY = invoice.notes ? calcTop + 22 : calcTop;
+    pdf.setFillColor(248, 250, 252);
+    pdf.rect(10, bankY, 90, 16, 'F');
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(8);
+    pdf.setTextColor(100, 116, 139);
+    pdf.text('Bank Transfer Details:', 13, bankY + 5);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8);
+    pdf.setTextColor(51, 65, 85);
+    pdf.text(`Bank: ${companySettings.bankName}`, 13, bankY + 10);
+    if (companySettings.iban) {
+      pdf.text(`IBAN: ${companySettings.iban}`, 13, bankY + 14);
+    }
+  }
+
+  // Calculations Box (Right)
+  pdf.setFillColor(248, 250, 252);
+  pdf.rect(106, calcTop, 94, 38, 'F');
+
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(9);
+  pdf.setTextColor(71, 85, 105);
+  pdf.text('Subtotal / المجموع الفرعي:', 110, calcTop + 8);
+  pdf.text(`SAR ${invoice.subtotal.toFixed(2)}`, 175, calcTop + 8);
+
+  const vatLabel = invoice.vatOption === 'VAT 15%' ? 'VAT 15% / ضريبة ١٥٪:' : 'VAT (No VAT):';
+  pdf.text(vatLabel, 110, calcTop + 16);
+  pdf.text(`SAR ${invoice.vatAmount.toFixed(2)}`, 175, calcTop + 16);
+
+  // Grand Total Highlight
+  pdf.setFillColor(240, 253, 244);
+  pdf.rect(108, calcTop + 22, 90, 12, 'F');
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(11);
+  pdf.setTextColor(22, 101, 52); // emerald-800
+  pdf.text('Grand Total / الإجمالي:', 112, calcTop + 30);
+  pdf.text(`SAR ${invoice.total.toFixed(2)}`, 166, calcTop + 30);
+
+  // 6. Signature & Stamp Footer Area
+  const footerY = 186;
+  pdf.setDrawColor(203, 213, 225);
+  pdf.line(10, footerY, 200, footerY);
+
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(8);
+  pdf.setTextColor(148, 163, 184);
+  pdf.text('Received By / توقيع المستلم:', 14, footerY + 8);
+  pdf.setDrawColor(148, 163, 184);
+  pdf.line(14, footerY + 22, 70, footerY + 22);
+
+  pdf.text('Authorized Stamp & Signature / الختم والتوقيع:', 130, footerY + 8);
+  pdf.line(130, footerY + 22, 190, footerY + 22);
+
+  // Payment Status Badge
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(8.5);
+  if (invoice.paymentStatus === 'Paid') {
+    pdf.setTextColor(22, 101, 52);
+    pdf.text('[ STATUS: PAID / مدفوعة ]', 14, footerY + 28);
+  } else if (invoice.paymentStatus === 'Partially Paid') {
+    pdf.setTextColor(180, 83, 9);
+    pdf.text('[ STATUS: PARTIALLY PAID ]', 14, footerY + 28);
+  } else {
+    pdf.setTextColor(190, 18, 60);
+    pdf.text('[ STATUS: UNPAID / غير مدفوعة ]', 14, footerY + 28);
+  }
 }
 
 /**
@@ -202,15 +334,6 @@ export function downloadPdfBlob(blob: Blob, filename: string): boolean {
 }
 
 /**
- * Opens a PDF Blob directly in a new tab (useful as a 100% reliable mobile viewer).
- */
-export function openPdfBlobInNewTab(blob: Blob): void {
-  const url = URL.createObjectURL(blob);
-  window.open(url, '_blank');
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
-}
-
-/**
  * Shares the PDF file via the Web Share API (Android Chrome, iOS Safari, etc.).
  * If unsupported, downloads the file and reports sharedAsFile = false so callers can trigger fallback.
  */
@@ -223,9 +346,8 @@ export async function shareInvoicePdfFile(
 ): Promise<SharePdfResult> {
   const filename = getInvoicePdfFilename(invoice.invoiceNumber);
   const title = shareTitle || `Invoice ${invoice.invoiceNumber}`;
-  const text =
-    shareText ||
-    `Boom Truck Service Invoice ${invoice.invoiceNumber} - Total: SAR ${invoice.total.toFixed(2)}`;
+  // DO NOT put invoice data in the text body - keep it as a clean attachment note
+  const text = shareText || `Boom Truck Service Invoice ${invoice.invoiceNumber} (PDF Document)`;
 
   try {
     const blob = await generateInvoicePdfBlob(element, invoice, companySettings);

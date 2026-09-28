@@ -7,7 +7,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Invoice, CompanySettings, ViewTab, Language } from './types/invoice';
 import { DEFAULT_COMPANY_SETTINGS, INITIAL_INVOICES } from './utils/demoData';
 import { generateNextInvoiceNumber, isInvoiceNumberDuplicate } from './utils/numbering';
-import { calculateInvoiceTotals } from './utils/formatters';
+import { calculateInvoiceTotals, getWhatsAppShareUrl } from './utils/formatters';
 import { translations } from './translations/i18n';
 import {
   generateInvoicePdfBlob,
@@ -328,7 +328,70 @@ export default function App() {
     }
   };
 
-  // WhatsApp Handler
+  // 3. WhatsApp PDF Handler: Generates complete PDF first and shares via native share sheet as a document, or downloads with clear instructions
+  const handleWhatsAppShare = async (inv?: Invoice) => {
+    const target = inv || currentInvoice;
+    try {
+      setIsGeneratingPdf(true);
+      setGeneratingLabel(
+        lang === 'ar'
+          ? 'جاري تجهيز وثيقة الفاتورة PDF للواتساب...'
+          : 'Generating official A4 invoice PDF for WhatsApp...'
+      );
+      const el = await getInvoicePdfElement(target);
+      const filename = getInvoicePdfFilename(target.invoiceNumber);
+
+      // Check if native file sharing is supported (Mobile Android / iOS)
+      if (canSharePdfFile()) {
+        const result = await shareInvoicePdfFile(
+          el,
+          target,
+          companySettings,
+          `Invoice ${target.invoiceNumber}`,
+          `Boom Truck Service Invoice ${target.invoiceNumber} (PDF Document)`
+        );
+
+        if (result.sharedAsFile && result.success) {
+          showToast(
+            lang === 'ar'
+              ? 'اختر تطبيق واتساب لإرسال ملف الفاتورة كوثيقة'
+              : 'Select WhatsApp in the share sheet to attach the PDF document',
+            'success'
+          );
+          return;
+        } else if (result.method === 'aborted') {
+          return;
+        }
+      }
+
+      // Fallback if browser/device cannot attach files directly (e.g. Desktop Chrome):
+      // 1. Download the complete PDF file automatically
+      const blob = await generateInvoicePdfBlob(el, target, companySettings);
+      downloadPdfBlob(blob, filename);
+
+      // 2. Open WhatsApp with a simple polite note (NO plain text invoice dump)
+      const waUrl = getWhatsAppShareUrl(target, companySettings.companyName || '[COMPANY NAME]', lang);
+      window.open(waUrl, '_blank', 'noopener,noreferrer');
+
+      // 3. Show clear instruction modal/banner
+      showToast(
+        lang === 'ar'
+          ? 'تم تحميل الفاتورة PDF. يرجى إرفاق هذا الملف كمستند في واتساب.'
+          : 'PDF downloaded. Please attach this PDF as a Document in WhatsApp.',
+        'info'
+      );
+    } catch (err: any) {
+      console.error('WhatsApp PDF Share Error:', err);
+      showToast(
+        lang === 'ar' ? 'تعذر تجهيز ملف الفاتورة' : 'Failed to prepare invoice PDF',
+        'error'
+      );
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  // WhatsApp Modal Opener (for manual step review if needed)
   const handleOpenWhatsAppModal = (inv: Invoice) => {
     setWhatsAppModalInvoice(inv);
   };
@@ -358,7 +421,7 @@ export default function App() {
             onDownloadPdf={() => handleDownloadPdf(currentInvoice)}
             onSharePdf={() => handleSharePdf(currentInvoice)}
             onEmailPdf={() => handleEmailPdf(currentInvoice)}
-            onShareWhatsApp={handleOpenWhatsAppModal}
+            onShareWhatsApp={() => handleWhatsAppShare(currentInvoice)}
             isDuplicateInvoiceNumber={isDuplicateInvoiceNumber}
             isEditingExisting={isEditingExisting}
           />
@@ -375,7 +438,7 @@ export default function App() {
             onDownloadPdf={handleDownloadPdf}
             onSharePdf={handleSharePdf}
             onEmailPdf={handleEmailPdf}
-            onShareWhatsApp={handleOpenWhatsAppModal}
+            onShareWhatsApp={handleWhatsAppShare}
             onNew={handleNewInvoice}
           />
         )}
@@ -409,7 +472,7 @@ export default function App() {
         onDownloadPdf={() => handleDownloadPdf(previewModalInvoice!)}
         onSharePdf={() => handleSharePdf(previewModalInvoice!)}
         onEmailPdf={() => handleEmailPdf(previewModalInvoice!)}
-        onShareWhatsApp={handleOpenWhatsAppModal}
+        onShareWhatsApp={handleWhatsAppShare}
       />
 
       {/* WhatsApp Sharing Modal */}
@@ -419,7 +482,7 @@ export default function App() {
         lang={lang}
         onClose={() => setWhatsAppModalInvoice(null)}
         onDownloadPdf={handleDownloadPdf}
-        onSharePdf={handleSharePdf}
+        onSharePdf={handleWhatsAppShare}
       />
 
       {/* 794px Fixed Hidden PDF Rendering Container */}
