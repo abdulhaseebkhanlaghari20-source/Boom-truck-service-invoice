@@ -134,17 +134,29 @@ async function renderDirectVectorInvoice(
   pdf.text(`No: ${invoice.invoiceNumber}`, 148, 22);
 
   // 2. Company Details (Left) + ZATCA QR Code (Right)
+  let textStartX = 12;
+
+  // Render company logo if present
+  if (companySettings?.logoUrl) {
+    try {
+      pdf.addImage(companySettings.logoUrl, 'PNG', 12, 37, 34, 23, undefined, 'FAST');
+      textStartX = 50; // Shift company text to right of logo
+    } catch (logoErr) {
+      console.warn('Company logo skipped in vector fallback:', logoErr);
+    }
+  }
+
   pdf.setTextColor(15, 23, 42);
   pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(12);
-  pdf.text(company, 12, 42);
+  pdf.setFontSize(13);
+  pdf.text(company, textStartX, 43);
 
   pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(8.5);
+  pdf.setFontSize(9.5);
   pdf.setTextColor(71, 85, 105);
-  pdf.text(address, 12, 47);
-  pdf.text(`VAT No: ${vatNo} | Phone: ${phone}`, 12, 52);
-  pdf.text(`Email: ${email}${crNo ? ` | CR: ${crNo}` : ''}`, 12, 57);
+  pdf.text(address, textStartX, 49);
+  pdf.text(`VAT No: ${vatNo} | Phone: ${phone}`, textStartX, 54);
+  pdf.text(`Email: ${email}${crNo ? ` | CR: ${crNo}` : ''}`, textStartX, 59);
 
   // Generate & draw ZATCA QR Code on top right
   try {
@@ -156,7 +168,7 @@ async function renderDirectVectorInvoice(
       invoice.vatAmount
     );
     if (qrDataUrl) {
-      pdf.addImage(qrDataUrl, 'PNG', 166, 36, 26, 26);
+      pdf.addImage(qrDataUrl, 'PNG', 164, 35, 28, 28);
     }
   } catch (qrErr) {
     console.warn('QR code render skipped in vector fallback:', qrErr);
@@ -164,69 +176,72 @@ async function renderDirectVectorInvoice(
 
   // Horizontal divider
   pdf.setDrawColor(203, 213, 225);
-  pdf.line(10, 64, 200, 64);
+  pdf.line(10, 65, 200, 65);
 
   // 3. Bill To (Customer) & Invoice Metadata Zone
   pdf.setFillColor(248, 250, 252);
-  pdf.rect(10, 67, 92, 30, 'F');
-  pdf.rect(106, 67, 94, 30, 'F');
+  pdf.rect(10, 68, 92, 32, 'F');
+  pdf.rect(106, 68, 94, 32, 'F');
 
   // Customer Details Box
   pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(9);
+  pdf.setFontSize(9.5);
   pdf.setTextColor(100, 116, 139);
-  pdf.text('BILLED TO / العميل:', 14, 73);
-  pdf.setFontSize(11);
+  pdf.text('BILLED TO / العميل:', 14, 74);
+  pdf.setFontSize(12);
   pdf.setTextColor(15, 23, 42);
-  pdf.text(invoice.customerName || 'Valued Customer', 14, 79);
+  pdf.text(invoice.customerName || 'Valued Customer', 14, 81);
   pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(8.5);
+  pdf.setFontSize(9.5);
   pdf.setTextColor(71, 85, 105);
-  pdf.text(`Phone: ${invoice.customerPhone || 'N/A'}`, 14, 85);
-  pdf.text(`VAT No: ${invoice.customerVatNumber || 'N/A'}`, 14, 91);
+  pdf.text(`Phone: ${invoice.customerPhone || 'N/A'}`, 14, 88);
+  pdf.text(`VAT No: ${invoice.customerVatNumber || 'N/A'}`, 14, 94);
 
   // Invoice Details Box
   pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(9);
+  pdf.setFontSize(9.5);
   pdf.setTextColor(100, 116, 139);
-  pdf.text('INVOICE DETAILS / بيانات الفاتورة:', 110, 73);
+  pdf.text('INVOICE DETAILS / بيانات الفاتورة:', 110, 74);
   pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(8.5);
+  pdf.setFontSize(9.5);
   pdf.setTextColor(15, 23, 42);
-  pdf.text(`Date: ${formatDate(invoice.invoiceDate)}`, 110, 79);
-  pdf.text(`Due Date: ${formatDate(invoice.dueDate)}`, 110, 85);
-  pdf.text(`Location: ${city} | Capacity: ${invoice.truckCapacity}`, 110, 91);
+  pdf.text(`Date: ${formatDate(invoice.invoiceDate)}`, 110, 81);
+  pdf.text(`Due Date: ${formatDate(invoice.dueDate)}`, 110, 88);
+  pdf.text(`Location: ${city} | Capacity: ${invoice.truckCapacity}`, 110, 94);
 
   // 4. Service Line Items Table
   pdf.setFillColor(15, 23, 42);
-  pdf.rect(10, 103, 190, 8, 'F');
+  pdf.rect(10, 105, 190, 9, 'F');
   pdf.setTextColor(255, 255, 255);
   pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(8.5);
-  pdf.text('#', 13, 108.5);
-  pdf.text('Boom Truck Service Description / بيان الخدمة', 22, 108.5);
-  pdf.text('Capacity', 105, 108.5);
-  pdf.text('Qty', 128, 108.5);
-  pdf.text('Rate (SAR)', 146, 108.5);
-  pdf.text('Amount (SAR)', 175, 108.5);
+  pdf.setFontSize(9);
+  pdf.text('#', 13, 111);
+  pdf.text('Boom Truck Service Description / بيان الخدمة', 22, 111);
+  pdf.text('Capacity', 105, 111);
+  pdf.text('Qty', 128, 111);
+  pdf.text('Rate (SAR)', 146, 111);
+  pdf.text('Amount (SAR)', 175, 111);
 
   // Table Row
   pdf.setTextColor(15, 23, 42);
   pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(9);
-  pdf.text('1', 13, 118);
+  pdf.setFontSize(9.5);
+  pdf.text('1', 13, 121);
   const desc = invoice.serviceDescription || `Boom Truck Equipment Rental (${city})`;
-  pdf.text(desc, 22, 118);
-  pdf.text(invoice.truckCapacity, 105, 118);
-  pdf.text(`${invoice.quantity}`, 130, 118);
-  pdf.text(`${invoice.rate.toFixed(2)}`, 150, 118);
-  pdf.text(`${invoice.subtotal.toFixed(2)}`, 180, 118);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(desc, 22, 121);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text(invoice.truckCapacity, 105, 121);
+  pdf.text(`${invoice.quantity}`, 130, 121);
+  pdf.text(`${invoice.rate.toFixed(2)}`, 150, 121);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(`${invoice.subtotal.toFixed(2)}`, 180, 121);
 
   pdf.setDrawColor(226, 232, 240);
-  pdf.line(10, 124, 200, 124);
+  pdf.line(10, 127, 200, 127);
 
   // 5. Notes & Bank Info (Left) + Calculations (Right)
-  const calcTop = 130;
+  const calcTop = 133;
 
   // Notes & Bank details (Left)
   if (invoice.notes) {
