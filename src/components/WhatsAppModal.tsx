@@ -13,6 +13,8 @@ import {
   AlertTriangle,
   Send,
   FileCheck,
+  Loader2,
+  CheckCircle2,
 } from 'lucide-react';
 
 interface WhatsAppModalProps {
@@ -20,8 +22,8 @@ interface WhatsAppModalProps {
   companySettings: CompanySettings;
   lang: Language;
   onClose: () => void;
-  onDownloadPdf: (invoice: Invoice) => void;
-  onSharePdf?: (invoice: Invoice) => void;
+  onDownloadPdf: (invoice: Invoice) => void | Promise<void>;
+  onSharePdf?: (invoice: Invoice) => void | Promise<void>;
 }
 
 export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
@@ -38,6 +40,7 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
   const [copied, setCopied] = useState(false);
   const [pdfDownloaded, setPdfDownloaded] = useState(false);
   const [showAttachReminder, setShowAttachReminder] = useState(false);
+  const [isProcessing, setIsProcessing] = useState<string | null>(null);
 
   const isNativeShareSupported = canSharePdfFile();
 
@@ -58,17 +61,37 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
     setTimeout(() => setCopied(false), 2500);
   };
 
-  const handleDownload = () => {
-    onDownloadPdf(invoice);
-    setPdfDownloaded(true);
-    setShowAttachReminder(true);
+  const handleDownload = async () => {
+    setIsProcessing('download');
+    try {
+      await onDownloadPdf(invoice);
+      setPdfDownloaded(true);
+      setShowAttachReminder(true);
+    } finally {
+      setIsProcessing(null);
+    }
   };
 
-  const handleDownloadAndOpenWhatsApp = () => {
-    onDownloadPdf(invoice);
-    setPdfDownloaded(true);
-    setShowAttachReminder(true);
-    window.open(waUrl, '_blank', 'noopener,noreferrer');
+  const handleShare = async () => {
+    if (!onSharePdf) return;
+    setIsProcessing('share');
+    try {
+      await onSharePdf(invoice);
+    } finally {
+      setIsProcessing(null);
+    }
+  };
+
+  const handleDownloadAndOpenWhatsApp = async () => {
+    setIsProcessing('1click');
+    try {
+      await onDownloadPdf(invoice);
+      setPdfDownloaded(true);
+      setShowAttachReminder(true);
+      window.open(waUrl, '_blank', 'noopener,noreferrer');
+    } finally {
+      setIsProcessing(null);
+    }
   };
 
   return (
@@ -115,17 +138,25 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
               </div>
               <button
                 type="button"
-                onClick={() => {
-                  onSharePdf(invoice);
-                }}
-                className="w-full py-2.5 px-4 text-xs font-bold rounded-md bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center gap-2 transition-colors shadow-xs"
+                disabled={isProcessing !== null}
+                onClick={handleShare}
+                className="w-full py-2.5 px-4 text-xs font-bold rounded-md bg-emerald-600 hover:bg-emerald-500 disabled:opacity-70 text-white flex items-center justify-center gap-2 transition-colors shadow-xs"
               >
-                <Share2 className="w-4 h-4" />
-                <span>
-                  {lang === 'ar'
-                    ? 'مشاركة ملف الـ PDF كوثيقة (اختر واتساب)'
-                    : 'Share PDF File Document (Select WhatsApp)'}
-                </span>
+                {isProcessing === 'share' ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>{lang === 'ar' ? 'جاري فتح المشاركة...' : 'Opening Share Sheet...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Share2 className="w-4 h-4" />
+                    <span>
+                      {lang === 'ar'
+                        ? 'مشاركة ملف الـ PDF كوثيقة (اختر واتساب)'
+                        : 'Share PDF File Document (Select WhatsApp)'}
+                    </span>
+                  </>
+                )}
               </button>
             </div>
           )}
@@ -133,12 +164,12 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
           {/* Attach Reminder Banner if user downloaded or clicked fallback */}
           {showAttachReminder && (
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-900 text-xs flex items-start gap-2 animate-in fade-in">
-              <AlertTriangle className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
               <div>
-                <span className="font-bold block">
-                  {lang === 'ar' ? 'تنبيه إرفاق الملف:' : 'PDF Downloaded:'}
+                <span className="font-bold block text-emerald-900">
+                  {lang === 'ar' ? 'تم تجهيز وتحميل ملف الـ PDF:' : 'PDF Downloaded Successfully:'}
                 </span>
-                <p className="text-[11px] text-blue-800">
+                <p className="text-[11px] text-slate-700 mt-0.5">
                   {lang === 'ar'
                     ? 'تم تحميل ملف PDF على جهازك. يرجى الضغط على زر الإرفاق (📎) داخل محادثة واتساب واختيار ملف الفاتورة.'
                     : 'PDF downloaded to your device. Please attach the PDF document (📎) in your WhatsApp chat.'}
@@ -178,6 +209,7 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
                 </div>
               </div>
               <button
+                disabled={isProcessing !== null}
                 onClick={handleDownload}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-md flex items-center gap-1.5 transition-colors shrink-0 ${
                   pdfDownloaded
@@ -185,8 +217,17 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
                     : 'bg-slate-900 text-white hover:bg-slate-800'
                 }`}
               >
-                <FileDown className="w-3.5 h-3.5" />
-                <span>{pdfDownloaded ? (lang === 'ar' ? 'تم التحميل' : 'Downloaded') : t.downloadPdf}</span>
+                {isProcessing === 'download' ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>{lang === 'ar' ? 'جاري التحميل...' : 'Downloading...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <FileDown className="w-3.5 h-3.5" />
+                    <span>{pdfDownloaded ? (lang === 'ar' ? 'تم التحميل ✓' : 'Downloaded ✓') : t.downloadPdf}</span>
+                  </>
+                )}
               </button>
             </div>
 
@@ -234,15 +275,25 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
           {/* Quick 1-Click Action */}
           <button
             type="button"
+            disabled={isProcessing !== null}
             onClick={handleDownloadAndOpenWhatsApp}
-            className="w-full py-2 px-3 text-xs font-semibold rounded-md border border-emerald-600 text-emerald-700 hover:bg-emerald-50 flex items-center justify-center gap-1.5 transition-colors"
+            className="w-full py-2.5 px-3 text-xs font-semibold rounded-md border border-emerald-600 text-emerald-700 bg-emerald-50/50 hover:bg-emerald-100 flex items-center justify-center gap-1.5 transition-colors shadow-xs"
           >
-            <Send className="w-3.5 h-3.5" />
-            <span>
-              {lang === 'ar'
-                ? 'تحميل الفاتورة وفتح واتساب بخطوة واحدة'
-                : '1-Click: Download PDF & Open WhatsApp'}
-            </span>
+            {isProcessing === '1click' ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-emerald-700" />
+                <span>{lang === 'ar' ? 'جاري تجهيز التحميل وفتح واتساب...' : 'Preparing PDF & Opening WhatsApp...'}</span>
+              </>
+            ) : (
+              <>
+                <Send className="w-3.5 h-3.5" />
+                <span>
+                  {lang === 'ar'
+                    ? 'تحميل الفاتورة وفتح واتساب بخطوة واحدة'
+                    : '1-Click: Download PDF & Open WhatsApp'}
+                </span>
+              </>
+            )}
           </button>
 
           {/* Pre-composed Message Preview */}
@@ -278,3 +329,4 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
     </div>
   );
 };
+

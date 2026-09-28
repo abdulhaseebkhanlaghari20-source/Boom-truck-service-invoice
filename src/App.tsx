@@ -147,15 +147,19 @@ export default function App() {
     }, 4500);
   };
 
-  // Helper to ensure an invoice is rendered in the dedicated 794px offscreen container
+  // Helper to ensure an invoice is rendered in the dedicated 794px container or current screen
   const getInvoicePdfElement = async (inv: Invoice): Promise<HTMLElement> => {
+    // 1. If the invoice preview is currently visible on screen (e.g. form preview or modal), use it directly
+    const onScreenEl = document.getElementById(`invoice-preview-sheet-${inv.id}`);
+    if (onScreenEl && onScreenEl.clientHeight > 100) {
+      return onScreenEl;
+    }
+
+    // 2. Otherwise update offscreen target and wait for React + QR code to render
     setPdfTargetInvoice(inv);
-    // Wait for React to render and QRCode to complete inside offscreen container
     await new Promise((r) => setTimeout(r, 160));
     const offscreenEl = pdfOffscreenRef.current?.querySelector('[data-invoice-sheet="true"]') as HTMLElement;
     if (offscreenEl) return offscreenEl;
-    const onScreenEl = document.getElementById(`invoice-preview-sheet-${inv.id}`);
-    if (onScreenEl) return onScreenEl;
     return pdfOffscreenRef.current || document.body;
   };
 
@@ -229,7 +233,7 @@ export default function App() {
       setIsGeneratingPdf(true);
       setGeneratingLabel(lang === 'ar' ? 'جاري تجهيز ملف الـ PDF الرسمي...' : 'Generating official A4 PDF...');
       const el = await getInvoicePdfElement(target);
-      const blob = await generateInvoicePdfBlob(el);
+      const blob = await generateInvoicePdfBlob(el, target, companySettings);
       const filename = getInvoicePdfFilename(target.invoiceNumber);
       downloadPdfBlob(blob, filename);
       showToast(
@@ -256,7 +260,7 @@ export default function App() {
       setIsGeneratingPdf(true);
       setGeneratingLabel(lang === 'ar' ? 'جاري تجهيز مشاركة المستند...' : 'Preparing PDF file share...');
       const el = await getInvoicePdfElement(target);
-      const result = await shareInvoicePdfFile(el, target);
+      const result = await shareInvoicePdfFile(el, target, companySettings);
 
       if (result.sharedAsFile && result.success) {
         showToast(
@@ -296,7 +300,7 @@ export default function App() {
 
       // If native file share is supported, attempt to open share sheet so user can select their email app
       if (canSharePdfFile()) {
-        const result = await shareInvoicePdfFile(el, target, subject, body);
+        const result = await shareInvoicePdfFile(el, target, companySettings, subject, body);
         if (result.sharedAsFile && result.success) {
           showToast(
             lang === 'ar' ? 'اختر تطبيق البريد لإرفاق الملف' : 'Select your email app to attach PDF',
@@ -307,7 +311,7 @@ export default function App() {
       }
 
       // Fallback: download PDF and open mailto
-      const blob = await generateInvoicePdfBlob(el);
+      const blob = await generateInvoicePdfBlob(el, target, companySettings);
       downloadPdfBlob(blob, filename);
       const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
       window.location.href = mailtoUrl;
@@ -418,17 +422,18 @@ export default function App() {
         onSharePdf={handleSharePdf}
       />
 
-      {/* 794px Fixed Offscreen PDF Rendering Container */}
+      {/* 794px Fixed Hidden PDF Rendering Container */}
       <div
         ref={pdfOffscreenRef}
         aria-hidden="true"
         style={{
           position: 'fixed',
-          left: '-9999px',
           top: 0,
+          left: 0,
           width: '794px',
           background: '#ffffff',
-          zIndex: -999,
+          zIndex: -9999,
+          opacity: 0,
           pointerEvents: 'none',
         }}
       >
@@ -452,7 +457,7 @@ export default function App() {
 
       {/* Loading Overlay during PDF Generation */}
       {isGeneratingPdf && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl p-6 flex flex-col items-center gap-3 max-w-xs text-center border border-slate-200 animate-in fade-in zoom-in-95">
             <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
             <span className="text-xs font-bold text-slate-800">
@@ -467,10 +472,10 @@ export default function App() {
         </div>
       )}
 
-      {/* Toast Notification Banner */}
+      {/* Toast Notification Banner - Visible on top of modals */}
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 rtl:right-auto rtl:left-6 z-50 max-w-md p-4 rounded-lg shadow-lg border flex items-start gap-3 animate-in slide-in-from-bottom-5 duration-200 ${
+          className={`fixed top-4 right-4 left-4 sm:left-auto sm:right-6 sm:bottom-6 sm:top-auto z-[9999] max-w-md p-4 rounded-lg shadow-xl border flex items-start gap-3 animate-in slide-in-from-top-5 sm:slide-in-from-bottom-5 duration-200 ${
             toast.type === 'success'
               ? 'bg-emerald-900 text-white border-emerald-700'
               : toast.type === 'error'
