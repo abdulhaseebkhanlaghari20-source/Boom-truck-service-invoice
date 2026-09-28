@@ -15,6 +15,7 @@ import {
   Trash2,
   FileDown,
   Share2,
+  Mail,
   Plus,
   CheckCircle2,
   Clock,
@@ -30,6 +31,8 @@ interface InvoiceListProps {
   onEdit: (invoice: Invoice) => void;
   onDelete: (id: string) => void;
   onDownloadPdf: (invoice: Invoice) => void;
+  onSharePdf?: (invoice: Invoice) => void;
+  onEmailPdf?: (invoice: Invoice) => void;
   onPrint?: (invoice: Invoice) => void;
   onShareWhatsApp: (invoice: Invoice) => void;
   onNew: () => void;
@@ -42,6 +45,8 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
   onEdit,
   onDelete,
   onDownloadPdf,
+  onSharePdf,
+  onEmailPdf,
   onPrint,
   onShareWhatsApp,
   onNew,
@@ -426,13 +431,31 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
                           >
                             <FileDown className="w-4 h-4" />
                           </button>
+                          {onSharePdf && (
+                            <button
+                              onClick={() => onSharePdf(inv)}
+                              title={t.sharePdf}
+                              className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
+                            >
+                              <Share2 className="w-4 h-4" />
+                            </button>
+                          )}
                           <button
                             onClick={() => onShareWhatsApp(inv)}
                             title={t.shareWhatsapp}
                             className="p-1.5 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 rounded transition-colors"
                           >
-                            <Share2 className="w-4 h-4" />
+                            <span className="font-bold text-[11px] px-1 py-0.5 rounded bg-emerald-100 text-emerald-800">WA</span>
                           </button>
+                          {onEmailPdf && (
+                            <button
+                              onClick={() => onEmailPdf(inv)}
+                              title={t.emailPdf}
+                              className="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded transition-colors"
+                            >
+                              <Mail className="w-4 h-4" />
+                            </button>
+                          )}
                           <button
                             onClick={() => {
                               if (

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Invoice, CompanySettings, Language } from '../types/invoice';
 import { translations } from '../translations/i18n';
 import { buildWhatsAppMessage, getWhatsAppShareUrl } from '../utils/formatters';
+import { canSharePdfFile } from '../utils/pdfGenerator';
 import {
   Share2,
   FileDown,
@@ -11,6 +12,7 @@ import {
   X,
   AlertTriangle,
   Send,
+  FileCheck,
 } from 'lucide-react';
 
 interface WhatsAppModalProps {
@@ -19,6 +21,7 @@ interface WhatsAppModalProps {
   lang: Language;
   onClose: () => void;
   onDownloadPdf: (invoice: Invoice) => void;
+  onSharePdf?: (invoice: Invoice) => void;
 }
 
 export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
@@ -27,12 +30,16 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
   lang,
   onClose,
   onDownloadPdf,
+  onSharePdf,
 }) => {
   if (!invoice) return null;
 
   const t = translations[lang];
   const [copied, setCopied] = useState(false);
   const [pdfDownloaded, setPdfDownloaded] = useState(false);
+  const [showAttachReminder, setShowAttachReminder] = useState(false);
+
+  const isNativeShareSupported = canSharePdfFile();
 
   const messageText = buildWhatsAppMessage(
     invoice,
@@ -54,6 +61,14 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
   const handleDownload = () => {
     onDownloadPdf(invoice);
     setPdfDownloaded(true);
+    setShowAttachReminder(true);
+  };
+
+  const handleDownloadAndOpenWhatsApp = () => {
+    onDownloadPdf(invoice);
+    setPdfDownloaded(true);
+    setShowAttachReminder(true);
+    window.open(waUrl, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -81,15 +96,69 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-5 space-y-4">
-          {/* Transparent Notice */}
+        <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
+          {/* Mobile Native Share Sheet (If Supported) */}
+          {isNativeShareSupported && onSharePdf && (
+            <div className="p-3.5 bg-emerald-50 border border-emerald-300 rounded-lg space-y-2">
+              <div className="flex items-start gap-2.5">
+                <FileCheck className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <span className="text-xs font-bold text-emerald-950 block">
+                    {lang === 'ar' ? 'مشاركة ملف PDF مباشرة:' : 'Direct PDF File Share (Supported):'}
+                  </span>
+                  <p className="text-[11px] text-emerald-800 leading-relaxed">
+                    {lang === 'ar'
+                      ? 'يمكنك مشاركة ملف الفاتورة PDF كوثيقة مباشرة واختيار واتساب من قائمة التطبيقات.'
+                      : 'You can share the PDF invoice as a document directly. Select WhatsApp in your device share sheet.'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  onSharePdf(invoice);
+                }}
+                className="w-full py-2.5 px-4 text-xs font-bold rounded-md bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center gap-2 transition-colors shadow-xs"
+              >
+                <Share2 className="w-4 h-4" />
+                <span>
+                  {lang === 'ar'
+                    ? 'مشاركة ملف الـ PDF كوثيقة (اختر واتساب)'
+                    : 'Share PDF File Document (Select WhatsApp)'}
+                </span>
+              </button>
+            </div>
+          )}
+
+          {/* Attach Reminder Banner if user downloaded or clicked fallback */}
+          {showAttachReminder && (
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-900 text-xs flex items-start gap-2 animate-in fade-in">
+              <AlertTriangle className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold block">
+                  {lang === 'ar' ? 'تنبيه إرفاق الملف:' : 'PDF Downloaded:'}
+                </span>
+                <p className="text-[11px] text-blue-800">
+                  {lang === 'ar'
+                    ? 'تم تحميل ملف PDF على جهازك. يرجى الضغط على زر الإرفاق (📎) داخل محادثة واتساب واختيار ملف الفاتورة.'
+                    : 'PDF downloaded to your device. Please attach the PDF document (📎) in your WhatsApp chat.'}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Standard 3-Step Protocol Notice */}
           <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-900 text-xs flex items-start gap-2.5">
             <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
             <div className="space-y-1">
               <span className="font-bold block">
-                {lang === 'ar' ? 'طريقة المشاركة الرسمية عبر واتساب:' : 'WhatsApp 3-Step Sharing Protocol:'}
+                {lang === 'ar' ? 'طريقة مشاركة الوثيقة (PDF):' : 'Document Sharing Protocol:'}
               </span>
-              <p className="text-[11px] text-amber-800 leading-relaxed">{t.stepNotice}</p>
+              <p className="text-[11px] text-amber-800 leading-relaxed">
+                {lang === 'ar'
+                  ? 'المتصفح لا يمكنه إجبار واتساب على إرفاق الملف تلقائياً بدون موافقتك. قم بتحميل ملف PDF ثم افتح المحادثة وأرفق الوثيقة.'
+                  : 'Standard browser security requires downloading the PDF first, then attaching the document in WhatsApp.'}
+              </p>
             </div>
           </div>
 
@@ -138,6 +207,7 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
                 href={waUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => setShowAttachReminder(true)}
                 className="px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5 transition-colors shrink-0"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -161,6 +231,20 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
             </div>
           </div>
 
+          {/* Quick 1-Click Action */}
+          <button
+            type="button"
+            onClick={handleDownloadAndOpenWhatsApp}
+            className="w-full py-2 px-3 text-xs font-semibold rounded-md border border-emerald-600 text-emerald-700 hover:bg-emerald-50 flex items-center justify-center gap-1.5 transition-colors"
+          >
+            <Send className="w-3.5 h-3.5" />
+            <span>
+              {lang === 'ar'
+                ? 'تحميل الفاتورة وفتح واتساب بخطوة واحدة'
+                : '1-Click: Download PDF & Open WhatsApp'}
+            </span>
+          </button>
+
           {/* Pre-composed Message Preview */}
           <div className="space-y-1.5 pt-1">
             <div className="flex items-center justify-between">
@@ -175,7 +259,7 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
                 <span>{copied ? t.copiedText : t.copySummaryBtn}</span>
               </button>
             </div>
-            <pre className="p-3 bg-slate-100 rounded-md text-[11px] font-mono text-slate-800 whitespace-pre-wrap max-h-36 overflow-y-auto border border-slate-200 leading-relaxed">
+            <pre className="p-3 bg-slate-100 rounded-md text-[11px] font-mono text-slate-800 whitespace-pre-wrap max-h-28 overflow-y-auto border border-slate-200 leading-relaxed">
               {messageText}
             </pre>
           </div>

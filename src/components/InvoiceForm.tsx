@@ -14,6 +14,7 @@ import {
   Printer,
   FileDown,
   Share2,
+  Mail,
   PlusCircle,
   Eye,
   CheckCircle2,
@@ -32,6 +33,8 @@ interface InvoiceFormProps {
   onNew: () => void;
   onPrint: () => void;
   onDownloadPdf: () => void;
+  onSharePdf: () => void;
+  onEmailPdf: () => void;
   onShareWhatsApp: (invoice: Invoice) => void;
   isDuplicateInvoiceNumber: boolean;
   isEditingExisting?: boolean;
@@ -46,6 +49,8 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
   onNew,
   onPrint,
   onDownloadPdf,
+  onSharePdf,
+  onEmailPdf,
   onShareWhatsApp,
   isDuplicateInvoiceNumber,
   isEditingExisting = false,
@@ -486,11 +491,11 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
             </div>
 
             {/* Bottom Actions */}
-            <div className="flex items-center gap-3 pt-1">
+            <div className="flex flex-wrap items-center gap-2 pt-1">
               <button
                 type="submit"
                 disabled={isDuplicateInvoiceNumber}
-                className="flex-1 min-h-[44px] text-xs font-bold rounded-md bg-emerald-600 hover:bg-emerald-500 text-white transition-colors shadow-xs flex items-center justify-center gap-2"
+                className="flex-1 min-h-[44px] px-4 text-xs font-bold rounded-md bg-emerald-600 hover:bg-emerald-500 text-white transition-colors shadow-xs flex items-center justify-center gap-2"
               >
                 <Save className="w-4 h-4" />
                 <span>{isEditingExisting ? t.updateInvoice : t.saveInvoice}</span>
@@ -498,8 +503,49 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
 
               <button
                 type="button"
+                onClick={onDownloadPdf}
+                title={t.downloadPdf}
+                className="min-h-[44px] px-3 text-xs font-semibold rounded-md border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors flex items-center justify-center gap-1.5"
+              >
+                <FileDown className="w-4 h-4 text-emerald-700" />
+                <span>{t.downloadPdf}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={onSharePdf}
+                title={t.sharePdf}
+                className="min-h-[44px] px-3 text-xs font-semibold rounded-md bg-blue-600 hover:bg-blue-500 text-white transition-colors shadow-xs flex items-center justify-center gap-1.5"
+              >
+                <Share2 className="w-4 h-4" />
+                <span>{t.sharePdf}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onShareWhatsApp(invoice)}
+                title={t.shareWhatsapp}
+                className="min-h-[44px] px-3 text-xs font-semibold rounded-md bg-emerald-700 hover:bg-emerald-600 text-white transition-colors flex items-center justify-center gap-1.5"
+              >
+                <span className="font-bold text-[10px]">WA</span>
+                <span>{lang === 'ar' ? 'واتساب' : 'WhatsApp'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={onEmailPdf}
+                title={t.emailPdf}
+                className="min-h-[44px] px-3 text-xs font-semibold rounded-md border border-indigo-200 text-indigo-700 bg-indigo-50/50 hover:bg-indigo-100 transition-colors flex items-center justify-center gap-1.5"
+              >
+                <Mail className="w-4 h-4" />
+                <span className="hidden sm:inline">{t.emailPdf}</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={onPrint}
-                className="min-h-[44px] px-4 text-xs font-semibold rounded-md border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5"
+                title={t.print}
+                className="min-h-[44px] px-3 text-xs font-semibold rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50 transition-colors flex items-center justify-center gap-1.5"
               >
                 <Printer className="w-4 h-4" />
                 <span className="hidden sm:inline">{t.print}</span>
@@ -515,19 +561,33 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
               <Eye className="w-3.5 h-3.5 text-emerald-700" />
               {lang === 'ar' ? 'معاينة الفاتورة الفورية (A4)' : 'Live Invoice Preview (A4)'}
             </span>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 text-xs">
               <button
                 onClick={onPrint}
-                className="text-xs text-slate-700 hover:text-slate-900 font-semibold underline decoration-dotted"
+                className="text-slate-700 hover:text-slate-900 font-semibold underline decoration-dotted"
               >
                 {t.print}
               </button>
               <span className="text-slate-300">·</span>
               <button
                 onClick={onDownloadPdf}
-                className="text-xs text-emerald-700 hover:text-emerald-800 font-semibold underline decoration-dotted"
+                className="text-emerald-700 hover:text-emerald-800 font-semibold underline decoration-dotted"
               >
                 {t.downloadPdf}
+              </button>
+              <span className="text-slate-300">·</span>
+              <button
+                onClick={onSharePdf}
+                className="text-blue-700 hover:text-blue-800 font-semibold underline decoration-dotted"
+              >
+                {t.sharePdf}
+              </button>
+              <span className="text-slate-300">·</span>
+              <button
+                onClick={onEmailPdf}
+                className="text-indigo-700 hover:text-indigo-800 font-semibold underline decoration-dotted"
+              >
+                {t.emailPdf}
               </button>
             </div>
           </div>

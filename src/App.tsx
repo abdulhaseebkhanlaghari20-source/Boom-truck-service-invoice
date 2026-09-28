@@ -3,12 +3,19 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Invoice, CompanySettings, ViewTab, Language } from './types/invoice';
 import { DEFAULT_COMPANY_SETTINGS, INITIAL_INVOICES } from './utils/demoData';
 import { generateNextInvoiceNumber, isInvoiceNumberDuplicate } from './utils/numbering';
 import { calculateInvoiceTotals } from './utils/formatters';
 import { translations } from './translations/i18n';
+import {
+  generateInvoicePdfBlob,
+  downloadPdfBlob,
+  shareInvoicePdfFile,
+  canSharePdfFile,
+  getInvoicePdfFilename,
+} from './utils/pdfGenerator';
 import { Header } from './components/Header';
 import { InvoiceForm } from './components/InvoiceForm';
 import { InvoiceList } from './components/InvoiceList';
@@ -17,6 +24,7 @@ import { SettingsSection } from './components/SettingsModal';
 import { WhatsAppModal } from './components/WhatsAppModal';
 import { PreviewModal } from './components/PreviewModal';
 import { InvoicePreview } from './components/InvoicePreview';
+import { Loader2, CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 
 const STORAGE_KEYS = {
   INVOICES: 'saudi_boom_truck_invoices_v1',
@@ -125,6 +133,32 @@ export default function App() {
   const [whatsAppModalInvoice, setWhatsAppModalInvoice] = useState<Invoice | null>(null);
   const [printTargetInvoice, setPrintTargetInvoice] = useState<Invoice | null>(null);
 
+  // 7. PDF Generation State & Refs
+  const pdfOffscreenRef = useRef<HTMLDivElement>(null);
+  const [pdfTargetInvoice, setPdfTargetInvoice] = useState<Invoice | null>(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
+  const [generatingLabel, setGeneratingLabel] = useState<string>('');
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'info' | 'error' = 'info') => {
+    setToast({ message, type });
+    setTimeout(() => {
+      setToast((prev) => (prev?.message === message ? null : prev));
+    }, 4500);
+  };
+
+  // Helper to ensure an invoice is rendered in the dedicated 794px offscreen container
+  const getInvoicePdfElement = async (inv: Invoice): Promise<HTMLElement> => {
+    setPdfTargetInvoice(inv);
+    // Wait for React to render and QRCode to complete inside offscreen container
+    await new Promise((r) => setTimeout(r, 160));
+    const offscreenEl = pdfOffscreenRef.current?.querySelector('[data-invoice-sheet="true"]') as HTMLElement;
+    if (offscreenEl) return offscreenEl;
+    const onScreenEl = document.getElementById(`invoice-preview-sheet-${inv.id}`);
+    if (onScreenEl) return onScreenEl;
+    return pdfOffscreenRef.current || document.body;
+  };
+
   // Check if invoice number is duplicate in current list
   const isDuplicateInvoiceNumber = isInvoiceNumberDuplicate(
     currentInvoice.invoiceNumber,
@@ -146,6 +180,10 @@ export default function App() {
     }
     saveInvoicesToStorage(updated);
     setIsEditingExisting(true);
+    showToast(
+      lang === 'ar' ? translations[lang].savedSuccess : translations[lang].savedSuccess,
+      'success'
+    );
   };
 
   // New Invoice handler
@@ -171,6 +209,7 @@ export default function App() {
     if (currentInvoice.id === id) {
       handleNewInvoice();
     }
+    showToast(translations[lang].deletedSuccess, 'info');
   };
 
   // Print Handler
@@ -183,13 +222,106 @@ export default function App() {
     }, 150);
   };
 
-  // Download PDF Handler
-  const handleDownloadPdf = (inv?: Invoice) => {
+  // 1. Download PDF Handler: Generates actual A4 PDF and downloads as Invoice-INV-001.pdf
+  const handleDownloadPdf = async (inv?: Invoice) => {
     const target = inv || currentInvoice;
-    setPrintTargetInvoice(target);
-    setTimeout(() => {
-      window.print();
-    }, 150);
+    try {
+      setIsGeneratingPdf(true);
+      setGeneratingLabel(lang === 'ar' ? 'جاري تجهيز ملف الـ PDF الرسمي...' : 'Generating official A4 PDF...');
+      const el = await getInvoicePdfElement(target);
+      const blob = await generateInvoicePdfBlob(el);
+      const filename = getInvoicePdfFilename(target.invoiceNumber);
+      downloadPdfBlob(blob, filename);
+      showToast(
+        lang === 'ar'
+          ? `تم تحميل ${filename} بنجاح`
+          : `Downloaded ${filename} successfully`,
+        'success'
+      );
+    } catch (err: any) {
+      console.error('PDF Download Error:', err);
+      showToast(
+        lang === 'ar' ? 'فشل إنشاء ملف PDF' : 'Failed to generate PDF document',
+        'error'
+      );
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  // 2. Share PDF Handler: Uses native Web Share API with real PDF file where supported, falls back to download
+  const handleSharePdf = async (inv?: Invoice) => {
+    const target = inv || currentInvoice;
+    try {
+      setIsGeneratingPdf(true);
+      setGeneratingLabel(lang === 'ar' ? 'جاري تجهيز مشاركة المستند...' : 'Preparing PDF file share...');
+      const el = await getInvoicePdfElement(target);
+      const result = await shareInvoicePdfFile(el, target);
+
+      if (result.sharedAsFile && result.success) {
+        showToast(
+          lang === 'ar' ? 'تم فتح قائمة المشاركة بنجاح' : 'Opened document share sheet',
+          'success'
+        );
+      } else if (result.downloadedFallback) {
+        showToast(translations[lang].fileSharingNotSupported, 'info');
+      } else if (result.error && result.method !== 'aborted') {
+        showToast(result.error, 'error');
+      }
+    } catch (err: any) {
+      console.error('PDF Share Error:', err);
+      showToast(
+        lang === 'ar' ? 'حدث خطأ أثناء المشاركة' : 'Error sharing PDF document',
+        'error'
+      );
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  // 4. Email PDF Handler: Shares via native file share if available, or downloads PDF & opens email compose
+  const handleEmailPdf = async (inv?: Invoice) => {
+    const target = inv || currentInvoice;
+    try {
+      setIsGeneratingPdf(true);
+      setGeneratingLabel(lang === 'ar' ? 'جاري إعداد الفاتورة للإرسال بالبريد...' : 'Preparing invoice email...');
+      const el = await getInvoicePdfElement(target);
+      const filename = getInvoicePdfFilename(target.invoiceNumber);
+
+      const subject = `Invoice ${target.invoiceNumber} - ${companySettings.companyName || 'Boom Truck Service'}`;
+      const body =
+        lang === 'ar'
+          ? `السلام عليكم ورحمة الله وبركاته،\n\nمرفق لكم فاتورة خدمة شاحنة رافعة (بوم ترَك) رقم ${target.invoiceNumber}.\n\nالعميل: ${target.customerName}\nالحمولة: ${target.truckCapacity}\nالموقع: ${target.city}\nالإجمالي: ${target.total} ر.س\n\nشاكرين لتعاملكم معنا.`
+          : `Dear Customer,\n\nPlease find the attached Boom Truck service invoice ${target.invoiceNumber}.\n\nCustomer: ${target.customerName}\nCapacity: ${target.truckCapacity}\nLocation: ${target.city}\nTotal Amount: SAR ${target.total.toFixed(2)}\n\nThank you for your business.`;
+
+      // If native file share is supported, attempt to open share sheet so user can select their email app
+      if (canSharePdfFile()) {
+        const result = await shareInvoicePdfFile(el, target, subject, body);
+        if (result.sharedAsFile && result.success) {
+          showToast(
+            lang === 'ar' ? 'اختر تطبيق البريد لإرفاق الملف' : 'Select your email app to attach PDF',
+            'success'
+          );
+          return;
+        }
+      }
+
+      // Fallback: download PDF and open mailto
+      const blob = await generateInvoicePdfBlob(el);
+      downloadPdfBlob(blob, filename);
+      const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      window.location.href = mailtoUrl;
+
+      showToast(translations[lang].pdfEmailNotice, 'info');
+    } catch (err: any) {
+      console.error('Email PDF Error:', err);
+      showToast(
+        lang === 'ar' ? 'تعذر تجهيز البريد' : 'Failed to prepare email',
+        'error'
+      );
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   // WhatsApp Handler
@@ -220,6 +352,8 @@ export default function App() {
             onNew={handleNewInvoice}
             onPrint={() => handlePrint(currentInvoice)}
             onDownloadPdf={() => handleDownloadPdf(currentInvoice)}
+            onSharePdf={() => handleSharePdf(currentInvoice)}
+            onEmailPdf={() => handleEmailPdf(currentInvoice)}
             onShareWhatsApp={handleOpenWhatsAppModal}
             isDuplicateInvoiceNumber={isDuplicateInvoiceNumber}
             isEditingExisting={isEditingExisting}
@@ -235,6 +369,8 @@ export default function App() {
             onDelete={handleDeleteInvoice}
             onPrint={handlePrint}
             onDownloadPdf={handleDownloadPdf}
+            onSharePdf={handleSharePdf}
+            onEmailPdf={handleEmailPdf}
             onShareWhatsApp={handleOpenWhatsAppModal}
             onNew={handleNewInvoice}
           />
@@ -267,17 +403,42 @@ export default function App() {
         onEdit={handleEditInvoice}
         onPrint={() => handlePrint(previewModalInvoice!)}
         onDownloadPdf={() => handleDownloadPdf(previewModalInvoice!)}
+        onSharePdf={() => handleSharePdf(previewModalInvoice!)}
+        onEmailPdf={() => handleEmailPdf(previewModalInvoice!)}
         onShareWhatsApp={handleOpenWhatsAppModal}
       />
 
-      {/* WhatsApp Sharing 3-Step Modal */}
+      {/* WhatsApp Sharing Modal */}
       <WhatsAppModal
         invoice={whatsAppModalInvoice}
         companySettings={companySettings}
         lang={lang}
         onClose={() => setWhatsAppModalInvoice(null)}
         onDownloadPdf={handleDownloadPdf}
+        onSharePdf={handleSharePdf}
       />
+
+      {/* 794px Fixed Offscreen PDF Rendering Container */}
+      <div
+        ref={pdfOffscreenRef}
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          left: '-9999px',
+          top: 0,
+          width: '794px',
+          background: '#ffffff',
+          zIndex: -999,
+          pointerEvents: 'none',
+        }}
+      >
+        <InvoicePreview
+          invoice={pdfTargetInvoice || currentInvoice}
+          companySettings={companySettings}
+          lang={lang}
+          isPrintOnly={false}
+        />
+      </div>
 
       {/* Hidden Print Container specifically targeted by @media print */}
       <div className="hidden print:block">
@@ -288,6 +449,47 @@ export default function App() {
           isPrintOnly={true}
         />
       </div>
+
+      {/* Loading Overlay during PDF Generation */}
+      {isGeneratingPdf && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl p-6 flex flex-col items-center gap-3 max-w-xs text-center border border-slate-200 animate-in fade-in zoom-in-95">
+            <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+            <span className="text-xs font-bold text-slate-800">
+              {generatingLabel || translations[lang].generatingPdf}
+            </span>
+            <span className="text-[11px] text-slate-500">
+              {lang === 'ar'
+                ? 'جاري معالجة وتصدير وثيقة A4 الرسمية'
+                : 'Rendering high-resolution A4 document'}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification Banner */}
+      {toast && (
+        <div
+          className={`fixed bottom-6 right-6 rtl:right-auto rtl:left-6 z-50 max-w-md p-4 rounded-lg shadow-lg border flex items-start gap-3 animate-in slide-in-from-bottom-5 duration-200 ${
+            toast.type === 'success'
+              ? 'bg-emerald-900 text-white border-emerald-700'
+              : toast.type === 'error'
+              ? 'bg-rose-900 text-white border-rose-700'
+              : 'bg-slate-900 text-white border-slate-700'
+          }`}
+        >
+          {toast.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />}
+          {toast.type === 'error' && <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />}
+          {toast.type === 'info' && <Info className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />}
+          <div className="flex-1 text-xs leading-relaxed">{toast.message}</div>
+          <button
+            onClick={() => setToast(null)}
+            className="text-slate-400 hover:text-white p-0.5 rounded transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Quiet Footer */}
       <footer className="no-print mt-auto py-4 border-t border-slate-200 bg-white text-slate-500 text-xs text-center">

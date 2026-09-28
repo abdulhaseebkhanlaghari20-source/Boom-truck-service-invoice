@@ -82,6 +82,8 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
 
   return (
     <div
+      id={`invoice-preview-sheet-${invoice.id}`}
+      data-invoice-sheet="true"
       className={`invoice-sheet bg-white text-slate-900 border border-slate-300 shadow-sm rounded-lg p-6 max-w-[800px] mx-auto print-container leading-normal select-text ${
         isPrintOnly ? 'print-only' : ''
       }`}
