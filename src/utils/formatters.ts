@@ -126,3 +126,112 @@ export function getWhatsAppShareUrl(
 
   return `https://wa.me/?text=${encodeURIComponent(message)}`;
 }
+
+/**
+ * Converts numeric amounts into formal words for invoices (English & Arabic)
+ */
+export function numberToWords(amount: number, lang: Language = 'en'): string {
+  const whole = Math.floor(Math.abs(amount) || 0);
+  const fraction = Math.round(((Math.abs(amount) || 0) - whole) * 100);
+
+  if (lang === 'ar') {
+    const onesAr = ['', 'واحد', 'اثنان', 'ثلاثة', 'أربعة', 'خمسة', 'ستة', 'سبعة', 'ثمانية', 'تسعة'];
+    const tensAr = ['', 'عشرة', 'عشرون', 'ثلاثون', 'أربعون', 'خمسون', 'ستون', 'سبعون', 'ثمانون', 'تسعون'];
+    const hundredsAr = ['', 'مائة', 'مئتان', 'ثلاثمائة', 'أربعمائة', 'خمسمائة', 'ستمائة', 'سبعمائة', 'ثمانمائة', 'تسعمائة'];
+
+    const convertChunkAr = (num: number): string => {
+      let str = '';
+      const h = Math.floor(num / 100);
+      const rem = num % 100;
+      if (h > 0) str += hundredsAr[h];
+      if (rem > 0) {
+        if (str) str += ' و';
+        if (rem < 10) {
+          str += onesAr[rem];
+        } else if (rem === 10) {
+          str += 'عشرة';
+        } else if (rem === 11) {
+          str += 'أحد عشر';
+        } else if (rem === 12) {
+          str += 'اثنا عشر';
+        } else if (rem < 20) {
+          str += `${onesAr[rem % 10]} عشر`;
+        } else {
+          const t = Math.floor(rem / 10);
+          const o = rem % 10;
+          if (o > 0) str += `${onesAr[o]} و`;
+          str += tensAr[t];
+        }
+      }
+      return str;
+    };
+
+    let result = '';
+    if (whole === 0) {
+      result = 'صفر';
+    } else {
+      const thousands = Math.floor(whole / 1000);
+      const remainder = whole % 1000;
+      if (thousands > 0) {
+        if (thousands === 1) result += 'ألف';
+        else if (thousands === 2) result += 'ألفان';
+        else if (thousands >= 3 && thousands <= 10) result += `${convertChunkAr(thousands)} آلاف`;
+        else result += `${convertChunkAr(thousands)} ألف`;
+      }
+      if (remainder > 0) {
+        if (result) result += ' و';
+        result += convertChunkAr(remainder);
+      }
+    }
+
+    result = `فقط ${result} ريالاً سعودياً`;
+    if (fraction > 0) {
+      result += ` و${convertChunkAr(fraction)} هللة`;
+    }
+    return `${result} لا غير`;
+  }
+
+  // English
+  const onesEn = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+  const tensEn = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+  const convertChunkEn = (num: number): string => {
+    let str = '';
+    const h = Math.floor(num / 100);
+    const rem = num % 100;
+    if (h > 0) str += `${onesEn[h]} Hundred`;
+    if (rem > 0) {
+      if (str) str += ' ';
+      if (rem < 20) {
+        str += onesEn[rem];
+      } else {
+        const t = Math.floor(rem / 10);
+        const o = rem % 10;
+        str += tensEn[t];
+        if (o > 0) str += `-${onesEn[o]}`;
+      }
+    }
+    return str;
+  };
+
+  let resEn = '';
+  if (whole === 0) {
+    resEn = 'Zero';
+  } else {
+    const thousands = Math.floor(whole / 1000);
+    const rem = whole % 1000;
+    if (thousands > 0) {
+      resEn += `${convertChunkEn(thousands)} Thousand`;
+    }
+    if (rem > 0) {
+      if (resEn) resEn += ' ';
+      resEn += convertChunkEn(rem);
+    }
+  }
+
+  let finalEn = `${resEn} Riyals`;
+  if (fraction > 0) {
+    finalEn += ` and ${convertChunkEn(fraction)} Halalas`;
+  }
+  return `${finalEn} Only`;
+}

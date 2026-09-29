@@ -340,13 +340,13 @@ async function renderDirectVectorInvoice(
     pdf.text('[ STATUS: UNPAID / غير مدفوعة ]', 14, footerY + 28);
   }
 
-  // Bottom Thank You Banner (matching sample design)
-  pdf.setFillColor(6, 78, 59); // emerald-800
-  pdf.rect(10, footerY + 33, 56, 6, 'F');
+  // Bottom Full-Width Dark Footer (matching master reference design)
+  pdf.setFillColor(15, 23, 42); // slate-900
+  pdf.rect(10, footerY + 32, 190, 9, 'F');
   pdf.setTextColor(255, 255, 255);
-  pdf.setFont('helvetica', 'bold');
+  pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(7.5);
-  pdf.text('Thank you for your business', 13, footerY + 37.2);
+  pdf.text(`${address}  |  Mob: ${phone}  |  Mail: ${email}`, 14, footerY + 38);
 }
 
 /**
