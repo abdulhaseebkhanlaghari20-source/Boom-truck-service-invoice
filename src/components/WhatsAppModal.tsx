@@ -1,20 +1,15 @@
 import React, { useState } from 'react';
 import { Invoice, CompanySettings, Language } from '../types/invoice';
 import { translations } from '../translations/i18n';
-import { buildWhatsAppMessage, getWhatsAppShareUrl } from '../utils/formatters';
-import { canSharePdfFile } from '../utils/pdfGenerator';
+import { canShareImageFile } from '../utils/imageShare';
 import {
   Share2,
   FileDown,
-  ExternalLink,
-  Copy,
-  Check,
   X,
   AlertTriangle,
-  Send,
-  FileCheck,
   Loader2,
   CheckCircle2,
+  Image as ImageIcon,
 } from 'lucide-react';
 
 interface WhatsAppModalProps {
@@ -28,67 +23,26 @@ interface WhatsAppModalProps {
 
 export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
   invoice,
-  companySettings,
   lang,
   onClose,
-  onDownloadPdf,
   onSharePdf,
 }) => {
   if (!invoice) return null;
 
   const t = translations[lang];
-  const [copied, setCopied] = useState(false);
-  const [pdfDownloaded, setPdfDownloaded] = useState(false);
+  const [imageDownloaded, setImageDownloaded] = useState(false);
   const [showAttachReminder, setShowAttachReminder] = useState(false);
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
 
-  const isNativeShareSupported = canSharePdfFile();
-
-  const messageText = buildWhatsAppMessage(
-    invoice,
-    companySettings.companyName || '[COMPANY NAME]',
-    lang
-  );
-  const waUrl = getWhatsAppShareUrl(
-    invoice,
-    companySettings.companyName || '[COMPANY NAME]',
-    lang
-  );
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(messageText);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
-  };
-
-  const handleDownload = async () => {
-    setIsProcessing('download');
-    try {
-      await onDownloadPdf(invoice);
-      setPdfDownloaded(true);
-      setShowAttachReminder(true);
-    } finally {
-      setIsProcessing(null);
-    }
-  };
+  const isNativeShareSupported = canShareImageFile();
 
   const handleShare = async () => {
     if (!onSharePdf) return;
     setIsProcessing('share');
     try {
       await onSharePdf(invoice);
-    } finally {
-      setIsProcessing(null);
-    }
-  };
-
-  const handleDownloadAndOpenWhatsApp = async () => {
-    setIsProcessing('1click');
-    try {
-      await onDownloadPdf(invoice);
-      setPdfDownloaded(true);
+      setImageDownloaded(true);
       setShowAttachReminder(true);
-      window.open(waUrl, '_blank', 'noopener,noreferrer');
     } finally {
       setIsProcessing(null);
     }
@@ -104,7 +58,9 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
               <Share2 className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold">{t.whatsappModalTitle}</h3>
+              <h3 className="text-sm font-bold">
+                {lang === 'ar' ? 'مشاركة الفاتورة عبر واتساب كصورة' : 'Share Invoice on WhatsApp as Image'}
+              </h3>
               <p className="text-[11px] text-slate-300 font-mono">
                 {invoice.invoiceNumber} · {invoice.customerName}
               </p>
@@ -124,15 +80,15 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
           {isNativeShareSupported && onSharePdf && (
             <div className="p-3.5 bg-emerald-50 border border-emerald-300 rounded-lg space-y-2">
               <div className="flex items-start gap-2.5">
-                <FileCheck className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
+                <ImageIcon className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
                 <div className="space-y-0.5">
                   <span className="text-xs font-bold text-emerald-950 block">
-                    {lang === 'ar' ? 'مشاركة ملف PDF مباشرة:' : 'Direct PDF File Share (Supported):'}
+                    {lang === 'ar' ? 'مشاركة صورة الفاتورة مباشرة:' : 'Direct Image File Share (Supported):'}
                   </span>
                   <p className="text-[11px] text-emerald-800 leading-relaxed">
                     {lang === 'ar'
-                      ? 'يمكنك مشاركة ملف الفاتورة PDF كوثيقة مباشرة واختيار واتساب من قائمة التطبيقات.'
-                      : 'You can share the PDF invoice as a document directly. Select WhatsApp in your device share sheet.'}
+                      ? 'يمكنك مشاركة صورة الفاتورة مباشرة واختيار واتساب من قائمة التطبيقات لإرسالها كمرفق صورة عالي الجودة.'
+                      : 'You can share the invoice as an image directly. Select WhatsApp in your device share sheet to send it as an image attachment.'}
                   </p>
                 </div>
               </div>
@@ -152,8 +108,8 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
                     <Share2 className="w-4 h-4" />
                     <span>
                       {lang === 'ar'
-                        ? 'مشاركة ملف الـ PDF كوثيقة (اختر واتساب)'
-                        : 'Share PDF File Document (Select WhatsApp)'}
+                        ? 'مشاركة صورة الفاتورة (اختر واتساب)'
+                        : 'Share Invoice Image (Select WhatsApp)'}
                     </span>
                   </>
                 )}
@@ -167,157 +123,56 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
               <div>
                 <span className="font-bold block text-emerald-900">
-                  {lang === 'ar' ? 'تم تجهيز وتحميل ملف الـ PDF:' : 'PDF Downloaded Successfully:'}
+                  {lang === 'ar' ? 'تم تجهيز صورة الفاتورة:' : 'Invoice Image Ready:'}
                 </span>
                 <p className="text-[11px] text-slate-700 mt-0.5">
                   {lang === 'ar'
-                    ? 'تم تحميل ملف PDF على جهازك. يرجى الضغط على زر الإرفاق (📎) داخل محادثة واتساب واختيار ملف الفاتورة.'
-                    : 'PDF downloaded to your device. Please attach the PDF document (📎) in your WhatsApp chat.'}
+                    ? 'يرجى الضغط على زر الإرفاق (📎) داخل محادثة واتساب واختيار صورة الفاتورة.'
+                    : 'Please attach the downloaded invoice image (📎) in your WhatsApp chat.'}
                 </p>
               </div>
             </div>
           )}
 
-          {/* Standard 3-Step Protocol Notice */}
-          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-900 text-xs flex items-start gap-2.5">
+          {/* Standard Protocol Notice */}
+          <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs flex items-start gap-2.5">
             <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
             <div className="space-y-1">
               <span className="font-bold block">
-                {lang === 'ar' ? 'طريقة مشاركة الوثيقة (PDF):' : 'Document Sharing Protocol:'}
+                {lang === 'ar' ? 'إرسال الفاتورة كصورة رسمية:' : 'Official Invoice Image Attachment:'}
               </span>
-              <p className="text-[11px] text-amber-800 leading-relaxed">
+              <p className="text-[11px] text-slate-600 leading-relaxed">
                 {lang === 'ar'
-                  ? 'المتصفح لا يمكنه إجبار واتساب على إرفاق الملف تلقائياً بدون موافقتك. قم بتحميل ملف PDF ثم افتح المحادثة وأرفق الوثيقة.'
-                  : 'Standard browser security requires downloading the PDF first, then attaching the document in WhatsApp.'}
+                  ? 'يتم تحويل الفاتورة الكاملة (بما فيها الشعار، العلامة المائية، جدول المعدة، الحسابات والرمز الضريبي) إلى صورة PNG عالية الدقة لإرسالها كمرفق في واتساب بدلاً من النصوص العادية.'
+                  : 'The complete invoice (including logo, watermark, equipment table, totals, and QR code) is converted into a high-resolution PNG image attachment instead of plain text.'}
               </p>
             </div>
           </div>
 
-          {/* 3 Step Workflow */}
-          <div className="space-y-2.5 text-xs text-slate-700">
-            {/* Step 1 */}
-            <div className="flex items-center justify-between p-3 rounded-lg border border-slate-200 bg-slate-50">
-              <div className="flex items-start gap-2.5">
-                <span className="w-5 h-5 rounded-full bg-emerald-600 text-white font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
-                  1
-                </span>
-                <div>
-                  <span className="font-bold text-slate-900 block">
-                    {lang === 'ar' ? 'تحميل الفاتورة PDF' : 'Download Invoice PDF'}
+          {/* Action Button: Share / Download Image */}
+          <div className="space-y-2 pt-1">
+            <button
+              type="button"
+              disabled={isProcessing !== null}
+              onClick={handleShare}
+              className="w-full py-3 px-4 text-xs font-bold rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white flex items-center justify-center gap-2 transition-colors shadow-xs"
+            >
+              {isProcessing === 'share' ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>{lang === 'ar' ? 'جاري تجهيز الصورة...' : 'Processing Invoice Image...'}</span>
+                </>
+              ) : (
+                <>
+                  <ImageIcon className="w-4 h-4" />
+                  <span>
+                    {lang === 'ar'
+                      ? 'إرسال الفاتورة عبر واتساب (صورة PNG)'
+                      : 'Send Invoice via WhatsApp (PNG Image)'}
                   </span>
-                  <p className="text-[11px] text-slate-500">{t.whatsappStep1}</p>
-                </div>
-              </div>
-              <button
-                disabled={isProcessing !== null}
-                onClick={handleDownload}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-md flex items-center gap-1.5 transition-colors shrink-0 ${
-                  pdfDownloaded
-                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                    : 'bg-slate-900 text-white hover:bg-slate-800'
-                }`}
-              >
-                {isProcessing === 'download' ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>{lang === 'ar' ? 'جاري التحميل...' : 'Downloading...'}</span>
-                  </>
-                ) : (
-                  <>
-                    <FileDown className="w-3.5 h-3.5" />
-                    <span>{pdfDownloaded ? (lang === 'ar' ? 'تم التحميل ✓' : 'Downloaded ✓') : t.downloadPdf}</span>
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Step 2 */}
-            <div className="flex items-center justify-between p-3 rounded-lg border border-slate-200 bg-slate-50">
-              <div className="flex items-start gap-2.5">
-                <span className="w-5 h-5 rounded-full bg-emerald-600 text-white font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
-                  2
-                </span>
-                <div>
-                  <span className="font-bold text-slate-900 block">
-                    {lang === 'ar' ? 'فتح محادثة واتساب' : 'Open WhatsApp Chat'}
-                  </span>
-                  <p className="text-[11px] text-slate-500">{t.whatsappStep2}</p>
-                </div>
-              </div>
-              <a
-                href={waUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setShowAttachReminder(true)}
-                className="px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5 transition-colors shrink-0"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span>{t.openWhatsappBtn}</span>
-              </a>
-            </div>
-
-            {/* Step 3 */}
-            <div className="p-3 rounded-lg border border-slate-200 bg-slate-50">
-              <div className="flex items-start gap-2.5">
-                <span className="w-5 h-5 rounded-full bg-slate-400 text-white font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
-                  3
-                </span>
-                <div>
-                  <span className="font-bold text-slate-900 block">
-                    {lang === 'ar' ? 'إرفاق ملف الـ PDF' : 'Attach Downloaded PDF'}
-                  </span>
-                  <p className="text-[11px] text-slate-500">{t.whatsappStep3}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick 1-Click Action */}
-          <button
-            type="button"
-            disabled={isProcessing !== null}
-            onClick={handleDownloadAndOpenWhatsApp}
-            className="w-full py-2.5 px-3 text-xs font-semibold rounded-md border border-emerald-600 text-emerald-700 bg-emerald-50/50 hover:bg-emerald-100 flex items-center justify-center gap-1.5 transition-colors shadow-xs"
-          >
-            {isProcessing === '1click' ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin text-emerald-700" />
-                <span>{lang === 'ar' ? 'جاري تجهيز التحميل وفتح واتساب...' : 'Preparing PDF & Opening WhatsApp...'}</span>
-              </>
-            ) : (
-              <>
-                <Send className="w-3.5 h-3.5" />
-                <span>
-                  {lang === 'ar'
-                    ? 'تحميل الفاتورة وفتح واتساب بخطوة واحدة'
-                    : '1-Click: Download PDF & Open WhatsApp'}
-                </span>
-              </>
-            )}
-          </button>
-
-          {/* Pre-composed Message Preview */}
-          <div className="space-y-1.5 pt-1">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold text-slate-600">
-                {lang === 'ar' ? 'نص مرافقة المستند (PDF):' : 'PDF Document Note:'}
-              </span>
-              <button
-                onClick={handleCopy}
-                className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 hover:text-emerald-800"
-              >
-                {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                <span>{copied ? t.copiedText : t.copySummaryBtn}</span>
-              </button>
-            </div>
-            <div className="p-3 bg-slate-50 rounded-md text-[11px] font-sans text-slate-800 border border-slate-200 leading-relaxed">
-              <p className="font-semibold text-slate-900">{messageText}</p>
-              <p className="text-[10px] text-emerald-700 mt-1 font-medium">
-                {lang === 'ar'
-                  ? '✓ يتم إرسال الفاتورة الرسمية كملف PDF مرفق، وليس كنص مجرد.'
-                  : '✓ The full official invoice is shared as an attached PDF document, not as plain text.'}
-              </p>
-            </div>
+                </>
+              )}
+            </button>
           </div>
         </div>
 
@@ -334,4 +189,3 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
     </div>
   );
 };
-

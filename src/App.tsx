@@ -16,6 +16,7 @@ import {
   canSharePdfFile,
   getInvoicePdfFilename,
 } from './utils/pdfGenerator';
+import { shareInvoiceImageFile, getInvoiceImageFilename } from './utils/imageShare';
 import { Header } from './components/Header';
 import { InvoiceForm } from './components/InvoiceForm';
 import { InvoiceList } from './components/InvoiceList';
@@ -329,62 +330,46 @@ export default function App() {
     }
   };
 
-  // 3. WhatsApp PDF Handler: Generates complete PDF first and shares via native share sheet as a document, or downloads with clear instructions
+  // 3. WhatsApp Image Handler: Converts complete rendered invoice to high-quality PNG image and shares as an IMAGE file attachment via native share, or downloads PNG automatically
   const handleWhatsAppShare = async (inv?: Invoice) => {
     const target = inv || currentInvoice;
     try {
       setIsGeneratingPdf(true);
       setGeneratingLabel(
         lang === 'ar'
-          ? 'جاري تجهيز وثيقة الفاتورة PDF للواتساب...'
-          : 'Generating official A4 invoice PDF for WhatsApp...'
+          ? 'جاري تجهيز صورة الفاتورة للواتساب...'
+          : 'Generating high-quality invoice image for WhatsApp...'
       );
       const el = await getInvoicePdfElement(target);
-      const filename = getInvoicePdfFilename(target.invoiceNumber);
+      const filename = getInvoiceImageFilename(target.invoiceNumber);
 
-      // Check if native file sharing is supported (Mobile Android / iOS)
-      if (canSharePdfFile()) {
-        const result = await shareInvoicePdfFile(
-          el,
-          target,
-          companySettings,
-          `Invoice ${target.invoiceNumber}`,
-          `Boom Truck Service Invoice ${target.invoiceNumber} (PDF Document)`
-        );
+      const result = await shareInvoiceImageFile(el, target);
 
-        if (result.sharedAsFile && result.success) {
-          showToast(
-            lang === 'ar'
-              ? 'اختر تطبيق واتساب لإرسال ملف الفاتورة كوثيقة'
-              : 'Select WhatsApp in the share sheet to attach the PDF document',
-            'success'
-          );
-          return;
-        } else if (result.method === 'aborted') {
-          return;
-        }
+      if (result.method === 'aborted') {
+        return;
       }
 
-      // Fallback if browser/device cannot attach files directly (e.g. Desktop Chrome):
-      // 1. Download the complete PDF file automatically
-      const blob = await generateInvoicePdfBlob(el, target, companySettings);
-      downloadPdfBlob(blob, filename);
-
-      // 2. Open WhatsApp with a simple polite note (NO plain text invoice dump)
-      const waUrl = getWhatsAppShareUrl(target, companySettings.companyName || '[COMPANY NAME]', lang);
-      window.open(waUrl, '_blank', 'noopener,noreferrer');
-
-      // 3. Show clear instruction modal/banner
-      showToast(
-        lang === 'ar'
-          ? 'تم تحميل الفاتورة PDF. يرجى إرفاق هذا الملف كمستند في واتساب.'
-          : 'PDF downloaded. Please attach this PDF as a Document in WhatsApp.',
-        'info'
-      );
+      if (result.sharedAsFile && result.success) {
+        showToast(
+          lang === 'ar'
+            ? 'اختر واتساب من قائمة المشاركة لإرسال الفاتورة كصورة مرفقة'
+            : 'Select WhatsApp in the share sheet to attach and send the invoice image',
+          'success'
+        );
+      } else {
+        // Device/browser does not support native image file sharing (e.g. Desktop Chrome)
+        // Image is automatically downloaded by shareInvoiceImageFile
+        showToast(
+          lang === 'ar'
+            ? `تم تحميل صورة الفاتورة (${filename}). يرجى إرفاق الصورة المحمّلة في محادثة واتساب.`
+            : `Invoice image downloaded (${filename}). Please attach this downloaded image in WhatsApp.`,
+          'info'
+        );
+      }
     } catch (err: any) {
-      console.error('WhatsApp PDF Share Error:', err);
+      console.error('WhatsApp Image Share Error:', err);
       showToast(
-        lang === 'ar' ? 'تعذر تجهيز ملف الفاتورة' : 'Failed to prepare invoice PDF',
+        lang === 'ar' ? 'تعذر تجهيز صورة الفاتورة' : 'Failed to prepare invoice image',
         'error'
       );
     } finally {
