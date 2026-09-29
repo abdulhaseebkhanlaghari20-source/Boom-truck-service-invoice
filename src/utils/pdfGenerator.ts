@@ -133,6 +133,20 @@ async function renderDirectVectorInvoice(
   pdf.setFontSize(11);
   pdf.text(`No: ${invoice.invoiceNumber}`, 148, 22);
 
+  // Dynamic Center Watermark in background
+  if (companySettings?.logoUrl) {
+    try {
+      pdf.saveGraphicsState();
+      if ((pdf as any).setGState && (pdf as any).GState) {
+        pdf.setGState(new (pdf as any).GState({ opacity: 0.045 }));
+      }
+      pdf.addImage(companySettings.logoUrl, 'PNG', 55, 95, 100, 100, undefined, 'FAST');
+      pdf.restoreGraphicsState();
+    } catch {
+      // Continue if GState unsupported
+    }
+  }
+
   // 2. Company Details (Left) + ZATCA QR Code (Right)
   let textStartX = 12;
 

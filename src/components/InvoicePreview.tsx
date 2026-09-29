@@ -84,13 +84,33 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
     <div
       id={`invoice-preview-sheet-${invoice.id}`}
       data-invoice-sheet="true"
-      className={`invoice-sheet bg-white text-slate-800 border border-slate-200 shadow-sm rounded-lg p-4 sm:p-8 w-full max-w-[800px] mx-auto print-container leading-normal select-text relative flex flex-col justify-between min-h-[920px] ${
+      className={`invoice-sheet bg-white text-slate-800 border border-slate-200 shadow-sm rounded-lg p-4 sm:p-8 w-full max-w-[800px] mx-auto print-container leading-normal select-text relative flex flex-col justify-between min-h-[920px] overflow-hidden ${
         isPrintOnly ? 'print-only' : ''
       }`}
       dir={lang === 'ar' ? 'rtl' : 'ltr'}
       style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
     >
-      <div>
+      {/* Dynamic Background Watermark (Uses uploaded company logo from Settings) */}
+      {companySettings.logoUrl && (
+        <div
+          className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-0"
+          aria-hidden="true"
+        >
+          <img
+            src={companySettings.logoUrl}
+            alt=""
+            referrerPolicy="no-referrer"
+            className="w-auto h-auto max-w-[320px] sm:max-w-[420px] max-h-[320px] sm:max-h-[420px] object-contain transition-opacity"
+            style={{
+              opacity: 0.045,
+              filter: 'grayscale(100%) contrast(110%)',
+            }}
+          />
+        </div>
+      )}
+
+      <div className="relative z-10 flex flex-col justify-between flex-1">
+        <div>
         {/* 1. Header: Company Brand + Title + QR Code (Sample Layout Hierarchy) */}
         <div className="flex flex-col sm:flex-row justify-between items-start gap-4 pb-4">
           {/* Brand & Company Details */}
@@ -430,6 +450,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
         <div className="text-[10px] text-slate-400 font-mono">
           {lang === 'ar' ? 'فاتورة معتمدة طبقاً لمتطلبات هيئة الزكاة والضريبة والجمارك' : 'Generated per ZATCA Saudi E-Invoicing Standards'}
         </div>
+      </div>
       </div>
     </div>
   );
