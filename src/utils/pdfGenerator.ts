@@ -312,7 +312,7 @@ async function renderDirectVectorInvoice(
   pdf.text('Authorized Stamp & Signature / الختم والتوقيع:', 130, footerY + 8);
   pdf.line(130, footerY + 22, 190, footerY + 22);
 
-  // Payment Status Badge
+  // Payment Status Badge & Bottom Ribbon
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(8.5);
   if (invoice.paymentStatus === 'Paid') {
@@ -325,6 +325,14 @@ async function renderDirectVectorInvoice(
     pdf.setTextColor(190, 18, 60);
     pdf.text('[ STATUS: UNPAID / غير مدفوعة ]', 14, footerY + 28);
   }
+
+  // Bottom Thank You Banner (matching sample design)
+  pdf.setFillColor(6, 78, 59); // emerald-800
+  pdf.rect(10, footerY + 33, 56, 6, 'F');
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(7.5);
+  pdf.text('Thank you for your business', 13, footerY + 37.2);
 }
 
 /**

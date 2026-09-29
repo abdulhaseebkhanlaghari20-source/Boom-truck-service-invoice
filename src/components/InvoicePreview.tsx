@@ -51,28 +51,28 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
     switch (status) {
       case 'Paid':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-0.5 sm:py-1 text-xs font-bold rounded-md bg-emerald-50 text-emerald-700 border border-emerald-300">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold rounded bg-emerald-50 text-emerald-700 border border-emerald-300">
             <CheckCircle2 className="w-3.5 h-3.5" />
             {lang === 'ar' ? 'مدفوعة' : 'PAID'}
           </span>
         );
       case 'Partially Paid':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-0.5 sm:py-1 text-xs font-bold rounded-md bg-blue-50 text-blue-700 border border-blue-300">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold rounded bg-blue-50 text-blue-700 border border-blue-300">
             <Clock className="w-3.5 h-3.5" />
             {lang === 'ar' ? 'مدفوعة جزئياً' : 'PARTIALLY PAID'}
           </span>
         );
       case 'Overdue':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-0.5 sm:py-1 text-xs font-bold rounded-md bg-rose-50 text-rose-700 border border-rose-300">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold rounded bg-rose-50 text-rose-700 border border-rose-300">
             <AlertCircle className="w-3.5 h-3.5" />
             {lang === 'ar' ? 'متأخرة' : 'OVERDUE'}
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-0.5 sm:py-1 text-xs font-bold rounded-md bg-amber-50 text-amber-700 border border-amber-300">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold rounded bg-amber-50 text-amber-700 border border-amber-300">
             <Ban className="w-3.5 h-3.5" />
             {lang === 'ar' ? 'غير مدفوعة' : 'UNPAID'}
           </span>
@@ -84,287 +84,351 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
     <div
       id={`invoice-preview-sheet-${invoice.id}`}
       data-invoice-sheet="true"
-      className={`invoice-sheet bg-white text-slate-900 border border-slate-300 shadow-sm rounded-lg p-3.5 sm:p-7 w-full max-w-[800px] mx-auto print-container leading-normal select-text ${
+      className={`invoice-sheet bg-white text-slate-800 border border-slate-200 shadow-sm rounded-lg p-4 sm:p-8 w-full max-w-[800px] mx-auto print-container leading-normal select-text relative flex flex-col justify-between min-h-[920px] ${
         isPrintOnly ? 'print-only' : ''
       }`}
       dir={lang === 'ar' ? 'rtl' : 'ltr'}
       style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
     >
-      {/* 1. Top Header: Company Identity + Invoice Title + ZATCA QR */}
-      <div className="flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-6 pb-4 sm:pb-5 border-b-2 border-slate-900">
-        {/* Company Identity */}
-        <div className="flex items-start gap-3 sm:gap-5 w-full sm:flex-1 min-w-0">
-          {companySettings.logoUrl ? (
-            <div className="shrink-0 flex items-center justify-center">
-              <img
-                src={companySettings.logoUrl}
-                alt="Company Logo"
-                referrerPolicy="no-referrer"
-                className="max-h-20 sm:max-h-24 max-w-[130px] sm:max-w-[190px] w-auto h-auto object-contain object-left rtl:object-right"
-              />
-            </div>
-          ) : (
-            <div className="w-24 h-18 sm:w-32 sm:h-22 border-2 border-dashed border-slate-300 bg-slate-50/80 text-slate-500 rounded-lg flex flex-col items-center justify-center p-1.5 sm:p-2 shrink-0 text-center">
-              <span className="text-[10px] sm:text-[11px] font-extrabold tracking-wider uppercase leading-tight text-slate-700">
-                COMPANY LOGO
-              </span>
-              <span className="text-[8px] sm:text-[9px] text-slate-400 mt-0.5">
-                {lang === 'ar' ? 'شعار المؤسسة' : 'Upload in Settings'}
-              </span>
-            </div>
-          )}
+      <div>
+        {/* 1. Header: Company Brand + Title + QR Code (Sample Layout Hierarchy) */}
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4 pb-4">
+          {/* Brand & Company Details */}
+          <div className="flex items-start gap-4 flex-1 min-w-0">
+            {companySettings.logoUrl ? (
+              <div className="shrink-0 flex items-center justify-center">
+                <img
+                  src={companySettings.logoUrl}
+                  alt="Company Logo"
+                  referrerPolicy="no-referrer"
+                  className="max-h-20 sm:max-h-24 max-w-[140px] sm:max-w-[190px] w-auto h-auto object-contain object-left rtl:object-right"
+                />
+              </div>
+            ) : (
+              <div className="w-24 h-18 sm:w-28 sm:h-20 border-2 border-dashed border-emerald-400 bg-emerald-50/50 text-emerald-800 rounded-lg flex flex-col items-center justify-center p-2 shrink-0 text-center">
+                <span className="text-[11px] font-extrabold tracking-wider uppercase leading-tight">
+                  LOGO
+                </span>
+                <span className="text-[8px] text-emerald-600 mt-0.5">
+                  {lang === 'ar' ? 'شعار المؤسسة' : 'Company Logo'}
+                </span>
+              </div>
+            )}
 
-          <div className="space-y-0.5 sm:space-y-1 min-w-0 flex-1">
-            <h1 className="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight leading-snug sm:leading-tight">
-              {lang === 'ar' && companySettings.companyNameAr
-                ? companySettings.companyNameAr
-                : companySettings.companyName || '[COMPANY NAME]'}
-            </h1>
-            <p className="text-xs sm:text-[13px] text-slate-600 leading-snug">
-              {lang === 'ar' && companySettings.addressAr
-                ? companySettings.addressAr
-                : companySettings.address || '[ADDRESS]'}
-            </p>
-            <div className="flex flex-wrap gap-x-2.5 sm:gap-x-3.5 gap-y-0.5 text-xs sm:text-[13px] text-slate-700">
-              <span>
-                <strong className="text-slate-900">{lang === 'ar' ? 'هاتف:' : 'Phone:'}</strong>{' '}
-                {companySettings.phone || '[PHONE]'}
-              </span>
-              {companySettings.whatsapp && (
+            <div className="space-y-0.5 min-w-0 flex-1">
+              <h1 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                {lang === 'ar' && companySettings.companyNameAr
+                  ? companySettings.companyNameAr
+                  : companySettings.companyName || '[COMPANY NAME]'}
+              </h1>
+              <p className="text-xs text-slate-500 leading-snug">
+                {lang === 'ar' && companySettings.addressAr
+                  ? companySettings.addressAr
+                  : companySettings.address || '[ADDRESS]'}
+              </p>
+              <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-slate-600 pt-0.5">
                 <span>
-                  <strong className="text-slate-900">WhatsApp:</strong> {companySettings.whatsapp}
+                  <strong className="text-slate-700">{lang === 'ar' ? 'هاتف:' : 'Phone:'}</strong>{' '}
+                  {companySettings.phone || '[PHONE]'}
                 </span>
-              )}
-              <span>
-                <strong className="text-slate-900">{lang === 'ar' ? 'بريد:' : 'Email:'}</strong>{' '}
-                {companySettings.email || '[EMAIL]'}
-              </span>
-            </div>
-            <div className="text-xs sm:text-[13px] text-slate-900 font-mono tabular-nums font-semibold">
-              <strong className="text-slate-900 font-sans">{lang === 'ar' ? 'الرقم الضريبي:' : 'VAT No:'}</strong>{' '}
-              {companySettings.vatNumber || '[VAT NUMBER]'}
-              {companySettings.crNumber && (
-                <span className="ms-2.5 sm:ms-3 text-slate-600 font-sans font-normal">
-                  <strong className="text-slate-900">{lang === 'ar' ? 'س.ت:' : 'CR No:'}</strong> {companySettings.crNumber}
+                {companySettings.whatsapp && (
+                  <span>
+                    <strong className="text-slate-700">WhatsApp:</strong> {companySettings.whatsapp}
+                  </span>
+                )}
+                <span>
+                  <strong className="text-slate-700">{lang === 'ar' ? 'بريد:' : 'Email:'}</strong>{' '}
+                  {companySettings.email || '[EMAIL]'}
                 </span>
-              )}
+              </div>
+              <div className="text-xs text-slate-700 font-mono tabular-nums pt-0.5">
+                <strong className="text-slate-800 font-sans">{lang === 'ar' ? 'الرقم الضريبي:' : 'VAT No:'}</strong>{' '}
+                {companySettings.vatNumber || '[VAT NUMBER]'}
+                {companySettings.crNumber && (
+                  <span className="ms-2.5 text-slate-500 font-sans">
+                    <strong className="text-slate-700">{lang === 'ar' ? 'س.ت:' : 'CR No:'}</strong> {companySettings.crNumber}
+                  </span>
+                )}
+              </div>
             </div>
+          </div>
+
+          {/* Large INVOICE Title + QR Code & Status */}
+          <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start w-full sm:w-auto shrink-0 gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+            <div className="text-start sm:text-end rtl:text-end rtl:sm:text-start">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-wider uppercase font-sans">
+                {lang === 'ar' ? 'فاتورة' : 'INVOICE'}
+              </h2>
+              <div className="text-xs font-semibold text-emerald-800 tracking-wide mt-0.5">
+                {lang === 'ar' ? 'فاتورة ضريبية مبسطة' : 'TAX INVOICE'}
+              </div>
+              <div className="mt-1">{renderStatus(invoice.paymentStatus)}</div>
+            </div>
+
+            {qrCodeDataUrl ? (
+              <div className="p-1 bg-white border border-slate-200 rounded shadow-2xs shrink-0">
+                <img
+                  src={qrCodeDataUrl}
+                  alt="ZATCA QR Code"
+                  className="w-16 h-16 sm:w-20 sm:h-20 object-contain"
+                />
+              </div>
+            ) : (
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-slate-100 border border-dashed border-slate-300 rounded flex items-center justify-center text-xs text-slate-400 shrink-0">
+                QR
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Invoice Title & QR Code Container */}
-        <div className="flex flex-row sm:flex-col justify-between sm:justify-start items-center sm:items-end text-start sm:text-end rtl:text-end rtl:sm:text-start w-full sm:w-auto pt-3 sm:pt-0 border-t border-slate-100 sm:border-0 shrink-0 gap-3">
-          <div className="flex flex-col items-start sm:items-end rtl:items-start">
-            <div className="text-xs sm:text-sm font-extrabold text-emerald-800 tracking-wider uppercase">
-              {lang === 'ar' ? 'فاتورة ضريبية مبسطة' : 'TAX INVOICE'}
-            </div>
-            <div className="text-base sm:text-xl font-bold font-mono text-slate-900 tracking-tight mt-0.5">
+        {/* 2. Signature Ribbon Bar (Sample Layout's defining feature) */}
+        <div className="my-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between bg-slate-100/90 rounded border border-slate-200/80 overflow-hidden text-xs">
+          {/* Chevron Badge with Invoice# */}
+          <div className="relative bg-emerald-700 text-white font-bold px-4 py-2 sm:py-2.5 flex items-center gap-1.5 sm:pe-7 shrink-0">
+            <span className="tracking-wide uppercase font-semibold text-[11px] opacity-90">
+              {lang === 'ar' ? 'رقم الفاتورة' : 'Invoice#'}
+            </span>
+            <span className="font-mono text-sm tracking-tight font-extrabold text-emerald-100">
               {invoice.invoiceNumber || 'INV-001'}
-            </div>
-            <div className="mt-1 sm:mt-1.5">{renderStatus(invoice.paymentStatus)}</div>
-          </div>
-
-          {qrCodeDataUrl ? (
-            <div className="p-1 bg-white border border-slate-300 rounded-md shadow-2xs shrink-0">
-              <img
-                src={qrCodeDataUrl}
-                alt="ZATCA QR Code"
-                className="w-16 h-16 sm:w-22 sm:h-22 object-contain"
+            </span>
+            {/* Visual Chevron arrow pointer */}
+            <div className="hidden sm:block absolute top-0 bottom-0 end-0 w-4 overflow-hidden pointer-events-none">
+              <div
+                className={`w-4 h-full bg-slate-100/90 ${
+                  lang === 'ar'
+                    ? 'clip-path-triangle-ar'
+                    : 'clip-path-triangle-en'
+                }`}
+                style={{
+                  clipPath: lang === 'ar'
+                    ? 'polygon(100% 0, 0 50%, 100% 100%)'
+                    : 'polygon(0 0, 100% 50%, 0 100%)',
+                }}
               />
             </div>
-          ) : (
-            <div className="w-16 h-16 sm:w-22 sm:h-22 bg-slate-100 border border-dashed border-slate-300 rounded-md flex items-center justify-center text-xs text-slate-400 shrink-0">
-              QR
-            </div>
-          )}
-        </div>
-      </div>
+          </div>
 
-      {/* 2. Customer & Date Meta Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 py-3.5 sm:py-4 border-b border-slate-200">
-        {/* Customer Information */}
-        <div className="bg-slate-50/90 p-3 sm:p-3.5 rounded-lg border border-slate-200 space-y-1">
-          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-            {lang === 'ar' ? 'بيانات العميل:' : 'CUSTOMER DETAILS:'}
-          </div>
-          <div className="font-extrabold text-slate-900 text-sm sm:text-base leading-tight">
-            {invoice.customerName || (lang === 'ar' ? 'اسم العميل' : 'Customer Name')}
-          </div>
-          <div className="text-xs sm:text-[13px] text-slate-700">
-            <strong className="text-slate-900">{lang === 'ar' ? 'الجوال:' : 'Phone:'}</strong> {invoice.customerPhone || '-'}
-          </div>
-          {invoice.customerVatNumber && (
-            <div className="text-xs sm:text-[13px] text-slate-700 font-mono tabular-nums">
-              <strong className="text-slate-900 font-sans">{lang === 'ar' ? 'الرقم الضريبي للعميل:' : 'Customer VAT:'}</strong>{' '}
-              {invoice.customerVatNumber}
+          {/* Dates & Location metadata */}
+          <div className="flex flex-wrap items-center justify-start sm:justify-end gap-x-4 gap-y-1 px-3 py-2 text-slate-700 font-medium">
+            <div className="flex items-center gap-1.5">
+              <span className="text-slate-500 font-normal">{lang === 'ar' ? 'التاريخ:' : 'Date:'}</span>
+              <span className="font-mono font-bold text-slate-900">{formatDate(invoice.invoiceDate)}</span>
             </div>
-          )}
+            <span className="text-slate-300 hidden sm:inline">|</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-slate-500 font-normal">{lang === 'ar' ? 'الاستحقاق:' : 'Due Date:'}</span>
+              <span className="font-mono font-bold text-slate-900">{formatDate(invoice.dueDate)}</span>
+            </div>
+            <span className="text-slate-300 hidden sm:inline">|</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-slate-500 font-normal">{lang === 'ar' ? 'الموقع:' : 'Location:'}</span>
+              <span className="font-bold text-slate-900">{lang === 'ar' ? cityAr : displayCity}</span>
+            </div>
+          </div>
         </div>
 
-        {/* Invoice Dates & Location */}
-        <div className="bg-slate-50/90 p-3 sm:p-3.5 rounded-lg border border-slate-200 space-y-1.5">
-          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-            {lang === 'ar' ? 'تفاصيل الفاتورة والموقع:' : 'INVOICE & SITE DETAILS:'}
+        {/* 3. Invoice To (Customer Details) & Equipment Specs (Sample 2-Column Info) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-3 border-b border-slate-200 text-xs">
+          {/* Invoice To: */}
+          <div className="space-y-1">
+            <div className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1">
+              <span>{lang === 'ar' ? 'فاتورة إلى:' : 'Invoice to:'}</span>
+            </div>
+            <div className="font-bold text-slate-900 text-sm sm:text-base leading-snug">
+              {invoice.customerName || (lang === 'ar' ? 'اسم العميل' : 'Customer Name')}
+            </div>
+            <div className="text-slate-600">
+              <strong className="text-slate-700">{lang === 'ar' ? 'الجوال:' : 'Phone:'}</strong> {invoice.customerPhone || '-'}
+            </div>
+            {invoice.customerVatNumber && (
+              <div className="text-slate-600 font-mono tabular-nums">
+                <strong className="text-slate-700 font-sans">{lang === 'ar' ? 'الرقم الضريبي:' : 'VAT No:'}</strong>{' '}
+                {invoice.customerVatNumber}
+              </div>
+            )}
           </div>
-          <div className="grid grid-cols-2 gap-2 text-xs sm:text-[13px] text-slate-700">
-            <div>
-              <span className="text-slate-500 block text-[11px] font-medium">
-                {lang === 'ar' ? 'تاريخ الفاتورة:' : 'Invoice Date:'}
-              </span>
-              <span className="font-bold font-mono text-slate-900">{formatDate(invoice.invoiceDate)}</span>
+
+          {/* Equipment / Site Details */}
+          <div className="space-y-1 bg-slate-50/70 p-2.5 rounded border border-slate-200/80">
+            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              {lang === 'ar' ? 'مواصفات المعدة والموقع:' : 'Equipment & Service Site:'}
             </div>
-            <div>
-              <span className="text-slate-500 block text-[11px] font-medium">
-                {lang === 'ar' ? 'تاريخ الاستحقاق:' : 'Due Date:'}
-              </span>
-              <span className="font-bold font-mono text-slate-900">{formatDate(invoice.dueDate)}</span>
-            </div>
-            <div>
-              <span className="text-slate-500 block text-[11px] font-medium">
-                {lang === 'ar' ? 'الموقع:' : 'Location:'}
-              </span>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-slate-600">{lang === 'ar' ? 'نوع المعدة:' : 'Equipment:'}</span>
               <span className="font-bold text-slate-900">
-                {lang === 'ar' ? cityAr : displayCity}
+                {lang === 'ar' ? 'شاحنة رافعة هيدروليكية' : 'Boom Truck Crane'}
               </span>
             </div>
-            <div>
-              <span className="text-slate-500 block text-[11px] font-medium">
-                {lang === 'ar' ? 'حمولة الرافعة:' : 'Capacity:'}
-              </span>
-              <span className="font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded text-xs inline-block">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-slate-600">{lang === 'ar' ? 'حمولة الرافعة:' : 'Boom Capacity:'}</span>
+              <span className="font-bold text-emerald-900 bg-emerald-100/80 px-2 py-0.5 rounded text-xs font-mono">
                 {invoice.truckCapacity || '20 Ton'}
               </span>
             </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-slate-600">{lang === 'ar' ? 'مدينة العمل:' : 'Job Location:'}</span>
+              <span className="font-bold text-slate-900">{lang === 'ar' ? cityAr : displayCity}</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* 3. Service Table with dedicated horizontal scroll area on mobile */}
-      <div className="py-3.5 sm:py-4">
-        <div className="overflow-x-auto -mx-1 px-1 sm:mx-0 sm:px-0 rounded-lg">
-          <table className="w-full min-w-[540px] sm:min-w-full text-xs sm:text-[13px] text-left rtl:text-right border-collapse">
-            <thead>
-              <tr className="bg-slate-900 text-white font-bold text-xs uppercase tracking-wide">
-                <th className="py-2.5 px-3 rounded-s text-center w-10">#</th>
-                <th className="py-2.5 px-3">
-                  {lang === 'ar' ? 'وصف خدمة شاحنة الرافعة (Boom Truck)' : 'Boom Truck Service Description'}
-                </th>
-                <th className="py-2.5 px-2.5 text-center w-24">{lang === 'ar' ? 'الحمولة' : 'Capacity'}</th>
-                <th className="py-2.5 px-2 text-center w-16">{lang === 'ar' ? 'الكمية' : 'Qty'}</th>
-                <th className="py-2.5 px-3 text-right rtl:text-left w-28">{lang === 'ar' ? 'السعر (ر.س)' : 'Rate (SAR)'}</th>
-                <th className="py-2.5 px-3 text-right rtl:text-left rounded-e w-32">
-                  {lang === 'ar' ? 'المجموع (ر.س)' : 'Amount (SAR)'}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              <tr>
-                <td className="py-3.5 px-3 text-slate-500 font-mono font-bold text-center">1</td>
-                <td className="py-3.5 px-3">
-                  <div className="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug">
-                    {invoice.serviceDescription ||
-                      (lang === 'ar'
-                        ? 'خدمة شاحنة رافعة هيدروليكية (بوم ترَك)'
-                        : 'Boom Truck Equipment Service')}
+        {/* 4. Service Line Items Table (Styled like sample with clean modern columns) */}
+        <div className="py-4">
+          <div className="overflow-x-auto -mx-1 px-1 sm:mx-0 sm:px-0 rounded-md">
+            <table className="w-full min-w-[560px] sm:min-w-full text-xs text-left rtl:text-right border-collapse">
+              <thead>
+                <tr className="bg-slate-900 text-white font-bold text-xs uppercase tracking-wider">
+                  <th className="py-2.5 px-3 rounded-s w-12 text-center">
+                    {lang === 'ar' ? 'م' : 'SL.'}
+                  </th>
+                  <th className="py-2.5 px-3">
+                    {lang === 'ar' ? 'بيان الخدمة والمعدة' : 'Item Description'}
+                  </th>
+                  <th className="py-2.5 px-3 text-center w-24">
+                    {lang === 'ar' ? 'الحمولة' : 'Capacity'}
+                  </th>
+                  <th className="py-2.5 px-3 text-right rtl:text-left w-28">
+                    {lang === 'ar' ? 'السعر' : 'Price'}
+                  </th>
+                  <th className="py-2.5 px-3 text-center w-20">
+                    {lang === 'ar' ? 'الكمية' : 'Qty.'}
+                  </th>
+                  <th className="py-2.5 px-3 text-right rtl:text-left rounded-e w-32">
+                    {lang === 'ar' ? 'المجموع' : 'Total'}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 border-b border-slate-200">
+                <tr className="hover:bg-slate-50/50 transition-colors">
+                  <td className="py-3 px-3 text-slate-500 font-mono font-bold text-center">1</td>
+                  <td className="py-3 px-3">
+                    <div className="font-bold text-slate-900 text-xs sm:text-sm leading-snug">
+                      {invoice.serviceDescription ||
+                        (lang === 'ar'
+                          ? 'خدمة شاحنة رافعة هيدروليكية (بوم ترَك)'
+                          : 'Boom Truck Crane Equipment Service')}
+                    </div>
+                    <div className="text-[11px] text-slate-500 mt-0.5">
+                      {lang === 'ar'
+                        ? `الموقع: ${cityAr} · حمولة ${invoice.truckCapacity} مع مشغل ومعدات رفع معتمدة`
+                        : `Location: ${displayCity} · ${invoice.truckCapacity} Boom Truck with certified rigging`}
+                    </div>
+                  </td>
+                  <td className="py-3 px-3 text-center font-bold text-slate-800">
+                    {invoice.truckCapacity || '20 Ton'}
+                  </td>
+                  <td className="py-3 px-3 text-right rtl:text-left font-mono font-semibold text-slate-900 tabular-nums">
+                    {formatCurrency(invoice.rate, lang)}
+                  </td>
+                  <td className="py-3 px-3 text-center font-mono font-bold text-slate-900">
+                    {invoice.quantity || 1}
+                  </td>
+                  <td className="py-3 px-3 text-right rtl:text-left font-mono font-bold text-slate-900 tabular-nums">
+                    {formatCurrency(invoice.subtotal, lang)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* 5. Bottom Section: Payment Info & Terms (Left) + Calculations (Right) */}
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-start gap-6 pt-2 pb-4">
+          {/* Left Column: Payment Info + Terms & Conditions (Sample layout) */}
+          <div className="w-full sm:w-1/2 space-y-3 text-xs">
+            {companySettings.bankName && (
+              <div className="space-y-1">
+                <span className="font-extrabold text-slate-900 block uppercase tracking-wider text-[11px]">
+                  {lang === 'ar' ? 'معلومات الدفع والتحويل:' : 'Payment Info:'}
+                </span>
+                <div className="bg-slate-50 p-2.5 rounded border border-slate-200/80 text-slate-700 text-xs space-y-0.5">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">{lang === 'ar' ? 'البنك:' : 'Bank:'}</span>
+                    <span className="font-semibold text-slate-900">{companySettings.bankName}</span>
                   </div>
-                  <div className="text-xs text-slate-500 mt-1">
-                    {lang === 'ar'
-                      ? `الموقع: ${cityAr} · حمولة ${invoice.truckCapacity} مع مشغل ومعدات رفع معتمدة`
-                      : `Location: ${displayCity} · ${invoice.truckCapacity} Boom Truck with certified rigging`}
-                  </div>
-                </td>
-                <td className="py-3.5 px-2.5 text-center font-bold text-slate-900 text-xs sm:text-sm">
-                  {invoice.truckCapacity || '20 Ton'}
-                </td>
-                <td className="py-3.5 px-2 text-center font-mono font-bold text-slate-900 text-xs sm:text-sm">
-                  {invoice.quantity || 1}
-                </td>
-                <td className="py-3.5 px-3 text-right rtl:text-left font-mono font-bold text-slate-900 text-xs sm:text-sm tabular-nums">
-                  {formatCurrency(invoice.rate, lang)}
-                </td>
-                <td className="py-3.5 px-3 text-right rtl:text-left font-mono font-extrabold text-slate-900 text-xs sm:text-sm tabular-nums">
+                  {companySettings.iban && (
+                    <div className="flex justify-between font-mono">
+                      <span className="text-slate-500 font-sans">{lang === 'ar' ? 'الآيبان:' : 'IBAN:'}</span>
+                      <span className="font-bold text-slate-900">{companySettings.iban}</span>
+                    </div>
+                  )}
+                  {companySettings.vatNumber && (
+                    <div className="flex justify-between font-mono">
+                      <span className="text-slate-500 font-sans">{lang === 'ar' ? 'الرقم الضريبي:' : 'VAT:'}</span>
+                      <span className="text-slate-700">{companySettings.vatNumber}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {invoice.notes && (
+              <div className="space-y-1">
+                <strong className="block text-slate-900 uppercase tracking-wider font-extrabold text-[11px]">
+                  {lang === 'ar' ? 'الشروط والملاحظات:' : 'Terms & Conditions:'}
+                </strong>
+                <p className="p-2.5 bg-slate-50 rounded border border-slate-200/80 text-slate-600 whitespace-pre-line leading-relaxed text-xs">
+                  {invoice.notes}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column: Financial Breakdown with Sample's Chevron Total Badge */}
+          <div className="w-full sm:w-5/12 space-y-2 text-xs">
+            <div className="space-y-1.5 px-2">
+              <div className="flex justify-between items-center text-slate-600">
+                <span className="font-medium">{lang === 'ar' ? 'المجموع الفرعي:' : 'Sub Total:'}</span>
+                <span className="font-mono font-bold text-slate-900 tabular-nums">
                   {formatCurrency(invoice.subtotal, lang)}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+                </span>
+              </div>
 
-      {/* 4. Financial Calculations & Summary Box */}
-      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-start gap-4 sm:gap-5 pt-3 pb-4 border-t border-slate-200">
-        {/* Left: Notes & Bank info */}
-        <div className="w-full sm:w-1/2 space-y-2.5 text-xs sm:text-[13px]">
-          {invoice.notes && (
-            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-slate-700">
-              <strong className="block text-slate-900 mb-1 font-bold text-xs">
-                {lang === 'ar' ? 'ملاحظات وشروط:' : 'Notes / Terms:'}
-              </strong>
-              <p className="whitespace-pre-line leading-relaxed text-xs text-slate-700">{invoice.notes}</p>
+              <div className="flex justify-between items-center text-slate-600">
+                <span className="font-medium">
+                  {invoice.vatOption === 'VAT 15%' ? (lang === 'ar' ? 'الضريبة (١٥٪):' : 'VAT (15%):') : (lang === 'ar' ? 'الضريبة (معفاة):' : 'Tax (0.00%):')}
+                </span>
+                <span className="font-mono font-bold text-slate-900 tabular-nums">
+                  {formatCurrency(invoice.vatAmount, lang)}
+                </span>
+              </div>
             </div>
-          )}
 
-          {companySettings.bankName && (
-            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-slate-700">
-              <span className="font-bold text-slate-900 block text-xs mb-0.5">
-                {lang === 'ar' ? 'التحويل البنكي:' : 'Bank Transfer Details:'}
+            {/* Signature Ribbon Total Badge (Exact visual hierarchy of the reference sample) */}
+            <div className="bg-emerald-700 text-white p-2.5 rounded flex items-center justify-between font-bold text-sm shadow-xs mt-2">
+              <span className="uppercase tracking-wider text-xs font-extrabold text-emerald-100">
+                {lang === 'ar' ? 'الإجمالي:' : 'Total:'}
               </span>
-              <div className="text-xs font-semibold text-slate-800">{companySettings.bankName}</div>
-              {companySettings.iban && (
-                <div className="font-mono text-xs text-slate-900 font-bold mt-0.5">{companySettings.iban}</div>
-              )}
+              <span className="font-mono text-base sm:text-lg font-extrabold tracking-tight tabular-nums text-white">
+                {formatCurrency(invoice.total, lang)}
+              </span>
             </div>
-          )}
-        </div>
+            <div className="text-[10px] text-slate-400 text-right rtl:text-left font-medium px-2">
+              {lang === 'ar' ? 'المبلغ الإجمالي بالريال السعودي (SAR)' : 'All amounts in Saudi Riyals (SAR)'}
+            </div>
 
-        {/* Right: Calculations (Subtotal, VAT, Grand Total) */}
-        <div className="w-full sm:w-5/12 bg-slate-50 p-3.5 rounded-lg border border-slate-300 space-y-2 text-xs sm:text-[13px]">
-          <div className="flex justify-between items-center text-slate-700">
-            <span className="font-medium">{t.subtotal}</span>
-            <span className="font-mono font-bold text-slate-900 tabular-nums">
-              {formatCurrency(invoice.subtotal, lang)}
-            </span>
-          </div>
-
-          <div className="flex justify-between items-center text-slate-700">
-            <span className="font-medium">
-              {invoice.vatOption === 'VAT 15%' ? t.vat15Label : t.noVat}
-            </span>
-            <span className="font-mono font-bold text-slate-900 tabular-nums">
-              {formatCurrency(invoice.vatAmount, lang)}
-            </span>
-          </div>
-
-          <div className="pt-2 border-t-2 border-slate-400 flex justify-between items-center">
-            <span className="text-sm sm:text-base font-extrabold text-slate-900">{t.grandTotal}</span>
-            <span className="text-base sm:text-lg font-extrabold text-emerald-800 font-mono tabular-nums">
-              {formatCurrency(invoice.total, lang)}
-            </span>
-          </div>
-          <div className="text-[10px] text-slate-500 text-right rtl:text-left font-medium">
-            {lang === 'ar' ? 'العملة: ريال سعودي (SAR)' : 'Currency: Saudi Riyals (SAR)'}
+            {/* Authorised Sign Zone (Placed under Totals exactly like sample) */}
+            <div className="pt-6 text-center sm:text-end rtl:text-center rtl:sm:text-start">
+              <div className="inline-block min-w-[160px] text-center border-t border-slate-400 pt-1.5">
+                <span className="text-slate-500 font-semibold text-xs block">
+                  {lang === 'ar' ? 'التوقيع والختم المعتمد' : 'Authorised Sign'}
+                </span>
+                <span className="text-[10px] text-slate-400 block mt-0.5">
+                  {companySettings.companyName || '[COMPANY NAME]'}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 5. Footer: Stamp & Signature Zone */}
-      <div className="pt-5 sm:pt-6 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 text-xs sm:text-[13px]">
-        <div>
-          <span className="text-slate-500 block text-[11px] font-semibold mb-3 sm:mb-6">
-            {lang === 'ar' ? 'المستلم / المفوض:' : 'Received by:'}
-          </span>
-          <div className="border-t border-dashed border-slate-400 pt-1.5 text-slate-700 text-xs block sm:inline-block max-w-[200px] font-medium">
-            {lang === 'ar' ? 'توقيع العميل' : 'Client Signature'}
-          </div>
+      {/* 6. Bottom Banner / Ribbon (Sample Layout's final touch) */}
+      <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+        <div className="bg-emerald-800 text-white text-[11px] font-bold px-3 py-1 rounded-sm tracking-wide">
+          {lang === 'ar' ? 'شكراً لتعاملكم معنا' : 'Thank you for your business'}
         </div>
-
-        <div className="text-start sm:text-end rtl:text-start rtl:sm:text-start">
-          <span className="text-slate-500 block text-[11px] font-semibold mb-3 sm:mb-6">
-            {lang === 'ar' ? 'الختم والتوقيع المعتمد:' : 'Authorized Stamp & Signature:'}
-          </span>
-          <div className="border-t border-dashed border-slate-400 pt-1.5 text-slate-700 text-xs block sm:inline-block max-w-[200px] sm:ms-auto rtl:sm:ms-0 rtl:sm:me-auto font-medium">
-            {companySettings.companyName || '[COMPANY NAME]'}
-          </div>
+        <div className="text-[10px] text-slate-400 font-mono">
+          {lang === 'ar' ? 'فاتورة معتمدة طبقاً لمتطلبات هيئة الزكاة والضريبة والجمارك' : 'Generated per ZATCA Saudi E-Invoicing Standards'}
         </div>
       </div>
     </div>
