@@ -149,17 +149,18 @@ export default function App() {
 
   // Helper to ensure an invoice is rendered in the dedicated 794px container or current screen
   const getInvoicePdfElement = async (inv: Invoice): Promise<HTMLElement> => {
-    // 1. If the invoice preview is currently visible on screen (e.g. form preview or modal), use it directly
+    // 1. If the invoice preview is currently visible on screen and at full desktop/A4 width (>= 760px), use it directly
     const onScreenEl = document.getElementById(`invoice-preview-sheet-${inv.id}`);
-    if (onScreenEl && onScreenEl.clientHeight > 100) {
+    if (onScreenEl && onScreenEl.clientWidth >= 760 && onScreenEl.clientHeight > 100) {
       return onScreenEl;
     }
 
-    // 2. Otherwise update offscreen target and wait for React + QR code to render
+    // 2. On mobile screens (< 760px), always use the dedicated 794px A4 offscreen container so PDF remains pristine A4
     setPdfTargetInvoice(inv);
-    await new Promise((r) => setTimeout(r, 160));
+    await new Promise((r) => setTimeout(r, 180));
     const offscreenEl = pdfOffscreenRef.current?.querySelector('[data-invoice-sheet="true"]') as HTMLElement;
     if (offscreenEl) return offscreenEl;
+    if (onScreenEl) return onScreenEl;
     return pdfOffscreenRef.current || document.body;
   };
 
@@ -408,7 +409,7 @@ export default function App() {
       />
 
       {/* Main Viewport Content */}
-      <main className="no-print flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="no-print flex-1 max-w-7xl w-full mx-auto px-2.5 sm:px-6 lg:px-8 py-3.5 sm:py-6">
         {activeTab === 'create' && (
           <InvoiceForm
             invoice={currentInvoice}

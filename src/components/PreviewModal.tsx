@@ -106,8 +106,8 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
         </div>
 
         {/* Modal Scrollable Body */}
-        <div className="p-4 sm:p-6 overflow-y-auto flex-1 bg-slate-200/60">
-          <div className="max-w-[850px] mx-auto">
+        <div className="p-2 sm:p-6 overflow-y-auto overflow-x-hidden flex-1 bg-slate-200/60">
+          <div className="max-w-[850px] mx-auto w-full">
             <InvoicePreview
               invoice={invoice}
               companySettings={companySettings}
