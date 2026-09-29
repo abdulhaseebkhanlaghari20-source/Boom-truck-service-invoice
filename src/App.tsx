@@ -16,7 +16,11 @@ import {
   canSharePdfFile,
   getInvoicePdfFilename,
 } from './utils/pdfGenerator';
-import { shareInvoiceImageFile, getInvoiceImageFilename } from './utils/imageShare';
+import {
+  shareInvoiceImageFile,
+  shareInvoiceEmail,
+  getInvoiceImageFilename,
+} from './utils/imageShare';
 import { Header } from './components/Header';
 import { InvoiceForm } from './components/InvoiceForm';
 import { InvoiceList } from './components/InvoiceList';
@@ -285,44 +289,45 @@ export default function App() {
     }
   };
 
-  // 4. Email PDF Handler: Shares via native file share if available, or downloads PDF & opens email compose
+  // 4. Email Image Share Handler: Converts complete invoice to high-quality PNG image and shares via native share sheet (allowing Gmail/Email app selection with image attached), or downloads PNG and opens mailto
   const handleEmailPdf = async (inv?: Invoice) => {
     const target = inv || currentInvoice;
     try {
       setIsGeneratingPdf(true);
-      setGeneratingLabel(lang === 'ar' ? 'جاري إعداد الفاتورة للإرسال بالبريد...' : 'Preparing invoice email...');
-      const el = await getInvoicePdfElement(target);
-      const filename = getInvoicePdfFilename(target.invoiceNumber);
-
-      const subject = `Invoice ${target.invoiceNumber} - ${companySettings.companyName || 'Boom Truck Service'}`;
-      const body =
+      setGeneratingLabel(
         lang === 'ar'
-          ? `السلام عليكم ورحمة الله وبركاته،\n\nمرفق لكم فاتورة خدمة شاحنة رافعة (بوم ترَك) رقم ${target.invoiceNumber}.\n\nالعميل: ${target.customerName}\nالحمولة: ${target.truckCapacity}\nالموقع: ${target.city}\nالإجمالي: ${target.total} ر.س\n\nشاكرين لتعاملكم معنا.`
-          : `Dear Customer,\n\nPlease find the attached Boom Truck service invoice ${target.invoiceNumber}.\n\nCustomer: ${target.customerName}\nCapacity: ${target.truckCapacity}\nLocation: ${target.city}\nTotal Amount: SAR ${target.total.toFixed(2)}\n\nThank you for your business.`;
+          ? 'جاري تجهيز صورة الفاتورة للبريد الإلكتروني...'
+          : 'Generating invoice image for Email...'
+      );
+      const el = await getInvoicePdfElement(target);
+      const filename = getInvoiceImageFilename(target.invoiceNumber);
 
-      // If native file share is supported, attempt to open share sheet so user can select their email app
-      if (canSharePdfFile()) {
-        const result = await shareInvoicePdfFile(el, target, companySettings, subject, body);
-        if (result.sharedAsFile && result.success) {
-          showToast(
-            lang === 'ar' ? 'اختر تطبيق البريد لإرفاق الملف' : 'Select your email app to attach PDF',
-            'success'
-          );
-          return;
-        }
+      const result = await shareInvoiceEmail(el, target, companySettings, lang);
+
+      if (result.method === 'aborted') {
+        return;
       }
 
-      // Fallback: download PDF and open mailto
-      const blob = await generateInvoicePdfBlob(el, target, companySettings);
-      downloadPdfBlob(blob, filename);
-      const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      window.location.href = mailtoUrl;
-
-      showToast(translations[lang].pdfEmailNotice, 'info');
+      if (result.sharedAsFile && result.success) {
+        showToast(
+          lang === 'ar'
+            ? 'اختر تطبيق البريد (مثل Gmail) لإرسال الفاتورة كصورة مرفقة'
+            : 'Select your email app (e.g. Gmail) to attach and send the invoice image',
+          'success'
+        );
+      } else {
+        // Fallback when native file share isn't supported (e.g. desktop browser)
+        showToast(
+          lang === 'ar'
+            ? `تم تحميل صورة الفاتورة (${filename}) وفتح البريد. يرجى إرفاق الصورة المحمّلة بالرسالة.`
+            : `Invoice image downloaded (${filename}) & email opened. Please attach the downloaded image in your email.`,
+          'info'
+        );
+      }
     } catch (err: any) {
-      console.error('Email PDF Error:', err);
+      console.error('Email Share Error:', err);
       showToast(
-        lang === 'ar' ? 'تعذر تجهيز البريد' : 'Failed to prepare email',
+        lang === 'ar' ? 'تعذر تجهيز البريد الإلكتروني' : 'Failed to prepare email',
         'error'
       );
     } finally {

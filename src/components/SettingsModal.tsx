@@ -271,6 +271,74 @@ export const SettingsSection: React.FC<SettingsModalProps> = ({
           </div>
         </div>
 
+        {/* Professional Email Signature & Contact Subsection */}
+        <div className="pt-4 border-t border-slate-200 space-y-4">
+          <div>
+            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+              {lang === 'ar' ? 'التوقيع والبريد الإلكتروني المهني' : 'Professional Email Signature & Contact'}
+            </h3>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              {lang === 'ar'
+                ? 'تُدرج هذه البيانات تلقائياً في نص وتوقيع رسائل البريد الإلكتروني الرسمية المرسلة للعملاء.'
+                : 'These details are automatically included in professional email sharing and signatures.'}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                {(t as any).contactPerson}
+              </label>
+              <input
+                type="text"
+                placeholder={lang === 'ar' ? 'مثال: م. فهد الشمري' : 'e.g. Eng. Fahad Al-Shammari'}
+                value={formData.contactPerson || ''}
+                onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
+                className="w-full px-3 py-2 text-xs rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                {(t as any).jobTitle}
+              </label>
+              <input
+                type="text"
+                placeholder={lang === 'ar' ? 'مثال: مدير العمليات والتشغيل' : 'e.g. Operations & Fleet Manager'}
+                value={formData.jobTitle || ''}
+                onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
+                className="w-full px-3 py-2 text-xs rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                {(t as any).website}
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. www.boomtruckservices.sa"
+                value={formData.website || ''}
+                onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                className="w-full px-3 py-2 text-xs rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                {(t as any).emailClosing}
+              </label>
+              <input
+                type="text"
+                placeholder={lang === 'ar' ? 'مثال: نتطلع للتعاون معكم في مشاريعكم القادمة.' : 'e.g. Looking forward to working with you on your upcoming projects.'}
+                value={formData.emailClosing || ''}
+                onChange={(e) => setFormData({ ...formData, emailClosing: e.target.value })}
+                className="w-full px-3 py-2 text-xs rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Save button */}
         <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
           <button

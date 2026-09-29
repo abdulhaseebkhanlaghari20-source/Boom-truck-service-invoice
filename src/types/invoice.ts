@@ -15,6 +15,11 @@ export interface CompanySettings {
   crNumber?: string;
   bankName?: string;
   iban?: string;
+  // Professional Email Signature & Contact Fields
+  contactPerson?: string;
+  jobTitle?: string;
+  website?: string;
+  emailClosing?: string;
 }
 
 export interface Invoice {
