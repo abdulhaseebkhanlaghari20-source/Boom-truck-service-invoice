@@ -15,6 +15,13 @@ export interface CompanySettings {
   crNumber?: string;
   bankName?: string;
   iban?: string;
+  // Professional Header & Footer Branding Fields
+  businessServiceEn?: string; // e.g. "BOOM TRUCK RENTAL SERVICES"
+  businessServiceAr?: string; // e.g. "لتأجير بوم ترك"
+  taglineEn?: string; // e.g. "LIFT | TRANSPORT | HEAVY EQUIPMENT SOLUTIONS"
+  taglineAr?: string; // e.g. "خدمات رفع ونقل ومعدات متكاملة"
+  closingNoteEn?: string; // e.g. "Thank you for your business"
+  closingNoteAr?: string; // e.g. "شكراً لتعاملكم معنا"
   // Professional Email Signature & Contact Fields
   contactPerson?: string;
   jobTitle?: string;

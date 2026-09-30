@@ -339,6 +339,100 @@ export const SettingsSection: React.FC<SettingsModalProps> = ({
           </div>
         </div>
 
+        {/* Corporate Header & Footer Customization Subsection */}
+        <div className="pt-4 border-t border-slate-200 space-y-4">
+          <div>
+            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+              {lang === 'ar' ? 'تخصيص رأس وتذييل الفاتورة' : 'Header & Footer Branding'}
+            </h3>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              {lang === 'ar'
+                ? 'تخصيص المسمى التجاري، الشعارات النصية، وعبارة الشكر في أسفل الفاتورة.'
+                : 'Customize business service name, taglines, and footer closing note.'}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                {lang === 'ar' ? 'اسم الخدمة / النشاط (English)' : 'Business / Service Name (English)'}
+              </label>
+              <input
+                type="text"
+                placeholder="BOOM TRUCK RENTAL SERVICES"
+                value={formData.businessServiceEn || ''}
+                onChange={(e) => setFormData({ ...formData, businessServiceEn: e.target.value })}
+                className="w-full px-3 py-2 text-xs rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                {lang === 'ar' ? 'اسم الخدمة / النشاط (العربية)' : 'Business / Service Name (Arabic)'}
+              </label>
+              <input
+                type="text"
+                placeholder="لتأجير بوم ترك"
+                value={formData.businessServiceAr || ''}
+                onChange={(e) => setFormData({ ...formData, businessServiceAr: e.target.value })}
+                className="w-full px-3 py-2 text-xs rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                {lang === 'ar' ? 'الشعار النصي (English)' : 'Tagline / Slogan (English)'}
+              </label>
+              <input
+                type="text"
+                placeholder="LIFT  |  TRANSPORT  |  HEAVY EQUIPMENT SOLUTIONS"
+                value={formData.taglineEn || ''}
+                onChange={(e) => setFormData({ ...formData, taglineEn: e.target.value })}
+                className="w-full px-3 py-2 text-xs rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                {lang === 'ar' ? 'الشعار النصي (العربية)' : 'Tagline / Slogan (Arabic)'}
+              </label>
+              <input
+                type="text"
+                placeholder="خدمات رفع ونقل ومعدات متكاملة"
+                value={formData.taglineAr || ''}
+                onChange={(e) => setFormData({ ...formData, taglineAr: e.target.value })}
+                className="w-full px-3 py-2 text-xs rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                {lang === 'ar' ? 'عبارة الشكر بالتذييل (English)' : 'Footer Closing Note (English)'}
+              </label>
+              <input
+                type="text"
+                placeholder="Thank you for your business"
+                value={formData.closingNoteEn || ''}
+                onChange={(e) => setFormData({ ...formData, closingNoteEn: e.target.value })}
+                className="w-full px-3 py-2 text-xs rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                {lang === 'ar' ? 'عبارة الشكر بالتذييل (العربية)' : 'Footer Closing Note (Arabic)'}
+              </label>
+              <input
+                type="text"
+                placeholder="شكراً لتعاملكم معنا"
+                value={formData.closingNoteAr || ''}
+                onChange={(e) => setFormData({ ...formData, closingNoteAr: e.target.value })}
+                className="w-full px-3 py-2 text-xs rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Save button */}
         <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
           <button

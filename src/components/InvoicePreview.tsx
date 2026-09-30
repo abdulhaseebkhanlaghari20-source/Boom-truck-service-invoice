@@ -2,7 +2,15 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Invoice, CompanySettings, Language } from '../types/invoice';
 import { formatDate, SAUDI_CITIES_AR, numberToWords } from '../utils/formatters';
 import { generateQrCodeDataUrl } from '../utils/zatcaQr';
-import { MapPin, Phone, Mail } from 'lucide-react';
+import {
+  MapPin,
+  Phone,
+  Mail,
+  Globe,
+  FileText,
+  Building2,
+  MessageSquare,
+} from 'lucide-react';
 
 interface InvoicePreviewProps {
   invoice: Invoice;
@@ -77,6 +85,14 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
     };
   }, [isPrintOnly, invoice, companySettings]);
 
+  // Clean helper: rejects empty or bracketed placeholder strings like '[VAT NUMBER]'
+  const cleanVal = (val?: string) => {
+    if (!val) return '';
+    const trimmed = val.trim();
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) return '';
+    return trimmed;
+  };
+
   const displayCity =
     invoice.city === 'Other' && invoice.customCity ? invoice.customCity : invoice.city;
   const cityAr = SAUDI_CITIES_AR[displayCity] || displayCity;
@@ -88,10 +104,100 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
       ? 'Partially Paid / مدفوع جزئياً'
       : 'Bank Transfer / تحويل بنكي';
 
+  // Dynamic corporate identity values
+  const companyNameEn = cleanVal(companySettings.companyName) || 'BOOM TRUCK RENTAL';
+  const companyNameAr = cleanVal(companySettings.companyNameAr) || 'بوم ترَك لتأجير المعدات';
+  const serviceEn = cleanVal(companySettings.businessServiceEn) || 'BOOM TRUCK RENTAL SERVICES';
+  const serviceAr = cleanVal(companySettings.businessServiceAr) || 'لتأجير بوم ترك';
+  const taglineEn = cleanVal(companySettings.taglineEn) || 'LIFT  |  TRANSPORT  |  HEAVY EQUIPMENT SOLUTIONS';
+  const taglineAr = cleanVal(companySettings.taglineAr) || 'خدمات رفع ونقل ومعدات متكاملة';
+  const closingEn = cleanVal(companySettings.closingNoteEn) || cleanVal(companySettings.emailClosing) || 'Thank you for your business';
+  const closingAr = cleanVal(companySettings.closingNoteAr) || 'شكراً لتعاملكم معنا';
+
+  const vatNo = cleanVal(companySettings.vatNumber);
+  const crNo = cleanVal(companySettings.crNumber);
+  const phoneVal = cleanVal(companySettings.phone);
+  const whatsappVal = cleanVal(companySettings.whatsapp);
+  const emailVal = cleanVal(companySettings.email);
+  const addressVal = cleanVal(companySettings.address);
+  const addressArVal = cleanVal(companySettings.addressAr);
+  const websiteVal = cleanVal(companySettings.website);
+
+  // Dynamic header information strip items (strictly only active fields, no empty placeholders)
+  const headerInfoItems = [];
+
+  if (vatNo) {
+    headerInfoItems.push({
+      id: 'vat',
+      icon: <FileText className="w-3.5 h-3.5 text-white" />,
+      labelEn: 'VAT Number',
+      labelAr: 'الرقم الضريبي',
+      value: vatNo,
+      isMono: true,
+    });
+  }
+
+  if (crNo) {
+    headerInfoItems.push({
+      id: 'cr',
+      icon: <Building2 className="w-3.5 h-3.5 text-white" />,
+      labelEn: 'CR Number',
+      labelAr: 'السجل التجاري',
+      value: crNo,
+      isMono: true,
+    });
+  }
+
+  if (phoneVal || whatsappVal) {
+    const isShared = phoneVal && whatsappVal && phoneVal === whatsappVal;
+    headerInfoItems.push({
+      id: 'phone',
+      icon: <Phone className="w-3.5 h-3.5 text-white" />,
+      labelEn: isShared ? 'Mobile / WhatsApp' : whatsappVal ? 'WhatsApp' : 'Mobile / Phone',
+      labelAr: isShared ? 'الجوال / واتساب' : whatsappVal ? 'واتساب' : 'الجوال',
+      value: phoneVal || whatsappVal,
+      isMono: true,
+    });
+  }
+
+  if (emailVal) {
+    headerInfoItems.push({
+      id: 'email',
+      icon: <Mail className="w-3.5 h-3.5 text-white" />,
+      labelEn: 'Email',
+      labelAr: 'البريد',
+      value: emailVal,
+      isMono: false,
+    });
+  }
+
+  if (addressVal) {
+    headerInfoItems.push({
+      id: 'address',
+      icon: <MapPin className="w-3.5 h-3.5 text-white" />,
+      labelEn: 'Location',
+      labelAr: 'الموقع',
+      value: addressVal,
+      subValue: addressArVal,
+      isMono: false,
+    });
+  }
+
+  if (websiteVal) {
+    headerInfoItems.push({
+      id: 'website',
+      icon: <Globe className="w-3.5 h-3.5 text-white" />,
+      labelEn: 'Website',
+      labelAr: 'الموقع',
+      value: websiteVal,
+      isMono: false,
+    });
+  }
+
   // Inner A4 Sheet Content (100% Fixed Master Reference A4 Layout)
   const a4SheetContent = (
     <>
-      {/* 1. Large Center Background Watermark (Uses uploaded company logo from Settings) */}
+      {/* Center Background Watermark (Uses uploaded company logo from Settings) */}
       {companySettings.logoUrl && (
         <div
           className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-0"
@@ -111,12 +217,14 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
       )}
 
       {/* Foreground Content */}
-      <div className="relative z-10 flex flex-col justify-between flex-1 space-y-3">
+      <div className="relative z-10 flex flex-col justify-between flex-1 space-y-2.5">
         <div>
-          {/* 1. TOP HEADER: English Identity (Left) + Logo + Arabic Identity (Right) */}
-          <div className="flex flex-row justify-between items-center gap-4 pt-1 pb-1">
+          {/* ========================================================
+              1. MASTER REFERENCE CORPORATE HEADER
+              ======================================================== */}
+          <div className="flex flex-row justify-between items-center gap-3 pt-1 pb-1">
             {/* Left: English Company Identity & Logo */}
-            <div className="flex items-center gap-3.5 min-w-0">
+            <div className="flex items-center gap-3.5 min-w-0 flex-1">
               {companySettings.logoUrl ? (
                 <img
                   src={companySettings.logoUrl}
@@ -125,46 +233,87 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                   className="max-h-16 max-w-[140px] w-auto h-auto object-contain object-left rtl:object-right shrink-0"
                 />
               ) : (
-                <div className="w-20 h-14 border border-dashed border-slate-400 bg-slate-50 text-slate-600 rounded flex flex-col items-center justify-center p-1 shrink-0 text-center">
-                  <span className="text-[10px] font-bold tracking-tight">BOOM TRUCK</span>
-                  <span className="text-[7.5px] text-slate-400">LOGO</span>
+                <div className="w-20 h-14 border border-dashed border-slate-300 bg-slate-50 text-slate-700 rounded-md flex flex-col items-center justify-center p-1 shrink-0 text-center shadow-2xs">
+                  <span className="text-[10px] font-black tracking-tight text-slate-900">BOOM TRUCK</span>
+                  <span className="text-[7.5px] font-bold text-amber-600">CRANE LOGO</span>
                 </div>
               )}
 
-              <div className="space-y-0.5 min-w-0">
-                <h1 className="text-xl font-black text-slate-900 tracking-tight uppercase leading-tight truncate">
-                  {companySettings.companyName || 'BOOM TRUCK'}
+              <div className="min-w-0 space-y-0.5">
+                <h1 className="text-xl font-black text-slate-950 tracking-tight uppercase leading-none truncate">
+                  {companyNameEn}
                 </h1>
-                <p className="text-[10px] tracking-wider font-extrabold uppercase text-amber-600">
-                  BOOM TRUCK RENTAL SERVICES
+                <p className="text-[11px] font-extrabold uppercase text-amber-500 tracking-wide mt-1 leading-tight">
+                  {serviceEn}
                 </p>
-                {companySettings.vatNumber && (
-                  <p className="text-[9.5px] text-slate-500 font-mono">
-                    VAT: {companySettings.vatNumber}
+                {taglineEn && (
+                  <p className="text-[8.5px] font-bold uppercase text-slate-500 tracking-wider mt-0.5 leading-tight">
+                    {taglineEn}
                   </p>
                 )}
               </div>
             </div>
 
+            {/* Crisp Vertical Divider between English & Arabic Identity */}
+            <div className="w-[1.5px] h-14 bg-slate-300 shrink-0 mx-2" />
+
             {/* Right: Arabic Company Identity */}
-            <div className="text-end rtl:text-start space-y-0.5 shrink-0" dir="rtl">
-              <h2 className="text-xl font-black text-slate-900 leading-tight">
-                {companySettings.companyNameAr || 'بومكس السعودية'}
+            <div className="text-end rtl:text-start min-w-0 flex-1 space-y-0.5 shrink-0" dir="rtl">
+              <h2 className="text-xl font-black text-slate-950 leading-none truncate">
+                {companyNameAr}
               </h2>
-              <div className="text-sm font-bold text-amber-600">
-                لتأجير بوم تراك
+              <div className="text-sm font-extrabold text-amber-500 mt-1 leading-tight">
+                {serviceAr}
               </div>
-              <div className="text-[10px] text-slate-500 font-medium">
-                خدمات رافعات وونشات متكاملة
-              </div>
+              {taglineAr && (
+                <div className="text-[10px] font-bold text-slate-600 mt-0.5 leading-tight">
+                  {taglineAr}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Dark Blue / Slate Divider Bar */}
-          <div className="w-full h-1 bg-slate-900 rounded-full my-2.5" />
+          {/* Master Reference Information Strip Below Header */}
+          {headerInfoItems.length > 0 && (
+            <div className="mt-2 flex flex-row items-center justify-between gap-1.5 px-2.5 py-1.5 bg-slate-50/90 rounded-md border border-slate-200/90 text-slate-800 shadow-2xs">
+              {headerInfoItems.map((item, idx) => (
+                <React.Fragment key={item.id}>
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <div className="w-6 h-6 rounded bg-slate-950 flex items-center justify-center shrink-0 shadow-2xs">
+                      {item.icon}
+                    </div>
+                    <div className="min-w-0 leading-tight">
+                      <div className="text-[8px] font-bold text-slate-500 uppercase tracking-tight flex items-center gap-0.5">
+                        <span>{item.labelEn}</span>
+                        <span className="text-[7px] text-slate-400">/</span>
+                        <span>{item.labelAr}</span>
+                      </div>
+                      <div className={`font-bold text-slate-950 text-[9.5px] truncate ${item.isMono ? 'font-mono' : ''}`}>
+                        {item.value}
+                      </div>
+                      {item.subValue && (
+                        <div className="text-[8px] text-slate-600 truncate" dir="rtl">
+                          {item.subValue}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {idx < headerInfoItems.length - 1 && (
+                    <div className="h-6 w-[1.5px] bg-amber-500 shrink-0 mx-1.5" />
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+          )}
+
+          {/* Master Reference Signature Divider Bar (Deep Navy with Vibrant Gold/Amber Accent Line) */}
+          <div className="relative mt-2 mb-2 space-y-[2px]">
+            <div className="w-full h-[3px] bg-slate-950 rounded-full" />
+            <div className="w-full h-[1.5px] bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 rounded-full" />
+          </div>
 
           {/* 2. INVOICE TITLE: Centered Bordered Box */}
-          <div className="flex justify-center my-2">
+          <div className="flex justify-center my-1.5">
             <div className="border border-slate-700/80 rounded-md px-12 py-1 text-center bg-white shadow-2xs">
               <span className="text-base font-extrabold text-slate-900 tracking-wide font-sans">
                 Tax Invoice الفاتورة الضريبية
@@ -189,7 +338,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                   VAT No. / الرقم الضريبي :
                 </span>
                 <span className="font-mono text-slate-800">
-                  {invoice.customerVatNumber || companySettings.vatNumber || '-'}
+                  {invoice.customerVatNumber || vatNo || '-'}
                 </span>
               </div>
               <div className="flex items-baseline gap-1.5">
@@ -240,7 +389,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           </div>
 
           {/* 4. SERVICE TABLE (Reference Table Design with Clean Grid & Empty Rows) */}
-          <div className="my-2.5">
+          <div className="my-2">
             <table className="w-full text-xs text-center border-collapse border border-slate-300">
               <thead>
                 <tr className="bg-slate-100 text-slate-900 font-bold border-b border-slate-300">
@@ -385,7 +534,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           </div>
 
           {/* 7. NOTES + BANK DETAILS + 3 SIGNATURE COLUMNS */}
-          <div className="border border-slate-300 rounded text-[11px] text-slate-800 my-2.5 overflow-hidden">
+          <div className="border border-slate-300 rounded text-[11px] text-slate-800 my-2 overflow-hidden">
             {/* Seal Note */}
             <div className="px-3 py-1.5 border-b border-slate-300 bg-slate-50 font-medium text-slate-700">
               <strong className="text-slate-900 font-bold">Seal Note : </strong>
@@ -449,31 +598,127 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           </div>
         </div>
 
-        {/* 8. FULL-WIDTH DARK FOOTER BAR */}
-        <div className="bg-slate-900 text-white py-2.5 px-4 rounded-md flex flex-row items-center justify-between gap-2 text-[11px] font-medium tracking-tight">
-          {/* Address */}
-          <div className="flex items-center gap-1.5 text-slate-200 truncate">
-            <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            <span className="truncate">
-              {companySettings.address || 'Dammam, Kingdom Of Saudi Arabia'}
-            </span>
-          </div>
+        {/* ========================================================
+            8. MASTER REFERENCE FULL-WIDTH DARK NAVY FOOTER
+            ======================================================== */}
+        <div className="bg-slate-950 text-white rounded-lg shadow-sm overflow-hidden relative border border-slate-800/80 mt-2">
+          {/* Top Thin Gold/Amber Decorative Accent Stripe */}
+          <div className="w-full h-[2.5px] bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600" />
 
-          {/* Mobile */}
-          <div className="flex items-center gap-1.5 text-slate-200">
-            <Phone className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            <span>Mob: {companySettings.phone || '0597330558'}</span>
-            {companySettings.whatsapp && (
-              <span className="text-slate-400">/ {companySettings.whatsapp}</span>
+          <div className="py-2 px-3.5 sm:px-4">
+            {/* Upper Row: Dynamic Contact & Company Metadata */}
+            <div className="flex flex-row items-center justify-between gap-3 text-[10.5px]">
+              {/* 1. Address / Location (Left) */}
+              {addressVal && (
+                <div className="flex items-center gap-1.5 min-w-0 max-w-[28%]">
+                  <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <div className="min-w-0 leading-tight">
+                    <div className="text-slate-100 font-medium truncate text-[10px]">{addressVal}</div>
+                    {addressArVal && (
+                      <div className="text-[9px] text-slate-400 truncate" dir="rtl">
+                        {addressArVal}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Vertical Divider */}
+              {addressVal && (phoneVal || emailVal || vatNo) && (
+                <div className="w-[1px] h-7 bg-slate-800 shrink-0" />
+              )}
+
+              {/* 2. Mobile (Center-Left) */}
+              {phoneVal && (
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Phone className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <div className="leading-tight">
+                    <div className="font-mono text-slate-100 font-semibold text-[10px]">{phoneVal}</div>
+                    <div className="text-[8px] text-slate-400">Mobile / الجوال</div>
+                  </div>
+                </div>
+              )}
+
+              {/* WhatsApp if distinct from phone */}
+              {whatsappVal && whatsappVal !== phoneVal && (
+                <>
+                  <div className="w-[1px] h-7 bg-slate-800 shrink-0" />
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <MessageSquare className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <div className="leading-tight">
+                      <div className="font-mono text-slate-100 font-semibold text-[10px]">{whatsappVal}</div>
+                      <div className="text-[8px] text-slate-400">WhatsApp / واتساب</div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Vertical Divider */}
+              {emailVal && (
+                <div className="w-[1px] h-7 bg-slate-800 shrink-0" />
+              )}
+
+              {/* 3. Email (Center) */}
+              {emailVal && (
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <Mail className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <div className="min-w-0 leading-tight">
+                    <div className="text-slate-100 truncate text-[10px]">{emailVal}</div>
+                    <div className="text-[8px] text-slate-400">Email / البريد</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Website if available */}
+              {websiteVal && (
+                <>
+                  <div className="w-[1px] h-7 bg-slate-800 shrink-0" />
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <Globe className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <div className="min-w-0 leading-tight">
+                      <div className="text-slate-100 truncate font-mono text-[9.5px]">{websiteVal}</div>
+                      <div className="text-[8px] text-slate-400">Website / الموقع</div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Vertical Divider */}
+              {(vatNo || crNo) && (
+                <div className="w-[1px] h-7 bg-slate-800 shrink-0" />
+              )}
+
+              {/* 4. VAT & CR Numbers (Right) */}
+              {(vatNo || crNo) && (
+                <div className="text-end shrink-0 space-y-0.5">
+                  {vatNo && (
+                    <div className="text-[9.5px] font-mono text-slate-200">
+                      <span className="text-amber-400 font-bold font-sans">VAT: </span>
+                      <span>{vatNo}</span>
+                    </div>
+                  )}
+                  {crNo && (
+                    <div className="text-[9.5px] font-mono text-slate-200">
+                      <span className="text-amber-400 font-bold font-sans">CR: </span>
+                      <span>{crNo}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Bottom Center Bar: Closing Note with Thin Golden Lines */}
+            {(closingEn || closingAr) && (
+              <div className="mt-2 pt-1.5 border-t border-slate-800/80 flex items-center justify-center gap-3 text-[10px] text-slate-300 font-medium">
+                <span className="w-10 sm:w-16 h-[1px] bg-amber-500/70" />
+                <span className="tracking-wide">
+                  {closingEn}
+                  {closingEn && closingAr && <span className="text-amber-400 mx-2 font-bold">|</span>}
+                  {closingAr}
+                </span>
+                <span className="w-10 sm:w-16 h-[1px] bg-amber-500/70" />
+              </div>
             )}
-          </div>
-
-          {/* Email */}
-          <div className="flex items-center gap-1.5 text-slate-200 truncate">
-            <Mail className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            <span className="truncate">
-              Mail: {companySettings.email || 'info@boomtruckservices.sa'}
-            </span>
           </div>
         </div>
       </div>
