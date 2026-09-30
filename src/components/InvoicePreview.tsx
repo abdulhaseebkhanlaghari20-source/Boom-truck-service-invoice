@@ -56,7 +56,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
     <div
       id={`invoice-preview-sheet-${invoice.id}`}
       data-invoice-sheet="true"
-      className={`invoice-sheet bg-white text-slate-900 border border-slate-300 shadow-md rounded-lg p-3 sm:p-6 w-full max-w-[800px] mx-auto print-container leading-normal select-text relative flex flex-col justify-between overflow-hidden min-h-[960px] ${
+      className={`invoice-sheet bg-white text-slate-900 border border-slate-300 shadow-md rounded-lg p-3 sm:p-6 w-full max-w-[800px] mx-auto print-container leading-normal select-text relative flex flex-col justify-between overflow-hidden min-h-[auto] sm:min-h-[960px] ${
         isPrintOnly ? 'print-only' : ''
       }`}
       dir={lang === 'ar' ? 'rtl' : 'ltr'}
@@ -72,7 +72,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
             src={companySettings.logoUrl}
             alt=""
             referrerPolicy="no-referrer"
-            className="w-auto h-auto max-w-[360px] sm:max-w-[440px] max-h-[360px] sm:max-h-[440px] object-contain transition-opacity"
+            className="w-auto h-auto max-w-[240px] sm:max-w-[440px] max-h-[240px] sm:max-h-[440px] object-contain transition-opacity"
             style={{
               opacity: 0.055,
               filter: 'grayscale(100%) contrast(110%)',
@@ -85,47 +85,47 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
       <div className="relative z-10 flex flex-col justify-between flex-1 space-y-2.5">
         <div>
           {/* 1. TOP HEADER: English Identity (Left) + Logo + Arabic Identity (Right) */}
-          <div className="flex flex-row justify-between items-center gap-3 pt-1 pb-1">
-            {/* Left: English Company Identity & Logo */}
-            <div className="flex items-center gap-3 min-w-0">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5 sm:gap-3 pt-1 pb-1">
+            {/* Left/Top: English Company Identity & Logo */}
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 w-full sm:w-auto">
               {companySettings.logoUrl ? (
                 <img
                   src={companySettings.logoUrl}
                   alt="Company Logo"
                   referrerPolicy="no-referrer"
-                  className="max-h-14 sm:max-h-18 max-w-[130px] sm:max-w-[180px] w-auto h-auto object-contain object-left rtl:object-right shrink-0"
+                  className="max-h-12 sm:max-h-18 max-w-[90px] sm:max-w-[180px] w-auto h-auto object-contain object-left rtl:object-right shrink-0"
                 />
               ) : (
-                <div className="w-16 h-12 sm:w-20 sm:h-14 border border-dashed border-slate-400 bg-slate-50 text-slate-600 rounded flex flex-col items-center justify-center p-1 shrink-0 text-center">
-                  <span className="text-[10px] font-bold tracking-tight">BOOM TRUCK</span>
-                  <span className="text-[7.5px] text-slate-400">LOGO</span>
+                <div className="w-14 h-11 sm:w-20 sm:h-14 border border-dashed border-slate-400 bg-slate-50 text-slate-600 rounded flex flex-col items-center justify-center p-1 shrink-0 text-center">
+                  <span className="text-[9px] font-bold tracking-tight">BOOM TRUCK</span>
+                  <span className="text-[7px] text-slate-400">LOGO</span>
                 </div>
               )}
 
-              <div className="space-y-0.5 min-w-0">
-                <h1 className="text-base sm:text-xl font-black text-slate-900 tracking-tight uppercase leading-tight truncate">
+              <div className="space-y-0.5 min-w-0 flex-1">
+                <h1 className="text-sm sm:text-xl font-black text-slate-900 tracking-tight uppercase leading-tight truncate">
                   {companySettings.companyName || 'BOOM TRUCK'}
                 </h1>
-                <p className="text-[9px] sm:text-[10px] tracking-wider font-extrabold uppercase text-amber-600">
+                <p className="text-[8.5px] sm:text-[10px] tracking-wider font-extrabold uppercase text-amber-600 truncate">
                   BOOM TRUCK RENTAL SERVICES
                 </p>
                 {companySettings.vatNumber && (
-                  <p className="text-[9.5px] text-slate-500 font-mono">
+                  <p className="text-[8.5px] sm:text-[9.5px] text-slate-500 font-mono truncate">
                     VAT: {companySettings.vatNumber}
                   </p>
                 )}
               </div>
             </div>
 
-            {/* Right: Arabic Company Identity */}
-            <div className="text-end rtl:text-start space-y-0.5 shrink-0" dir="rtl">
-              <h2 className="text-base sm:text-xl font-black text-slate-900 leading-tight">
+            {/* Right/Bottom: Arabic Company Identity */}
+            <div className="text-start sm:text-end rtl:text-start space-y-0.5 w-full sm:w-auto shrink-0 border-t sm:border-t-0 border-slate-100 pt-1.5 sm:pt-0" dir="rtl">
+              <h2 className="text-sm sm:text-xl font-black text-slate-900 leading-tight">
                 {companySettings.companyNameAr || 'بومكس السعودية'}
               </h2>
-              <div className="text-xs sm:text-sm font-bold text-amber-600">
+              <div className="text-[11px] sm:text-sm font-bold text-amber-600">
                 لتأجير بوم تراك
               </div>
-              <div className="text-[9px] sm:text-[10px] text-slate-500 font-medium">
+              <div className="text-[8.5px] sm:text-[10px] text-slate-500 font-medium">
                 خدمات رافعات وونشات متكاملة
               </div>
             </div>
@@ -136,42 +136,42 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
 
           {/* 2. INVOICE TITLE: Centered Bordered Box */}
           <div className="flex justify-center my-1.5">
-            <div className="border border-slate-700/80 rounded-md px-6 sm:px-12 py-1 text-center bg-white shadow-2xs">
-              <span className="text-sm sm:text-base font-extrabold text-slate-900 tracking-wide font-sans">
+            <div className="border border-slate-700/80 rounded-md px-4 sm:px-12 py-1 text-center bg-white shadow-2xs max-w-full">
+              <span className="text-xs sm:text-base font-extrabold text-slate-900 tracking-wide font-sans">
                 Tax Invoice الفاتورة الضريبية
               </span>
             </div>
           </div>
 
-          {/* 3. CUSTOMER + INVOICE DETAILS: 2-Column Arrangement */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 py-2 text-xs text-slate-800">
+          {/* 3. CUSTOMER + INVOICE DETAILS: 2-Column Responsive Arrangement */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 py-2 text-[11px] sm:text-xs text-slate-800">
             {/* Left Column: Customer Information */}
-            <div className="space-y-1">
-              <div className="flex items-baseline gap-1.5">
+            <div className="space-y-1 bg-slate-50/60 sm:bg-transparent p-2 sm:p-0 rounded border sm:border-0 border-slate-200">
+              <div className="flex flex-wrap sm:flex-nowrap items-baseline gap-1 sm:gap-1.5">
                 <span className="font-bold text-slate-900 whitespace-nowrap">
                   Client Name / اسم العميل :
                 </span>
-                <span className="font-bold text-slate-900 truncate">
+                <span className="font-bold text-slate-900 break-words">
                   {invoice.customerName || '-'}
                 </span>
               </div>
-              <div className="flex items-baseline gap-1.5">
+              <div className="flex flex-wrap sm:flex-nowrap items-baseline gap-1 sm:gap-1.5">
                 <span className="font-bold text-slate-900 whitespace-nowrap">
                   VAT No. / الرقم الضريبي :
                 </span>
-                <span className="font-mono text-slate-800">
+                <span className="font-mono text-slate-800 break-all">
                   {invoice.customerVatNumber || companySettings.vatNumber || '-'}
                 </span>
               </div>
-              <div className="flex items-baseline gap-1.5">
+              <div className="flex flex-wrap sm:flex-nowrap items-baseline gap-1 sm:gap-1.5">
                 <span className="font-bold text-slate-900 whitespace-nowrap">
                   Address / عنوان العميل :
                 </span>
-                <span className="text-slate-700 truncate">
+                <span className="text-slate-700 break-words">
                   {displayCity} ({cityAr})
                 </span>
               </div>
-              <div className="flex items-baseline gap-1.5">
+              <div className="flex flex-wrap sm:flex-nowrap items-baseline gap-1 sm:gap-1.5">
                 <span className="font-bold text-slate-900 whitespace-nowrap">
                   Mobile / جوال :
                 </span>
@@ -182,8 +182,8 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
             </div>
 
             {/* Right Column: Invoice Metadata */}
-            <div className="space-y-1 text-start sm:text-end rtl:text-end rtl:sm:text-start">
-              <div className="flex items-baseline justify-start sm:justify-end rtl:justify-end rtl:sm:justify-start gap-1.5">
+            <div className="space-y-1 bg-slate-50/60 sm:bg-transparent p-2 sm:p-0 rounded border sm:border-0 border-slate-200 text-start sm:text-end rtl:text-end rtl:sm:text-start">
+              <div className="flex flex-wrap sm:flex-nowrap items-baseline justify-start sm:justify-end rtl:justify-end rtl:sm:justify-start gap-1 sm:gap-1.5">
                 <span className="font-bold text-slate-900 whitespace-nowrap">
                   Invoice No. / رقم الفاتورة :
                 </span>
@@ -191,7 +191,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                   {invoice.invoiceNumber || '0177'}
                 </span>
               </div>
-              <div className="flex items-baseline justify-start sm:justify-end rtl:justify-end rtl:sm:justify-start gap-1.5">
+              <div className="flex flex-wrap sm:flex-nowrap items-baseline justify-start sm:justify-end rtl:justify-end rtl:sm:justify-start gap-1 sm:gap-1.5">
                 <span className="font-bold text-slate-900 whitespace-nowrap">
                   Date / تاريخ الفاتورة :
                 </span>
@@ -199,7 +199,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                   {formatDate(invoice.invoiceDate)}
                 </span>
               </div>
-              <div className="flex items-baseline justify-start sm:justify-end rtl:justify-end rtl:sm:justify-start gap-1.5">
+              <div className="flex flex-wrap sm:flex-nowrap items-baseline justify-start sm:justify-end rtl:justify-end rtl:sm:justify-start gap-1 sm:gap-1.5">
                 <span className="font-bold text-slate-900 whitespace-nowrap">
                   Pay Via / طريقة الدفع :
                 </span>
@@ -210,10 +210,14 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
             </div>
           </div>
 
-          {/* 4. SERVICE TABLE (Reference Table Design with Clean Grid & Empty Rows) */}
-          <div className="my-2">
-            <div className="overflow-x-auto -mx-1 px-1 sm:mx-0 sm:px-0">
-              <table className="w-full min-w-[620px] sm:min-w-full text-[11px] sm:text-xs text-center border-collapse border border-slate-300">
+          {/* 4. SERVICE TABLE (Responsive with self-contained horizontal scroll on mobile) */}
+          <div className="my-2 max-w-full">
+            <div className="sm:hidden flex items-center justify-between text-[10px] text-slate-500 mb-1 px-0.5">
+              <span className="font-medium">{lang === 'ar' ? 'جدول الخدمات والمعدات' : 'Service & Equipment Table'}</span>
+              <span className="text-emerald-700 font-semibold">{lang === 'ar' ? 'اسحب أفقياً لعرض الأعمدة ←' : 'Swipe table horizontally →'}</span>
+            </div>
+            <div className="overflow-x-auto max-w-full -mx-1 px-1 sm:mx-0 sm:px-0 touch-pan-x overscroll-x-contain">
+              <table className="w-full min-w-[560px] sm:min-w-full text-[10.5px] sm:text-xs text-center border-collapse border border-slate-300">
                 <thead>
                   <tr className="bg-slate-100 text-slate-900 font-bold border-b border-slate-300">
                     <th className="py-2 px-1.5 border-r border-slate-300 w-10 text-center">#</th>
@@ -290,8 +294,8 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
             </div>
           </div>
 
-          {/* 5. QR CODE + TOTALS SECTION (Side by side like reference) */}
-          <div className="flex flex-row justify-between items-center gap-4 py-2">
+          {/* 5. QR CODE + TOTALS SECTION (Responsive: stacked on mobile, side-by-side on desktop) */}
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 py-2">
             {/* Left: Clean Bordered ZATCA QR Code */}
             <div className="p-2 border border-slate-300 rounded bg-white shrink-0 shadow-2xs">
               {qrCodeDataUrl ? (
@@ -308,7 +312,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
             </div>
 
             {/* Right: Totals Table */}
-            <div className="flex-1 max-w-sm sm:max-w-md border border-slate-300 rounded text-xs">
+            <div className="w-full sm:w-auto sm:flex-1 sm:max-w-md border border-slate-300 rounded text-xs">
               <div className="flex justify-between items-center px-3 py-1.5 border-b border-slate-200">
                 <span className="font-bold text-slate-800">
                   Subtotal / الإجمالي قبل ضريبة القيمة المضافة
@@ -348,19 +352,19 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           </div>
 
           {/* 6. AMOUNT IN WORDS BAR */}
-          <div className="bg-slate-200/80 border-y border-slate-300 px-3 py-1.5 text-xs text-slate-900 flex flex-wrap items-center justify-between gap-1">
+          <div className="bg-slate-200/80 border-y border-slate-300 px-3 py-1.5 text-[11px] sm:text-xs text-slate-900 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
             <span className="font-bold whitespace-nowrap">
               Amount Chargeable (in words) / المبلغ الإجمالي بالكلمات :
             </span>
-            <span className="font-semibold text-slate-900 italic">
+            <span className="font-semibold text-slate-900 italic break-words">
               {numberToWords(invoice.total, lang)}
             </span>
           </div>
 
-          {/* 7. NOTES + BANK DETAILS + 3 SIGNATURE COLUMNS */}
+          {/* 7. NOTES + BANK DETAILS + 3 SIGNATURE COLUMNS (Responsive) */}
           <div className="border border-slate-300 rounded text-[11px] text-slate-800 my-2 overflow-hidden">
             {/* Seal Note */}
-            <div className="px-3 py-1 border-b border-slate-300 bg-slate-50 font-medium text-slate-700">
+            <div className="px-3 py-1.5 border-b border-slate-300 bg-slate-50 font-medium text-slate-700">
               <strong className="text-slate-900 font-bold">Seal Note : </strong>
               <span>
                 {invoice.notes ||
@@ -368,10 +372,10 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               </span>
             </div>
 
-            {/* 4 Equal Columns: Bank Details | Prepared By | Approved By | Received By */}
-            <div className="grid grid-cols-4 divide-x divide-slate-300 text-center">
+            {/* 4 Columns on desktop, stacked cleanly on mobile */}
+            <div className="grid grid-cols-1 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-300 text-center">
               {/* Col 1: Bank Details */}
-              <div className="text-start p-2 space-y-0.5">
+              <div className="text-start p-2.5 sm:p-2 space-y-0.5 sm:col-span-1">
                 <div className="font-bold text-slate-900 border-b border-slate-200 pb-0.5 mb-1 text-center">
                   Bank Details
                 </div>
@@ -379,43 +383,46 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                   <strong className="text-slate-900">Bank: </strong>
                   <span>{companySettings.bankName || 'Alinma Bank'}</span>
                 </div>
-                <div className="text-[10px] text-slate-700 font-mono">
+                <div className="text-[10px] text-slate-700 font-mono break-all sm:break-normal">
                   <strong className="text-slate-900 font-sans">A/C: </strong>
                   <span>{companySettings.crNumber || '68206151342000'}</span>
                 </div>
-                <div className="text-[10px] text-slate-700 font-mono">
+                <div className="text-[10px] text-slate-700 font-mono break-all sm:break-normal">
                   <strong className="text-slate-900 font-sans">IBAN: </strong>
                   <span>{companySettings.iban || 'SA55050000068206151342000'}</span>
                 </div>
               </div>
 
-              {/* Col 2: Prepared By */}
-              <div className="p-2 flex flex-col justify-between h-20">
-                <div className="font-bold text-slate-900 border-b border-slate-200 pb-0.5">
-                  Prepared By
+              {/* Signatures wrapper: on mobile 3 columns, on desktop spans 3 columns with divide-x */}
+              <div className="col-span-1 sm:col-span-3 grid grid-cols-3 divide-x divide-slate-300">
+                {/* Prepared By */}
+                <div className="p-2 flex flex-col justify-between h-16 sm:h-20">
+                  <div className="font-bold text-[10px] sm:text-[11px] text-slate-900 border-b border-slate-200 pb-0.5">
+                    Prepared By
+                  </div>
+                  <div className="text-[9px] sm:text-[10px] text-slate-400 border-t border-dashed border-slate-300 pt-1">
+                    Sign/Stamp
+                  </div>
                 </div>
-                <div className="text-[10px] text-slate-400 border-t border-dashed border-slate-300 pt-1">
-                  Sign/Stamp
-                </div>
-              </div>
 
-              {/* Col 3: Approved By */}
-              <div className="p-2 flex flex-col justify-between h-20">
-                <div className="font-bold text-slate-900 border-b border-slate-200 pb-0.5">
-                  Approved By
+                {/* Approved By */}
+                <div className="p-2 flex flex-col justify-between h-16 sm:h-20">
+                  <div className="font-bold text-[10px] sm:text-[11px] text-slate-900 border-b border-slate-200 pb-0.5">
+                    Approved By
+                  </div>
+                  <div className="text-[9px] sm:text-[10px] text-slate-400 border-t border-dashed border-slate-300 pt-1">
+                    Sign/Stamp
+                  </div>
                 </div>
-                <div className="text-[10px] text-slate-400 border-t border-dashed border-slate-300 pt-1">
-                  Sign/Stamp
-                </div>
-              </div>
 
-              {/* Col 4: Received By */}
-              <div className="p-2 flex flex-col justify-between h-20">
-                <div className="font-bold text-slate-900 border-b border-slate-200 pb-0.5">
-                  Received By
-                </div>
-                <div className="text-[10px] text-slate-400 border-t border-dashed border-slate-300 pt-1">
-                  Sign/Stamp
+                {/* Received By */}
+                <div className="p-2 flex flex-col justify-between h-16 sm:h-20">
+                  <div className="font-bold text-[10px] sm:text-[11px] text-slate-900 border-b border-slate-200 pb-0.5">
+                    Received By
+                  </div>
+                  <div className="text-[9px] sm:text-[10px] text-slate-400 border-t border-dashed border-slate-300 pt-1">
+                    Sign/Stamp
+                  </div>
                 </div>
               </div>
             </div>
@@ -423,9 +430,9 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
         </div>
 
         {/* 8. FULL-WIDTH DARK FOOTER BAR */}
-        <div className="bg-slate-900 text-white py-2.5 px-3 sm:px-4 rounded-md flex flex-col sm:flex-row items-center justify-between gap-2 text-[10px] sm:text-[11px] font-medium tracking-tight">
+        <div className="bg-slate-900 text-white py-2.5 px-3 sm:px-4 rounded-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-medium tracking-tight">
           {/* Address */}
-          <div className="flex items-center gap-1.5 text-slate-200 truncate">
+          <div className="flex items-center gap-1.5 text-slate-200 truncate max-w-full">
             <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
             <span className="truncate">
               {companySettings.address || 'Dammam, Kingdom Of Saudi Arabia'}
@@ -433,7 +440,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           </div>
 
           {/* Mobile */}
-          <div className="flex items-center gap-1.5 text-slate-200">
+          <div className="flex items-center gap-1.5 text-slate-200 shrink-0">
             <Phone className="w-3.5 h-3.5 text-amber-400 shrink-0" />
             <span>Mob: {companySettings.phone || '0597330558'}</span>
             {companySettings.whatsapp && (
@@ -442,7 +449,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           </div>
 
           {/* Email */}
-          <div className="flex items-center gap-1.5 text-slate-200 truncate">
+          <div className="flex items-center gap-1.5 text-slate-200 truncate max-w-full">
             <Mail className="w-3.5 h-3.5 text-amber-400 shrink-0" />
             <span className="truncate">
               Mail: {companySettings.email || 'info@boomtruckservices.sa'}

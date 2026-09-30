@@ -555,44 +555,49 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
         </div>
 
         {/* Right Column: Live Instant Invoice Preview */}
-        <div className={`lg:col-span-6 sticky top-20 ${mobileTab === 'form' ? 'hidden lg:block' : 'block'}`}>
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+        <div className={`lg:col-span-6 sticky top-20 w-full max-w-full overflow-hidden ${mobileTab === 'form' ? 'hidden lg:block' : 'block'}`}>
+          <div className="mb-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5 shrink-0">
               <Eye className="w-3.5 h-3.5 text-emerald-700" />
               {lang === 'ar' ? 'معاينة الفاتورة الفورية (A4)' : 'Live Invoice Preview (A4)'}
             </span>
-            <div className="flex flex-wrap items-center gap-2 text-xs">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs">
               <button
+                type="button"
                 onClick={onPrint}
-                className="text-slate-700 hover:text-slate-900 font-semibold underline decoration-dotted"
+                className="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition-colors flex items-center gap-1"
               >
-                {t.print}
+                <Printer className="w-3 h-3 text-slate-500" />
+                <span>{t.print}</span>
               </button>
-              <span className="text-slate-300">·</span>
               <button
+                type="button"
                 onClick={onDownloadPdf}
-                className="text-emerald-700 hover:text-emerald-800 font-semibold underline decoration-dotted"
+                className="px-2 py-1 rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold border border-emerald-200 transition-colors flex items-center gap-1"
               >
-                {t.downloadPdf}
+                <FileDown className="w-3 h-3 text-emerald-600" />
+                <span>{t.downloadPdf}</span>
               </button>
-              <span className="text-slate-300">·</span>
               <button
+                type="button"
                 onClick={onSharePdf}
-                className="text-blue-700 hover:text-blue-800 font-semibold underline decoration-dotted"
+                className="px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold border border-blue-200 transition-colors flex items-center gap-1"
               >
-                {t.sharePdf}
+                <Share2 className="w-3 h-3 text-blue-600" />
+                <span>{t.sharePdf}</span>
               </button>
-              <span className="text-slate-300">·</span>
               <button
+                type="button"
                 onClick={onEmailPdf}
-                className="text-indigo-700 hover:text-indigo-800 font-semibold underline decoration-dotted"
+                className="px-2 py-1 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold border border-indigo-200 transition-colors flex items-center gap-1"
               >
-                {t.emailPdf}
+                <Mail className="w-3 h-3 text-indigo-600" />
+                <span>{t.emailPdf}</span>
               </button>
             </div>
           </div>
 
-          <div className="overflow-x-auto pb-4">
+          <div className="w-full max-w-full pb-4">
             <InvoicePreview
               invoice={invoice}
               companySettings={companySettings}
