@@ -85,7 +85,7 @@ export function calculateInvoiceTotals(
  */
 export function buildWhatsAppMessage(
   invoice: Invoice,
-  companyName: string = '[COMPANY NAME]',
+  companyName: string = 'Boom Truck Services',
   lang: Language = 'en'
 ): string {
   if (lang === 'ar') {

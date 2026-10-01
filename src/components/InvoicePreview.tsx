@@ -240,7 +240,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                   VAT No. / الرقم الضريبي :
                 </span>
                 <span className="font-mono text-slate-800">
-                  {invoice.customerVatNumber || vatNo || '-'}
+                  {invoice.customerVatNumber || '-'}
                 </span>
               </div>
               <div className="flex items-baseline gap-1.5">
@@ -456,15 +456,15 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                 </div>
                 <div className="text-[10px] text-slate-700">
                   <strong className="text-slate-900">Bank: </strong>
-                  <span>{cleanVal(companySettings.bankName) || 'Alinma Bank'}</span>
+                  <span>{cleanVal(companySettings.bankName) || '-'}</span>
                 </div>
                 <div className="text-[10px] text-slate-700 font-mono">
                   <strong className="text-slate-900 font-sans">A/C: </strong>
-                  <span>{bankAccountVal || '68206151342000'}</span>
+                  <span>{bankAccountVal || '-'}</span>
                 </div>
                 <div className="text-[10px] text-slate-700 font-mono">
                   <strong className="text-slate-900 font-sans">IBAN: </strong>
-                  <span>{cleanVal(companySettings.iban) || 'SA55050000068206151342000'}</span>
+                  <span>{cleanVal(companySettings.iban) || '-'}</span>
                 </div>
               </div>
 
