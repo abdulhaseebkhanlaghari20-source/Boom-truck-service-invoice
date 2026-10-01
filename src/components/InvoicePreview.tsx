@@ -117,29 +117,33 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
 
   const vatNo = cleanVal(companySettings.vatNumber);
   const crNo = cleanVal(companySettings.crNumber);
-  const phoneVal = cleanVal(companySettings.phone);
+  const primaryPhone = cleanVal(companySettings.phone);
+  const secondaryPhone = cleanVal(companySettings.secondaryPhone);
+  const phoneVal = [primaryPhone, secondaryPhone].filter(Boolean).join(', ');
   const whatsappVal = cleanVal(companySettings.whatsapp);
   const emailVal = cleanVal(companySettings.email);
   const addressVal = cleanVal(companySettings.address);
   const addressArVal = cleanVal(companySettings.addressAr);
   const websiteVal = cleanVal(companySettings.website);
+  const bankAccountVal = cleanVal(companySettings.bankAccountNumber);
+  const sealNoteVal = cleanVal(companySettings.sealNote);
 
   // Inner A4 Sheet Content (100% Fixed Master Reference A4 Layout)
   const a4SheetContent = (
     <>
-      {/* Center Background Watermark (Uses uploaded company logo from Settings) */}
-      {companySettings.logoUrl && (
+      {/* Center Background Watermark (Uses uploaded custom watermark or logo from Settings) */}
+      {companySettings.enableWatermark !== false && (companySettings.watermarkUrl || companySettings.logoUrl) && (
         <div
           className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-0"
           aria-hidden="true"
         >
           <img
-            src={companySettings.logoUrl}
+            src={companySettings.watermarkUrl || companySettings.logoUrl}
             alt=""
             referrerPolicy="no-referrer"
             className="w-auto h-auto max-w-[420px] max-h-[420px] object-contain transition-opacity"
             style={{
-              opacity: 0.055,
+              opacity: companySettings.watermarkOpacity !== undefined ? companySettings.watermarkOpacity : 0.055,
               filter: 'grayscale(100%) contrast(110%)',
             }}
           />
@@ -438,6 +442,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               <strong className="text-slate-900 font-bold">Seal Note : </strong>
               <span>
                 {invoice.notes ||
+                  sealNoteVal ||
                   'Certified boom truck crane & licensed operator. Services performed per Saudi safety standards.'}
               </span>
             </div>
@@ -451,15 +456,15 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                 </div>
                 <div className="text-[10px] text-slate-700">
                   <strong className="text-slate-900">Bank: </strong>
-                  <span>{companySettings.bankName || 'Alinma Bank'}</span>
+                  <span>{cleanVal(companySettings.bankName) || 'Alinma Bank'}</span>
                 </div>
                 <div className="text-[10px] text-slate-700 font-mono">
                   <strong className="text-slate-900 font-sans">A/C: </strong>
-                  <span>{companySettings.crNumber || '68206151342000'}</span>
+                  <span>{bankAccountVal || '68206151342000'}</span>
                 </div>
                 <div className="text-[10px] text-slate-700 font-mono">
                   <strong className="text-slate-900 font-sans">IBAN: </strong>
-                  <span>{companySettings.iban || 'SA55050000068206151342000'}</span>
+                  <span>{cleanVal(companySettings.iban) || 'SA55050000068206151342000'}</span>
                 </div>
               </div>
 

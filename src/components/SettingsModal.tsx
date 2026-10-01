@@ -52,6 +52,30 @@ export const SettingsSection: React.FC<SettingsModalProps> = ({
     }));
   };
 
+  const handleWatermarkUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setFormData((prev) => ({
+            ...prev,
+            watermarkUrl: event.target!.result as string,
+            enableWatermark: true,
+          }));
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleResetWatermark = () => {
+    setFormData((prev) => ({
+      ...prev,
+      watermarkUrl: '',
+    }));
+  };
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       {/* Header */}
@@ -124,6 +148,88 @@ export const SettingsSection: React.FC<SettingsModalProps> = ({
           </div>
         </div>
 
+        {/* Watermark Section (Reference Box 10: Watermark PNG - Transparent) */}
+        <div className="pb-5 border-b border-slate-100 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                {lang === 'ar' ? 'العلامة المائية للفاتورة (Watermark)' : 'Invoice Watermark'}
+              </h3>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                {lang === 'ar'
+                  ? 'تظهر في منتصف خلفية الفاتورة بنقاء وشفافية مطابقة للنموذج المرجعي (PNG شفافة).'
+                  : 'Displays centered in the background of the invoice with subtle transparency.'}
+              </p>
+            </div>
+            <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700">
+              <input
+                type="checkbox"
+                checked={formData.enableWatermark !== false}
+                onChange={(e) => setFormData({ ...formData, enableWatermark: e.target.checked })}
+                className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500"
+              />
+              <span>{lang === 'ar' ? 'تفعيل العلامة المائية' : 'Enable Watermark'}</span>
+            </label>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 pt-1">
+            <div className="w-16 h-16 rounded-md border border-dashed border-slate-300 bg-slate-50 flex items-center justify-center overflow-hidden shrink-0">
+              {formData.watermarkUrl || formData.logoUrl ? (
+                <img
+                  src={formData.watermarkUrl || formData.logoUrl}
+                  alt="Watermark Preview"
+                  className="w-full h-full object-contain opacity-40 grayscale"
+                />
+              ) : (
+                <span className="text-[9px] text-slate-400 font-semibold block text-center">
+                  WATERMARK
+                </span>
+              )}
+            </div>
+
+            <div className="space-y-2 flex-1">
+              <div className="flex items-center gap-2">
+                <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors">
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>{lang === 'ar' ? 'رفع علامة مائية مخصصة' : 'Upload Custom Watermark'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleWatermarkUpload}
+                    className="hidden"
+                  />
+                </label>
+
+                {formData.watermarkUrl && (
+                  <button
+                    type="button"
+                    onClick={handleResetWatermark}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>{lang === 'ar' ? 'استخدام الشعار كعلامة مائية' : 'Use Logo as Watermark'}</span>
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3 pt-1">
+                <span className="text-xs text-slate-600 font-medium whitespace-nowrap">
+                  {lang === 'ar' ? 'درجة الشفافية (Opacity):' : 'Opacity:'} {Math.round((formData.watermarkOpacity !== undefined ? formData.watermarkOpacity : 0.055) * 100)}%
+                </span>
+                <input
+                  type="range"
+                  min="0.02"
+                  max="0.20"
+                  step="0.005"
+                  value={formData.watermarkOpacity !== undefined ? formData.watermarkOpacity : 0.055}
+                  onChange={(e) => setFormData({ ...formData, watermarkOpacity: parseFloat(e.target.value) })}
+                  className="w-36 accent-emerald-600"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Company Identity Fields */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -133,7 +239,7 @@ export const SettingsSection: React.FC<SettingsModalProps> = ({
             <input
               type="text"
               required
-              placeholder="[COMPANY NAME]"
+              placeholder="Ninth Generation Trading Est."
               value={formData.companyName}
               onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
               className="w-full px-3 py-2 text-xs rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
@@ -146,7 +252,7 @@ export const SettingsSection: React.FC<SettingsModalProps> = ({
             </label>
             <input
               type="text"
-              placeholder="اسم المؤسسة بالعربية"
+              placeholder="مؤسسة الجيل التاسع التجارية"
               value={formData.companyNameAr || ''}
               onChange={(e) => setFormData({ ...formData, companyNameAr: e.target.value })}
               className="w-full px-3 py-2 text-xs rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
@@ -160,7 +266,7 @@ export const SettingsSection: React.FC<SettingsModalProps> = ({
             <input
               type="text"
               required
-              placeholder="[VAT NUMBER] e.g. 310XXXXXXXXXXXX"
+              placeholder="312777148100003"
               value={formData.vatNumber}
               onChange={(e) => setFormData({ ...formData, vatNumber: e.target.value })}
               className="w-full px-3 py-2 text-xs font-mono rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
@@ -169,11 +275,11 @@ export const SettingsSection: React.FC<SettingsModalProps> = ({
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              {t.crNumber}
+              {t.crNumber} (السجل التجاري)
             </label>
             <input
               type="text"
-              placeholder="1010XXXXXX"
+              placeholder="2050205810"
               value={formData.crNumber || ''}
               onChange={(e) => setFormData({ ...formData, crNumber: e.target.value })}
               className="w-full px-3 py-2 text-xs font-mono rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
@@ -182,14 +288,27 @@ export const SettingsSection: React.FC<SettingsModalProps> = ({
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              {t.phone} *
+              {t.phone} (Primary Mobile) *
             </label>
             <input
               type="text"
               required
-              placeholder="[PHONE] +966 5X XXX XXXX"
+              placeholder="0597330558"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              className="w-full px-3 py-2 text-xs rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              {lang === 'ar' ? 'رقم الهاتف الإضافي (Secondary Phone)' : 'Secondary Mobile / Phone'}
+            </label>
+            <input
+              type="text"
+              placeholder="0596300922"
+              value={formData.secondaryPhone || ''}
+              onChange={(e) => setFormData({ ...formData, secondaryPhone: e.target.value })}
               className="w-full px-3 py-2 text-xs rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
             />
           </div>
@@ -200,7 +319,7 @@ export const SettingsSection: React.FC<SettingsModalProps> = ({
             </label>
             <input
               type="text"
-              placeholder="[WHATSAPP] +966 5X XXX XXXX"
+              placeholder="0596300922"
               value={formData.whatsapp || ''}
               onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
               className="w-full px-3 py-2 text-xs rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
@@ -214,7 +333,7 @@ export const SettingsSection: React.FC<SettingsModalProps> = ({
             <input
               type="email"
               required
-              placeholder="[EMAIL] billing@company.sa"
+              placeholder="ninthgenerationtrading345@gmail.com"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               className="w-full px-3 py-2 text-xs rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
@@ -228,7 +347,7 @@ export const SettingsSection: React.FC<SettingsModalProps> = ({
             <input
               type="text"
               required
-              placeholder="[ADDRESS] Riyadh, Industrial Area, Saudi Arabia"
+              placeholder="7680, Al Asher, 4458, Al Adamah Dist. 32242, Dammam Kingdom of Saudi Arabia"
               value={formData.address}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               className="w-full px-3 py-2 text-xs rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
@@ -241,7 +360,7 @@ export const SettingsSection: React.FC<SettingsModalProps> = ({
             </label>
             <input
               type="text"
-              placeholder="العنوان الوطني، المدينة، الحي"
+              placeholder="الدمام - حي العدامة، المملكة العربية السعودية"
               value={formData.addressAr || ''}
               onChange={(e) => setFormData({ ...formData, addressAr: e.target.value })}
               className="w-full px-3 py-2 text-xs rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
@@ -250,11 +369,11 @@ export const SettingsSection: React.FC<SettingsModalProps> = ({
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              {t.bankName}
+              {t.bankName} (اسم البنك)
             </label>
             <input
               type="text"
-              placeholder="e.g. Al Rajhi Bank / مصرف الراجحي"
+              placeholder="Alinma Bank / مصرف الإنماء"
               value={formData.bankName || ''}
               onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
               className="w-full px-3 py-2 text-xs rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
@@ -263,14 +382,40 @@ export const SettingsSection: React.FC<SettingsModalProps> = ({
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              {t.iban}
+              {lang === 'ar' ? 'رقم الحساب البنکی (Bank A/C Number)' : 'Bank Account No. (A/C)'}
             </label>
             <input
               type="text"
-              placeholder="SA00 0000 0000 0000 0000 0000"
+              placeholder="68206151342000"
+              value={formData.bankAccountNumber || ''}
+              onChange={(e) => setFormData({ ...formData, bankAccountNumber: e.target.value })}
+              className="w-full px-3 py-2 text-xs font-mono rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
+            />
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              {t.iban} (الآيبان البنكي)
+            </label>
+            <input
+              type="text"
+              placeholder="SA55050000068206151342000"
               value={formData.iban || ''}
               onChange={(e) => setFormData({ ...formData, iban: e.target.value })}
               className="w-full px-3 py-2 text-xs font-mono rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
+            />
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              {lang === 'ar' ? 'ملاحظة الختم والاعتماد (Seal Note)' : 'Company Seal / Note (Seal Note)'}
+            </label>
+            <textarea
+              rows={2}
+              placeholder="Certified boom truck crane & licensed operator. Services performed per Saudi safety standards."
+              value={formData.sealNote || ''}
+              onChange={(e) => setFormData({ ...formData, sealNote: e.target.value })}
+              className="w-full px-3 py-2 text-xs rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
             />
           </div>
         </div>

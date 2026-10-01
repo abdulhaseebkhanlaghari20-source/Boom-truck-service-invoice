@@ -5,16 +5,22 @@ export type VatOption = 'VAT 15%' | 'No VAT';
 export interface CompanySettings {
   companyName: string;
   companyNameAr?: string;
-  logoUrl: string; // Base64 or empty string (displays COMPANY LOGO placeholder)
-  phone: string;
-  whatsapp?: string;
-  email: string;
-  address: string;
-  addressAr?: string;
-  vatNumber: string;
-  crNumber?: string;
-  bankName?: string;
-  iban?: string;
+  logoUrl: string; // Base64 or URL for company logo
+  watermarkUrl?: string; // Optional custom watermark (defaults to logoUrl)
+  enableWatermark?: boolean; // Toggle watermark on invoice (default: true)
+  watermarkOpacity?: number; // Opacity 0.01 to 0.20 (default: 0.055)
+  phone: string; // Primary phone / mobile (e.g. 0597330558)
+  secondaryPhone?: string; // Secondary mobile / phone (e.g. 0596300922)
+  whatsapp?: string; // WhatsApp number
+  email: string; // Email address (e.g. ninthgenerationtrading345@gmail.com)
+  address: string; // Full English address
+  addressAr?: string; // Full Arabic address
+  vatNumber: string; // VAT Number (e.g. 312777148100003)
+  crNumber?: string; // Commercial Registration Number (e.g. 2050205810)
+  bankName?: string; // Bank name (e.g. Alinma Bank)
+  bankAccountNumber?: string; // Bank Account No. (A/C: 68206151342000)
+  iban?: string; // IBAN (e.g. SA55050000068206151342000)
+  sealNote?: string; // Company Seal / Disclaimer Note
   // Professional Header & Footer Branding Fields
   businessServiceEn?: string; // e.g. "BOOM TRUCK RENTAL SERVICES"
   businessServiceAr?: string; // e.g. "لتأجير بوم ترك"

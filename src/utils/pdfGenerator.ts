@@ -349,7 +349,8 @@ async function renderDirectVectorInvoice(
   pdf.setTextColor(255, 255, 255);
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(7.2);
-  pdf.text(`${address}  |  Mob: ${phone}  |  Mail: ${email}`, 14, footerY + 37.5);
+  const phones = [phone, companySettings?.secondaryPhone].filter(Boolean).join(', ');
+  pdf.text(`${address}  |  Mob: ${phones}  |  Mail: ${email}`, 14, footerY + 37.5);
   pdf.setFontSize(6.8);
   pdf.setTextColor(52, 211, 153); // emerald-400
   pdf.text('Thank you for your business  |  شكراً لتعاملكم معنا', 75, footerY + 41.5);

@@ -5,7 +5,11 @@ export const DEFAULT_COMPANY_SETTINGS: CompanySettings = {
   companyName: 'Ninth Generation Trading Est.',
   companyNameAr: 'مؤسسة الجيل التاسع التجارية',
   logoUrl: '', // Uploaded logo in Settings or clean default
+  watermarkUrl: '', // Dedicated custom watermark image (optional, falls back to logoUrl)
+  enableWatermark: true,
+  watermarkOpacity: 0.055,
   phone: '0597330558',
+  secondaryPhone: '0596300922',
   whatsapp: '0596300922',
   email: 'ninthgenerationtrading345@gmail.com',
   address: '7680, Al Asher, 4458, Al Adamah Dist. 32242, Dammam Kingdom of Saudi Arabia',
@@ -13,7 +17,9 @@ export const DEFAULT_COMPANY_SETTINGS: CompanySettings = {
   vatNumber: '312777148100003',
   crNumber: '2050205810',
   bankName: 'Alinma Bank',
+  bankAccountNumber: '68206151342000',
   iban: 'SA55050000068206151342000',
+  sealNote: 'Certified boom truck crane & licensed operator. Services performed per Saudi safety standards.',
   businessServiceEn: 'BOOM TRUCK RENTAL SERVICES',
   businessServiceAr: 'لتأجير بوم ترك',
   taglineEn: 'LIFT | TRANSPORT | HEAVY EQUIPMENT SOLUTIONS',
