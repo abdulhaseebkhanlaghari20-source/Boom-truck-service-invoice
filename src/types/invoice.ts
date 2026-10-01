@@ -58,6 +58,9 @@ export interface Invoice {
   notes?: string;
   createdAt: string;
   updatedAt: string;
+
+  // 4. Company Profile Snapshot (Preserves historical company data for saved invoices)
+  companySnapshot?: CompanySettings;
 }
 
 export type ViewTab = 'create' | 'list' | 'dashboard' | 'settings';

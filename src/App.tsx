@@ -96,7 +96,13 @@ export default function App() {
   const [companySettings, setCompanySettings] = useState<CompanySettings>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.companyName === '[COMPANY NAME]' || !parsed.companyName) {
+          return DEFAULT_COMPANY_SETTINGS;
+        }
+        return { ...DEFAULT_COMPANY_SETTINGS, ...parsed };
+      }
     } catch (e) {
       console.error('Error loading settings from localStorage', e);
     }
@@ -106,6 +112,17 @@ export default function App() {
   const handleSaveSettings = (newSettings: CompanySettings) => {
     setCompanySettings(newSettings);
     localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(newSettings));
+    // If drafting a new invoice (not an existing historical invoice), update it to show new settings immediately
+    if (!isEditingExisting) {
+      setCurrentInvoice((prev) => ({
+        ...prev,
+        // live drafting connects to newSettings
+      }));
+    }
+    showToast(
+      lang === 'ar' ? 'تم حفظ بيانات المؤسسة بنجاح' : 'Company settings saved successfully',
+      'success'
+    );
   };
 
   // 3. Invoices State
@@ -181,19 +198,28 @@ export default function App() {
     if (isInvoiceNumberDuplicate(invToSave.invoiceNumber, invToSave.id, invoices)) {
       return;
     }
-    const exists = invoices.some((i) => i.id === invToSave.id);
+    const existing = invoices.find((i) => i.id === invToSave.id);
+
+    // If existing invoice already has a companySnapshot, PRESERVE IT (Requirement #5)!
+    // If it's a newly saved invoice, snapshot the current companySettings!
+    const companySnapshot = existing?.companySnapshot || invToSave.companySnapshot || { ...companySettings };
+
+    const invoiceWithCompany: Invoice = {
+      ...invToSave,
+      companySnapshot,
+      updatedAt: new Date().toISOString(),
+    };
+
     let updated: Invoice[];
-    if (exists) {
-      updated = invoices.map((i) => (i.id === invToSave.id ? invToSave : i));
+    if (existing) {
+      updated = invoices.map((i) => (i.id === invToSave.id ? invoiceWithCompany : i));
     } else {
-      updated = [invToSave, ...invoices];
+      updated = [invoiceWithCompany, ...invoices];
     }
     saveInvoicesToStorage(updated);
+    setCurrentInvoice(invoiceWithCompany);
     setIsEditingExisting(true);
-    showToast(
-      lang === 'ar' ? translations[lang].savedSuccess : translations[lang].savedSuccess,
-      'success'
-    );
+    showToast(translations[lang].savedSuccess, 'success');
   };
 
   // New Invoice handler

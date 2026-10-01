@@ -19,10 +19,13 @@ interface InvoicePreviewProps {
 
 export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
   invoice,
-  companySettings,
+  companySettings: globalCompanySettings,
   lang,
   isPrintOnly = false,
 }) => {
+  // Automatically connect to Company Settings (uses historical companySnapshot for saved invoices)
+  const companySettings = invoice.companySnapshot || globalCompanySettings;
+
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const containerRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);

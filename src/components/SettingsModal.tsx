@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CompanySettings, Language } from '../types/invoice';
 import { translations } from '../translations/i18n';
 import { Settings, Save, Upload, RotateCcw, CheckCircle2, Building2 } from 'lucide-react';
@@ -17,6 +17,10 @@ export const SettingsSection: React.FC<SettingsModalProps> = ({
   const t = translations[lang];
   const [formData, setFormData] = useState<CompanySettings>(settings);
   const [savedMessage, setSavedMessage] = useState(false);
+
+  useEffect(() => {
+    setFormData(settings);
+  }, [settings]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

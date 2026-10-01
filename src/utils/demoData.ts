@@ -2,18 +2,24 @@ import { CompanySettings, Invoice } from '../types/invoice';
 import { calculateInvoiceTotals } from './formatters';
 
 export const DEFAULT_COMPANY_SETTINGS: CompanySettings = {
-  companyName: '[COMPANY NAME]',
-  companyNameAr: '[اسم الشركة / المؤسسة]',
-  logoUrl: '', // Empty means show clean "COMPANY LOGO" placeholder
-  phone: '[PHONE]',
-  whatsapp: '[WHATSAPP]',
-  email: '[EMAIL]',
-  address: '[ADDRESS]',
-  addressAr: '[العنوان]',
-  vatNumber: '[VAT NUMBER]',
-  crNumber: '',
-  bankName: '',
-  iban: '',
+  companyName: 'Ninth Generation Trading Est.',
+  companyNameAr: 'مؤسسة الجيل التاسع التجارية',
+  logoUrl: '', // Uploaded logo in Settings or clean default
+  phone: '0597330558',
+  whatsapp: '0596300922',
+  email: 'ninthgenerationtrading345@gmail.com',
+  address: '7680, Al Asher, 4458, Al Adamah Dist. 32242, Dammam Kingdom of Saudi Arabia',
+  addressAr: 'الدمام - حي العدامة، المملكة العربية السعودية',
+  vatNumber: '312777148100003',
+  crNumber: '2050205810',
+  bankName: 'Alinma Bank',
+  iban: 'SA55050000068206151342000',
+  businessServiceEn: 'BOOM TRUCK RENTAL SERVICES',
+  businessServiceAr: 'لتأجير بوم ترك',
+  taglineEn: 'LIFT | TRANSPORT | HEAVY EQUIPMENT SOLUTIONS',
+  taglineAr: 'خدمات رفع ونقل ومعدات متكاملة',
+  closingNoteEn: 'Thank you for your business',
+  closingNoteAr: 'شكراً لتعاملكم معنا',
 };
 
 function getRecentDate(daysAgo: number): string {
@@ -49,6 +55,7 @@ export const INITIAL_INVOICES: Invoice[] = [
     notes: 'Certified operator included. Certified lifting belts and slings provided.',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+    companySnapshot: { ...DEFAULT_COMPANY_SETTINGS },
   },
   {
     id: 'inv-2',
@@ -71,6 +78,7 @@ export const INITIAL_INVOICES: Invoice[] = [
     notes: 'Advance deposit of SAR 2,000 received. Balance due upon job signoff.',
     createdAt: new Date(Date.now() - 2 * 86400000).toISOString(),
     updatedAt: new Date(Date.now() - 2 * 86400000).toISOString(),
+    companySnapshot: { ...DEFAULT_COMPANY_SETTINGS },
   },
   {
     id: 'inv-3',
@@ -93,6 +101,7 @@ export const INITIAL_INVOICES: Invoice[] = [
     notes: 'Paid in full on site via electronic bank transfer.',
     createdAt: new Date(Date.now() - 5 * 86400000).toISOString(),
     updatedAt: new Date(Date.now() - 5 * 86400000).toISOString(),
+    companySnapshot: { ...DEFAULT_COMPANY_SETTINGS },
   },
   {
     id: 'inv-4',
@@ -115,5 +124,6 @@ export const INITIAL_INVOICES: Invoice[] = [
     notes: 'Payment overdue. Follow-up reminder sent via WhatsApp.',
     createdAt: new Date(Date.now() - 16 * 86400000).toISOString(),
     updatedAt: new Date(Date.now() - 16 * 86400000).toISOString(),
+    companySnapshot: { ...DEFAULT_COMPANY_SETTINGS },
   },
 ];
