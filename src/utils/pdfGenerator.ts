@@ -46,7 +46,14 @@ export async function generateInvoicePdfBlob(
   companySettings?: CompanySettings
 ): Promise<Blob> {
   // Allow pending font renders and layout ticks
-  await new Promise((resolve) => setTimeout(resolve, 100));
+  try {
+    if (typeof document !== 'undefined' && document.fonts) {
+      await document.fonts.ready;
+    }
+  } catch {
+    // ignore
+  }
+  await new Promise((resolve) => setTimeout(resolve, 80));
 
   let imgData: string | null = null;
 
