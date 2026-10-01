@@ -154,14 +154,14 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
       <div className="relative z-10 flex flex-col justify-between flex-1 space-y-2.5">
         <div>
           {/* ========================================================
-              1. PREMIUM CORPORATE HEADER (Matching App Brand: Slate-900 + Emerald)
+              1. CLEAN NEUTRAL HEADER (White background, optimized for any company logo)
               ======================================================== */}
-          <div className="bg-slate-900 text-white rounded-lg shadow-sm overflow-hidden relative border border-slate-800 mb-2">
+          <div className="bg-white text-slate-900 rounded-lg overflow-hidden relative border border-slate-200 shadow-2xs mb-2">
             <div className="py-3 px-4 sm:px-5 flex flex-row justify-between items-center gap-4">
               {/* Left Area: English Company Identity & Logo (LTR) */}
               <div className="flex items-center gap-3.5 min-w-0 flex-1" dir="ltr">
                 {companySettings.logoUrl ? (
-                  <div className="w-16 h-14 bg-white/10 rounded-md p-1.5 flex items-center justify-center shrink-0 border border-white/10 backdrop-blur-xs">
+                  <div className="w-20 h-16 rounded-md p-1 flex items-center justify-center shrink-0">
                     <img
                       src={companySettings.logoUrl}
                       alt="Company Logo"
@@ -170,21 +170,21 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                     />
                   </div>
                 ) : (
-                  <div className="w-16 h-14 bg-emerald-600/20 border border-emerald-500/40 rounded-md flex flex-col items-center justify-center p-1 shrink-0 text-center">
-                    <span className="text-[10px] font-black tracking-tight text-white">BOOM TRUCK</span>
-                    <span className="text-[7.5px] font-bold text-emerald-400">CRANE LOGO</span>
+                  <div className="w-16 h-14 bg-emerald-50 border border-emerald-300 rounded-md flex flex-col items-center justify-center p-1 shrink-0 text-center">
+                    <span className="text-[10px] font-black tracking-tight text-slate-800">COMPANY</span>
+                    <span className="text-[7.5px] font-bold text-emerald-700">LOGO</span>
                   </div>
                 )}
 
                 <div className="min-w-0 space-y-0.5">
-                  <h1 className="text-xl font-black text-white tracking-tight uppercase leading-none truncate">
+                  <h1 className="text-xl font-bold text-slate-900 tracking-tight uppercase leading-none truncate">
                     {companyNameEn}
                   </h1>
-                  <p className="text-[11px] font-extrabold uppercase text-emerald-400 tracking-wide mt-1 leading-tight">
+                  <p className="text-[11px] font-semibold uppercase text-emerald-700 tracking-wide mt-1 leading-tight">
                     {serviceEn}
                   </p>
                   {taglineEn && (
-                    <p className="text-[8.5px] font-medium uppercase text-slate-300 tracking-wider mt-0.5 leading-tight">
+                    <p className="text-[8.5px] font-medium uppercase text-slate-500 tracking-wider mt-0.5 leading-tight">
                       {taglineEn}
                     </p>
                   )}
@@ -192,26 +192,26 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               </div>
 
               {/* Crisp Vertical Accent Divider between English & Arabic Branding */}
-              <div className="w-[1.5px] h-12 bg-gradient-to-b from-transparent via-emerald-400/80 to-transparent shrink-0 mx-2" />
+              <div className="w-[1.5px] h-12 bg-slate-200 shrink-0 mx-2" />
 
               {/* Right Area: Arabic Company Identity (RTL) */}
               <div className="text-end rtl:text-start min-w-0 flex-1 space-y-0.5 shrink-0" dir="rtl">
-                <h2 className="text-xl font-black text-white leading-none truncate">
+                <h2 className="text-xl font-bold text-slate-900 leading-none truncate">
                   {companyNameAr}
                 </h2>
-                <div className="text-sm font-extrabold text-emerald-400 mt-1 leading-tight">
+                <div className="text-sm font-semibold text-emerald-700 mt-1 leading-tight">
                   {serviceAr}
                 </div>
                 {taglineAr && (
-                  <div className="text-[10px] font-medium text-slate-300 mt-0.5 leading-tight">
+                  <div className="text-[10px] font-medium text-slate-500 mt-0.5 leading-tight">
                     {taglineAr}
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Bottom Thin Emerald Decorative Accent Stripe (Matching Footer) */}
-            <div className="w-full h-[2.5px] bg-gradient-to-r from-emerald-600 via-emerald-400 to-emerald-600" />
+            {/* Bottom Thin Emerald Decorative Accent Stripe (Matching App Accents) */}
+            <div className="w-full h-[2.5px] bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600" />
           </div>
 
           {/* 2. INVOICE TITLE: Centered Bordered Box */}
