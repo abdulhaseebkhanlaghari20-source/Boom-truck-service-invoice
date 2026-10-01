@@ -235,3 +235,16 @@ export function numberToWords(amount: number, lang: Language = 'en'): string {
   }
   return `${finalEn} Only`;
 }
+
+/**
+ * Converts a string to Title Case (capitalizes first letter of each word, rest lowercase)
+ * Example: "ABC BOOM TRUCK SERVICES" -> "Abc Boom Truck Services"
+ */
+export function toTitleCase(str: string): string {
+  if (!str) return '';
+  return str
+    .toLowerCase()
+    .split(' ')
+    .map((word) => (word ? word.charAt(0).toUpperCase() + word.slice(1) : ''))
+    .join(' ');
+}

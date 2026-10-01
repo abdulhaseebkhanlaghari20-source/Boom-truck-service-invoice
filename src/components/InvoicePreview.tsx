@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Invoice, CompanySettings, Language } from '../types/invoice';
-import { formatDate, SAUDI_CITIES_AR, numberToWords } from '../utils/formatters';
+import { formatDate, SAUDI_CITIES_AR, numberToWords, toTitleCase } from '../utils/formatters';
 import { generateQrCodeDataUrl } from '../utils/zatcaQr';
 import {
   MapPin,
@@ -106,7 +106,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
       : 'Bank Transfer / تحويل بنكي';
 
   // Dynamic corporate identity values
-  const companyNameEn = cleanVal(companySettings.companyName) || 'BOOM TRUCK RENTAL';
+  const companyNameEn = cleanVal(companySettings.companyName) || 'Boom Truck Rental';
   const companyNameAr = cleanVal(companySettings.companyNameAr) || 'بوم ترَك لتأجير المعدات';
   const serviceEn = cleanVal(companySettings.businessServiceEn) || 'BOOM TRUCK RENTAL SERVICES';
   const serviceAr = cleanVal(companySettings.businessServiceAr) || 'لتأجير بوم ترك';
@@ -178,7 +178,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
 
                 <div className="min-w-0 flex-1 space-y-0.5">
                   <h1
-                    className={`font-bold text-slate-900 tracking-tight uppercase leading-snug break-words ${
+                    className={`font-bold font-['Poppins'] text-slate-900 tracking-tight leading-snug break-words ${
                       companyNameEn.length > 35
                         ? 'text-xs'
                         : companyNameEn.length > 22
@@ -186,7 +186,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                         : 'text-base'
                     }`}
                   >
-                    {companyNameEn}
+                    {toTitleCase(companyNameEn)}
                   </h1>
                   <p className="text-[10.5px] font-semibold uppercase text-emerald-700 tracking-wide mt-0.5 leading-tight">
                     {serviceEn}
