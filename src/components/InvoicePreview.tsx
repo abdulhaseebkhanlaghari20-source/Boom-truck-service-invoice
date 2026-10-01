@@ -176,11 +176,19 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                   </div>
                 )}
 
-                <div className="min-w-0 space-y-0.5">
-                  <h1 className="text-xl font-bold text-slate-900 tracking-tight uppercase leading-none truncate">
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <h1
+                    className={`font-bold text-slate-900 tracking-tight uppercase leading-snug break-words ${
+                      companyNameEn.length > 35
+                        ? 'text-xs'
+                        : companyNameEn.length > 22
+                        ? 'text-sm'
+                        : 'text-base'
+                    }`}
+                  >
                     {companyNameEn}
                   </h1>
-                  <p className="text-[11px] font-semibold uppercase text-emerald-700 tracking-wide mt-1 leading-tight">
+                  <p className="text-[10.5px] font-semibold uppercase text-emerald-700 tracking-wide mt-0.5 leading-tight">
                     {serviceEn}
                   </p>
                   {taglineEn && (
@@ -196,10 +204,18 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
 
               {/* Right Area: Arabic Company Identity (RTL) */}
               <div className="text-end rtl:text-start min-w-0 flex-1 space-y-0.5 shrink-0" dir="rtl">
-                <h2 className="text-xl font-bold text-slate-900 leading-none truncate">
+                <h2
+                  className={`font-bold text-slate-900 leading-snug break-words ${
+                    companyNameAr.length > 35
+                      ? 'text-sm'
+                      : companyNameAr.length > 22
+                      ? 'text-base'
+                      : 'text-lg'
+                  }`}
+                >
                   {companyNameAr}
                 </h2>
-                <div className="text-sm font-semibold text-emerald-700 mt-1 leading-tight">
+                <div className="text-xs font-semibold text-emerald-700 mt-0.5 leading-tight">
                   {serviceAr}
                 </div>
                 {taglineAr && (
