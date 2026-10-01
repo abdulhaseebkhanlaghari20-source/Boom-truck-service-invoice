@@ -147,9 +147,9 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
       <div className="relative z-10 flex flex-col justify-between flex-1 space-y-2.5">
         <div>
           {/* ========================================================
-              1. PREMIUM CORPORATE DARK NAVY HEADER (Unified with Footer)
+              1. PREMIUM CORPORATE HEADER (Matching App Brand: Slate-900 + Emerald)
               ======================================================== */}
-          <div className="bg-slate-950 text-white rounded-lg shadow-sm overflow-hidden relative border border-slate-800/80 mb-2">
+          <div className="bg-slate-900 text-white rounded-lg shadow-sm overflow-hidden relative border border-slate-800 mb-2">
             <div className="py-3 px-4 sm:px-5 flex flex-row justify-between items-center gap-4">
               {/* Left Area: English Company Identity & Logo (LTR) */}
               <div className="flex items-center gap-3.5 min-w-0 flex-1" dir="ltr">
@@ -163,9 +163,9 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                     />
                   </div>
                 ) : (
-                  <div className="w-16 h-14 bg-white/5 border border-white/15 rounded-md flex flex-col items-center justify-center p-1 shrink-0 text-center">
+                  <div className="w-16 h-14 bg-emerald-600/20 border border-emerald-500/40 rounded-md flex flex-col items-center justify-center p-1 shrink-0 text-center">
                     <span className="text-[10px] font-black tracking-tight text-white">BOOM TRUCK</span>
-                    <span className="text-[7.5px] font-bold text-amber-400">CRANE LOGO</span>
+                    <span className="text-[7.5px] font-bold text-emerald-400">CRANE LOGO</span>
                   </div>
                 )}
 
@@ -173,7 +173,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                   <h1 className="text-xl font-black text-white tracking-tight uppercase leading-none truncate">
                     {companyNameEn}
                   </h1>
-                  <p className="text-[11px] font-extrabold uppercase text-amber-400 tracking-wide mt-1 leading-tight">
+                  <p className="text-[11px] font-extrabold uppercase text-emerald-400 tracking-wide mt-1 leading-tight">
                     {serviceEn}
                   </p>
                   {taglineEn && (
@@ -185,14 +185,14 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               </div>
 
               {/* Crisp Vertical Accent Divider between English & Arabic Branding */}
-              <div className="w-[1.5px] h-12 bg-gradient-to-b from-transparent via-amber-400/80 to-transparent shrink-0 mx-2" />
+              <div className="w-[1.5px] h-12 bg-gradient-to-b from-transparent via-emerald-400/80 to-transparent shrink-0 mx-2" />
 
               {/* Right Area: Arabic Company Identity (RTL) */}
               <div className="text-end rtl:text-start min-w-0 flex-1 space-y-0.5 shrink-0" dir="rtl">
                 <h2 className="text-xl font-black text-white leading-none truncate">
                   {companyNameAr}
                 </h2>
-                <div className="text-sm font-extrabold text-amber-400 mt-1 leading-tight">
+                <div className="text-sm font-extrabold text-emerald-400 mt-1 leading-tight">
                   {serviceAr}
                 </div>
                 {taglineAr && (
@@ -203,8 +203,8 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               </div>
             </div>
 
-            {/* Bottom Thin Gold/Amber Decorative Accent Stripe (Matching Footer) */}
-            <div className="w-full h-[2.5px] bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600" />
+            {/* Bottom Thin Emerald Decorative Accent Stripe (Matching Footer) */}
+            <div className="w-full h-[2.5px] bg-gradient-to-r from-emerald-600 via-emerald-400 to-emerald-600" />
           </div>
 
           {/* 2. INVOICE TITLE: Centered Bordered Box */}
@@ -494,11 +494,11 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
         </div>
 
         {/* ========================================================
-            8. MASTER REFERENCE FULL-WIDTH DARK NAVY FOOTER
+            8. MASTER CORPORATE FULL-WIDTH FOOTER (Matching App Brand: Slate-900 + Emerald)
             ======================================================== */}
-        <div className="bg-slate-950 text-white rounded-lg shadow-sm overflow-hidden relative border border-slate-800/80 mt-2">
-          {/* Top Thin Gold/Amber Decorative Accent Stripe */}
-          <div className="w-full h-[2.5px] bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600" />
+        <div className="bg-slate-900 text-white rounded-lg shadow-sm overflow-hidden relative border border-slate-800 mt-2">
+          {/* Top Thin Emerald Decorative Accent Stripe */}
+          <div className="w-full h-[2.5px] bg-gradient-to-r from-emerald-600 via-emerald-400 to-emerald-600" />
 
           <div className="py-2 px-3.5 sm:px-4">
             {/* Upper Row: Dynamic Contact & Company Metadata */}
@@ -506,7 +506,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               {/* 1. Address / Location (Left) */}
               {addressVal && (
                 <div className="flex items-center gap-1.5 min-w-0 max-w-[28%]">
-                  <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                   <div className="min-w-0 leading-tight">
                     <div className="text-slate-100 font-medium truncate text-[10px]">{addressVal}</div>
                     {addressArVal && (
@@ -526,7 +526,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               {/* 2. Mobile (Center-Left) */}
               {phoneVal && (
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <Phone className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <Phone className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                   <div className="leading-tight">
                     <div className="font-mono text-slate-100 font-semibold text-[10px]">{phoneVal}</div>
                     <div className="text-[8px] text-slate-400">Mobile / الجوال</div>
@@ -556,7 +556,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               {/* 3. Email (Center) */}
               {emailVal && (
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <Mail className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <Mail className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                   <div className="min-w-0 leading-tight">
                     <div className="text-slate-100 truncate text-[10px]">{emailVal}</div>
                     <div className="text-[8px] text-slate-400">Email / البريد</div>
@@ -569,7 +569,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                 <>
                   <div className="w-[1px] h-7 bg-slate-800 shrink-0" />
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <Globe className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <Globe className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                     <div className="min-w-0 leading-tight">
                       <div className="text-slate-100 truncate font-mono text-[9.5px]">{websiteVal}</div>
                       <div className="text-[8px] text-slate-400">Website / الموقع</div>
@@ -588,13 +588,13 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                 <div className="text-end shrink-0 space-y-0.5">
                   {vatNo && (
                     <div className="text-[9.5px] font-mono text-slate-200">
-                      <span className="text-amber-400 font-bold font-sans">VAT: </span>
+                      <span className="text-emerald-400 font-bold font-sans">VAT: </span>
                       <span>{vatNo}</span>
                     </div>
                   )}
                   {crNo && (
                     <div className="text-[9.5px] font-mono text-slate-200">
-                      <span className="text-amber-400 font-bold font-sans">CR: </span>
+                      <span className="text-emerald-400 font-bold font-sans">CR: </span>
                       <span>{crNo}</span>
                     </div>
                   )}
@@ -602,16 +602,16 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               )}
             </div>
 
-            {/* Bottom Center Bar: Closing Note with Thin Golden Lines */}
+            {/* Bottom Center Bar: Closing Note with Thin Emerald Lines */}
             {(closingEn || closingAr) && (
-              <div className="mt-2 pt-1.5 border-t border-slate-800/80 flex items-center justify-center gap-3 text-[10px] text-slate-300 font-medium">
-                <span className="w-10 sm:w-16 h-[1px] bg-amber-500/70" />
+              <div className="mt-2 pt-1.5 border-t border-slate-800 flex items-center justify-center gap-3 text-[10px] text-slate-300 font-medium">
+                <span className="w-10 sm:w-16 h-[1px] bg-emerald-500/70" />
                 <span className="tracking-wide">
                   {closingEn}
-                  {closingEn && closingAr && <span className="text-amber-400 mx-2 font-bold">|</span>}
+                  {closingEn && closingAr && <span className="text-emerald-400 mx-2 font-bold">|</span>}
                   {closingAr}
                 </span>
-                <span className="w-10 sm:w-16 h-[1px] bg-amber-500/70" />
+                <span className="w-10 sm:w-16 h-[1px] bg-emerald-500/70" />
               </div>
             )}
           </div>

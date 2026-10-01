@@ -340,18 +340,18 @@ async function renderDirectVectorInvoice(
     pdf.text('[ STATUS: UNPAID / غير مدفوعة ]', 14, footerY + 28);
   }
 
-  // Bottom Full-Width Dark Footer (matching master reference design)
-  pdf.setFillColor(11, 19, 43); // slate-950
+  // Bottom Full-Width Dark Footer (matching application brand: slate-900 + emerald)
+  pdf.setFillColor(15, 23, 42); // slate-900
   pdf.rect(10, footerY + 32, 190, 11, 'F');
-  // Accent golden stripe on top of footer
-  pdf.setFillColor(245, 158, 11); // amber-500
+  // Accent emerald stripe on top of footer
+  pdf.setFillColor(16, 185, 129); // emerald-500
   pdf.rect(10, footerY + 32, 190, 0.8, 'F');
   pdf.setTextColor(255, 255, 255);
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(7.2);
   pdf.text(`${address}  |  Mob: ${phone}  |  Mail: ${email}`, 14, footerY + 37.5);
   pdf.setFontSize(6.8);
-  pdf.setTextColor(251, 191, 36); // amber-400
+  pdf.setTextColor(52, 211, 153); // emerald-400
   pdf.text('Thank you for your business  |  شكراً لتعاملكم معنا', 75, footerY + 41.5);
 }
 
