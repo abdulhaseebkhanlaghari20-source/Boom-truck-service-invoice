@@ -7,8 +7,6 @@ import {
   Phone,
   Mail,
   Globe,
-  FileText,
-  Building2,
   MessageSquare,
 } from 'lucide-react';
 
@@ -123,77 +121,6 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
   const addressArVal = cleanVal(companySettings.addressAr);
   const websiteVal = cleanVal(companySettings.website);
 
-  // Dynamic header information strip items (strictly only active fields, no empty placeholders)
-  const headerInfoItems = [];
-
-  if (vatNo) {
-    headerInfoItems.push({
-      id: 'vat',
-      icon: <FileText className="w-3.5 h-3.5 text-white" />,
-      labelEn: 'VAT Number',
-      labelAr: 'الرقم الضريبي',
-      value: vatNo,
-      isMono: true,
-    });
-  }
-
-  if (crNo) {
-    headerInfoItems.push({
-      id: 'cr',
-      icon: <Building2 className="w-3.5 h-3.5 text-white" />,
-      labelEn: 'CR Number',
-      labelAr: 'السجل التجاري',
-      value: crNo,
-      isMono: true,
-    });
-  }
-
-  if (phoneVal || whatsappVal) {
-    const isShared = phoneVal && whatsappVal && phoneVal === whatsappVal;
-    headerInfoItems.push({
-      id: 'phone',
-      icon: <Phone className="w-3.5 h-3.5 text-white" />,
-      labelEn: isShared ? 'Mobile / WhatsApp' : whatsappVal ? 'WhatsApp' : 'Mobile / Phone',
-      labelAr: isShared ? 'الجوال / واتساب' : whatsappVal ? 'واتساب' : 'الجوال',
-      value: phoneVal || whatsappVal,
-      isMono: true,
-    });
-  }
-
-  if (emailVal) {
-    headerInfoItems.push({
-      id: 'email',
-      icon: <Mail className="w-3.5 h-3.5 text-white" />,
-      labelEn: 'Email',
-      labelAr: 'البريد',
-      value: emailVal,
-      isMono: false,
-    });
-  }
-
-  if (addressVal) {
-    headerInfoItems.push({
-      id: 'address',
-      icon: <MapPin className="w-3.5 h-3.5 text-white" />,
-      labelEn: 'Location',
-      labelAr: 'الموقع',
-      value: addressVal,
-      subValue: addressArVal,
-      isMono: false,
-    });
-  }
-
-  if (websiteVal) {
-    headerInfoItems.push({
-      id: 'website',
-      icon: <Globe className="w-3.5 h-3.5 text-white" />,
-      labelEn: 'Website',
-      labelAr: 'الموقع',
-      value: websiteVal,
-      isMono: false,
-    });
-  }
-
   // Inner A4 Sheet Content (100% Fixed Master Reference A4 Layout)
   const a4SheetContent = (
     <>
@@ -220,96 +147,64 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
       <div className="relative z-10 flex flex-col justify-between flex-1 space-y-2.5">
         <div>
           {/* ========================================================
-              1. MASTER REFERENCE CORPORATE HEADER
+              1. PREMIUM CORPORATE DARK NAVY HEADER (Unified with Footer)
               ======================================================== */}
-          <div className="flex flex-row justify-between items-center gap-3 pt-1 pb-1">
-            {/* Left: English Company Identity & Logo */}
-            <div className="flex items-center gap-3.5 min-w-0 flex-1">
-              {companySettings.logoUrl ? (
-                <img
-                  src={companySettings.logoUrl}
-                  alt="Company Logo"
-                  referrerPolicy="no-referrer"
-                  className="max-h-16 max-w-[140px] w-auto h-auto object-contain object-left rtl:object-right shrink-0"
-                />
-              ) : (
-                <div className="w-20 h-14 border border-dashed border-slate-300 bg-slate-50 text-slate-700 rounded-md flex flex-col items-center justify-center p-1 shrink-0 text-center shadow-2xs">
-                  <span className="text-[10px] font-black tracking-tight text-slate-900">BOOM TRUCK</span>
-                  <span className="text-[7.5px] font-bold text-amber-600">CRANE LOGO</span>
-                </div>
-              )}
+          <div className="bg-slate-950 text-white rounded-lg shadow-sm overflow-hidden relative border border-slate-800/80 mb-2">
+            <div className="py-3 px-4 sm:px-5 flex flex-row justify-between items-center gap-4">
+              {/* Left Area: English Company Identity & Logo (LTR) */}
+              <div className="flex items-center gap-3.5 min-w-0 flex-1" dir="ltr">
+                {companySettings.logoUrl ? (
+                  <div className="w-16 h-14 bg-white/10 rounded-md p-1.5 flex items-center justify-center shrink-0 border border-white/10 backdrop-blur-xs">
+                    <img
+                      src={companySettings.logoUrl}
+                      alt="Company Logo"
+                      referrerPolicy="no-referrer"
+                      className="max-h-full max-w-full w-auto h-auto object-contain object-center"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-16 h-14 bg-white/5 border border-white/15 rounded-md flex flex-col items-center justify-center p-1 shrink-0 text-center">
+                    <span className="text-[10px] font-black tracking-tight text-white">BOOM TRUCK</span>
+                    <span className="text-[7.5px] font-bold text-amber-400">CRANE LOGO</span>
+                  </div>
+                )}
 
-              <div className="min-w-0 space-y-0.5">
-                <h1 className="text-xl font-black text-slate-950 tracking-tight uppercase leading-none truncate">
-                  {companyNameEn}
-                </h1>
-                <p className="text-[11px] font-extrabold uppercase text-amber-500 tracking-wide mt-1 leading-tight">
-                  {serviceEn}
-                </p>
-                {taglineEn && (
-                  <p className="text-[8.5px] font-bold uppercase text-slate-500 tracking-wider mt-0.5 leading-tight">
-                    {taglineEn}
+                <div className="min-w-0 space-y-0.5">
+                  <h1 className="text-xl font-black text-white tracking-tight uppercase leading-none truncate">
+                    {companyNameEn}
+                  </h1>
+                  <p className="text-[11px] font-extrabold uppercase text-amber-400 tracking-wide mt-1 leading-tight">
+                    {serviceEn}
                   </p>
+                  {taglineEn && (
+                    <p className="text-[8.5px] font-medium uppercase text-slate-300 tracking-wider mt-0.5 leading-tight">
+                      {taglineEn}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Crisp Vertical Accent Divider between English & Arabic Branding */}
+              <div className="w-[1.5px] h-12 bg-gradient-to-b from-transparent via-amber-400/80 to-transparent shrink-0 mx-2" />
+
+              {/* Right Area: Arabic Company Identity (RTL) */}
+              <div className="text-end rtl:text-start min-w-0 flex-1 space-y-0.5 shrink-0" dir="rtl">
+                <h2 className="text-xl font-black text-white leading-none truncate">
+                  {companyNameAr}
+                </h2>
+                <div className="text-sm font-extrabold text-amber-400 mt-1 leading-tight">
+                  {serviceAr}
+                </div>
+                {taglineAr && (
+                  <div className="text-[10px] font-medium text-slate-300 mt-0.5 leading-tight">
+                    {taglineAr}
+                  </div>
                 )}
               </div>
             </div>
 
-            {/* Crisp Vertical Divider between English & Arabic Identity */}
-            <div className="w-[1.5px] h-14 bg-slate-300 shrink-0 mx-2" />
-
-            {/* Right: Arabic Company Identity */}
-            <div className="text-end rtl:text-start min-w-0 flex-1 space-y-0.5 shrink-0" dir="rtl">
-              <h2 className="text-xl font-black text-slate-950 leading-none truncate">
-                {companyNameAr}
-              </h2>
-              <div className="text-sm font-extrabold text-amber-500 mt-1 leading-tight">
-                {serviceAr}
-              </div>
-              {taglineAr && (
-                <div className="text-[10px] font-bold text-slate-600 mt-0.5 leading-tight">
-                  {taglineAr}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Master Reference Information Strip Below Header */}
-          {headerInfoItems.length > 0 && (
-            <div className="mt-2 flex flex-row items-center justify-between gap-1.5 px-2.5 py-1.5 bg-slate-50/90 rounded-md border border-slate-200/90 text-slate-800 shadow-2xs">
-              {headerInfoItems.map((item, idx) => (
-                <React.Fragment key={item.id}>
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <div className="w-6 h-6 rounded bg-slate-950 flex items-center justify-center shrink-0 shadow-2xs">
-                      {item.icon}
-                    </div>
-                    <div className="min-w-0 leading-tight">
-                      <div className="text-[8px] font-bold text-slate-500 uppercase tracking-tight flex items-center gap-0.5">
-                        <span>{item.labelEn}</span>
-                        <span className="text-[7px] text-slate-400">/</span>
-                        <span>{item.labelAr}</span>
-                      </div>
-                      <div className={`font-bold text-slate-950 text-[9.5px] truncate ${item.isMono ? 'font-mono' : ''}`}>
-                        {item.value}
-                      </div>
-                      {item.subValue && (
-                        <div className="text-[8px] text-slate-600 truncate" dir="rtl">
-                          {item.subValue}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  {idx < headerInfoItems.length - 1 && (
-                    <div className="h-6 w-[1.5px] bg-amber-500 shrink-0 mx-1.5" />
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
-          )}
-
-          {/* Master Reference Signature Divider Bar (Deep Navy with Vibrant Gold/Amber Accent Line) */}
-          <div className="relative mt-2 mb-2 space-y-[2px]">
-            <div className="w-full h-[3px] bg-slate-950 rounded-full" />
-            <div className="w-full h-[1.5px] bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 rounded-full" />
+            {/* Bottom Thin Gold/Amber Decorative Accent Stripe (Matching Footer) */}
+            <div className="w-full h-[2.5px] bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600" />
           </div>
 
           {/* 2. INVOICE TITLE: Centered Bordered Box */}
