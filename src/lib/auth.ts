@@ -83,3 +83,42 @@ export function useFirebaseAuth() {
     isAuthenticated: !!user,
   };
 }
+
+/**
+ * Maps Firebase Auth error codes to user-friendly messages
+ */
+export function getAuthErrorMessage(err: any, lang: 'en' | 'ar' = 'en'): string {
+  const code = err?.code || '';
+  switch (code) {
+    case 'auth/invalid-credential':
+    case 'auth/wrong-password':
+    case 'auth/user-not-found':
+      return lang === 'ar'
+        ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة.'
+        : 'Invalid email or password. Please check your credentials.';
+    case 'auth/email-already-in-use':
+      return lang === 'ar'
+        ? 'هذا البريد الإلكتروني مسجل بالفعل. يرجى تسجيل الدخول.'
+        : 'An account with this email already exists. Please log in.';
+    case 'auth/invalid-email':
+      return lang === 'ar'
+        ? 'عنوان البريد الإلكتروني غير صحيح.'
+        : 'Please enter a valid email address.';
+    case 'auth/weak-password':
+      return lang === 'ar'
+        ? 'كلمة المرور ضعيفة. يجب أن تتكون من 6 أحرف على الأقل.'
+        : 'Password must be at least 6 characters long.';
+    case 'auth/missing-password':
+      return lang === 'ar' ? 'يرجى إدخال كلمة المرور.' : 'Please enter your password.';
+    case 'auth/too-many-requests':
+      return lang === 'ar'
+        ? 'محاولات دخول كثيرة غير ناجحة. يرجى المحاولة لاحقاً.'
+        : 'Access temporarily disabled due to many failed login attempts. Try again later.';
+    case 'auth/network-request-failed':
+      return lang === 'ar'
+        ? 'تعذر الاتصال بالشبكة. يرجى التحقق من اتصال الإنترنت.'
+        : 'Network connection issue. Please check your internet connection.';
+    default:
+      return err?.message || (lang === 'ar' ? 'حدث خطأ. يرجى المحاولة مرة أخرى.' : 'Authentication error. Please try again.');
+  }
+}

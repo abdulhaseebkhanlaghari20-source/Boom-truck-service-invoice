@@ -1,7 +1,7 @@
 import React from 'react';
 import { ViewTab, Language } from '../types/invoice';
 import { translations } from '../translations/i18n';
-import { FileText, List, BarChart3, Settings, Globe, Plus, Truck } from 'lucide-react';
+import { FileText, List, BarChart3, Settings, Globe, Plus, Truck, LogOut } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: ViewTab;
@@ -9,6 +9,7 @@ interface HeaderProps {
   lang: Language;
   setLang: (lang: Language) => void;
   onNewInvoice: () => void;
+  onLogout?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -17,6 +18,7 @@ export const Header: React.FC<HeaderProps> = ({
   lang,
   setLang,
   onNewInvoice,
+  onLogout,
 }) => {
   const t = translations[lang];
 
@@ -74,7 +76,7 @@ export const Header: React.FC<HeaderProps> = ({
             })}
           </nav>
 
-          {/* Zone 3: Primary Actions (Language Toggle & New Invoice) */}
+          {/* Zone 3: Primary Actions (Language Toggle, New Invoice & Logout) */}
           <div className="flex items-center gap-2">
             <button
               onClick={toggleLanguage}
@@ -92,6 +94,17 @@ export const Header: React.FC<HeaderProps> = ({
               <Plus className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">{t.newInvoice}</span>
             </button>
+
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md bg-slate-800 text-slate-300 hover:text-rose-300 hover:bg-rose-500/20 transition-colors border border-slate-700 shadow-xs"
+                title={lang === 'ar' ? 'تسجيل الخروج' : 'Sign out'}
+              >
+                <LogOut className="w-3.5 h-3.5 text-rose-400" />
+                <span className="hidden sm:inline">{lang === 'ar' ? 'خروج' : 'Logout'}</span>
+              </button>
+            )}
           </div>
         </div>
 

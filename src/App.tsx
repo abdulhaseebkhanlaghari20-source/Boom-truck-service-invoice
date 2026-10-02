@@ -29,7 +29,9 @@ import { SettingsSection } from './components/SettingsModal';
 import { WhatsAppModal } from './components/WhatsAppModal';
 import { PreviewModal } from './components/PreviewModal';
 import { InvoicePreview } from './components/InvoicePreview';
-import { Loader2, CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
+import { AuthScreen } from './components/AuthScreen';
+import { useFirebaseAuth, logOut } from './lib/auth';
+import { Loader2, CheckCircle2, AlertCircle, Info, X, Truck } from 'lucide-react';
 
 const STORAGE_KEYS = {
   INVOICES: 'saudi_boom_truck_invoices_v1',
@@ -84,6 +86,21 @@ export default function App() {
     const saved = localStorage.getItem(STORAGE_KEYS.LANG);
     return saved === 'ar' || saved === 'en' ? saved : 'en';
   });
+
+  // Firebase Auth State
+  const { user, loading: authLoading } = useFirebaseAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logOut();
+      showToast(
+        lang === 'ar' ? 'تم تسجيل الخروج بنجاح' : 'Signed out successfully',
+        'info'
+      );
+    } catch (err: any) {
+      console.error('Logout error:', err);
+    }
+  };
 
   // Sync HTML dir and lang attributes
   useEffect(() => {
@@ -413,6 +430,27 @@ export default function App() {
     setWhatsAppModalInvoice(inv);
   };
 
+  // 1. Authentication Loading state (prevents UI flicker on refresh)
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white p-4">
+        <div className="w-12 h-12 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-lg mb-4 ring-4 ring-emerald-500/20">
+          <Truck className="w-7 h-7" />
+        </div>
+        <div className="flex items-center gap-2 text-slate-300 text-sm font-medium">
+          <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+          <span>{lang === 'ar' ? 'جاري التحقق من الحساب...' : 'Checking authentication...'}</span>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. Unauthenticated state: Show Login / Signup / Forgot Password screen
+  if (!user) {
+    return <AuthScreen lang={lang} onLanguageChange={setLang} />;
+  }
+
+  // 3. Authenticated state: Show EXISTING application
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col selection:bg-emerald-100 selection:text-emerald-900">
       {/* Main Top Bar */}
@@ -422,6 +460,7 @@ export default function App() {
         lang={lang}
         setLang={setLang}
         onNewInvoice={handleNewInvoice}
+        onLogout={handleLogout}
       />
 
       {/* Main Viewport Content */}
