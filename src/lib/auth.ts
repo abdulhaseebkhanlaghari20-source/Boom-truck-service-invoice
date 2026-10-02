@@ -118,6 +118,10 @@ export function getAuthErrorMessage(err: any, lang: 'en' | 'ar' = 'en'): string 
       return lang === 'ar'
         ? 'تعذر الاتصال بالشبكة. يرجى التحقق من اتصال الإنترنت.'
         : 'Network connection issue. Please check your internet connection.';
+    case 'auth/operation-not-allowed':
+      return lang === 'ar'
+        ? 'تسجيل الدخول بالبريد الإلكتروني غير مفعّل في لوحة Firebase. يرجى تفعيل (Email/Password) في إعدادات Firebase Console.'
+        : 'Email/Password provider is not enabled in Firebase Console. Please enable Email/Password in Firebase Authentication settings.';
     default:
       return err?.message || (lang === 'ar' ? 'حدث خطأ. يرجى المحاولة مرة أخرى.' : 'Authentication error. Please try again.');
   }
