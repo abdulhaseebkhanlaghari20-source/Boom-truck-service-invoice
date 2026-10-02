@@ -5,7 +5,7 @@ import { getAuth, type Auth } from 'firebase/auth';
  * Exact Firebase project configuration for boom-truck-invoice
  */
 export const firebaseConfig = {
-  apiKey: "AIzaSyCpEyo1H_cmmCT8QSxqqOec0lBbI5fUns",
+  apiKey: "AIzaSyCpEyo_1H_cmmCT8QSxqqOec0lBbI5fUns",
   authDomain: "boom-truck-invoice.firebaseapp.com",
   projectId: "boom-truck-invoice",
   storageBucket: "boom-truck-invoice.firebasestorage.app",

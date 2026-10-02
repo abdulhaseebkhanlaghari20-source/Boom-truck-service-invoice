@@ -123,6 +123,11 @@ export function getAuthErrorMessage(err: any, lang: 'en' | 'ar' = 'en'): string 
         ? 'تسجيل الدخول بالبريد الإلكتروني غير مفعّل في لوحة Firebase. يرجى تفعيل (Email/Password) في إعدادات Firebase Console.'
         : 'Email/Password provider is not enabled in Firebase Console. Please enable Email/Password in Firebase Authentication settings.';
     default:
+      if (code.includes('api-key') || err?.message?.toLowerCase().includes('api-key-not-valid')) {
+        return lang === 'ar'
+          ? 'مفتاح API الخاص بـ Firebase غير صالح أو ناقص. يرجى التحقق من نسخ apiKey كاملاً من Firebase Console.'
+          : 'Firebase API key is invalid or truncated. Please re-copy the full apiKey from Firebase Console.';
+      }
       return err?.message || (lang === 'ar' ? 'حدث خطأ. يرجى المحاولة مرة أخرى.' : 'Authentication error. Please try again.');
   }
 }
