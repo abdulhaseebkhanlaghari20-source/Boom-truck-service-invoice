@@ -1,12 +1,12 @@
 {
-  "projectId": "gen-lang-client-0323127392",
-  "appId": "1:1070868490852:web:fbe5fb113d762e9759cd71",
-  "apiKey": "AIzaSyDYGLIDn7pBjiS8hYwZOqIn_9LM40skr88",
-  "authDomain": "gen-lang-client-0323127392.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-saudiboomtruckin-710d7c4c-5ebf-4ea6-9bb8-ae4a763057a3",
-  "storageBucket": "gen-lang-client-0323127392.firebasestorage.app",
-  "messagingSenderId": "1070868490852",
-  "measurementId": "",
-  "oAuthClientId": "1070868490852-drke1lc1nqarguk6buv1bg3qgfpdjr3j.apps.googleusercontent.com",
+  "projectId": "boom-truck-invoice",
+  "appId": "1:118817051640:web:eb0a6d8ca2be7c9fd6fc0d",
+  "apiKey": "AIzaSyCpEyo1H_cmmCT8QSxqqOec0lBbI5fUns",
+  "authDomain": "boom-truck-invoice.firebaseapp.com",
+  "firestoreDatabaseId": "",
+  "storageBucket": "boom-truck-invoice.firebasestorage.app",
+  "messagingSenderId": "118817051640",
+  "measurementId": "G-890BVJ4LF1",
+  "oAuthClientId": "",
   "recaptchaSiteKey": ""
 }

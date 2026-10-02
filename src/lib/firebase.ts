@@ -1,18 +1,17 @@
-import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth } from 'firebase/auth';
-import firebaseConfigData from '../../firebase-applet-config.json';
+import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
+import { getAuth, type Auth } from 'firebase/auth';
 
 /**
- * Clean Firebase configuration loaded from provisioned firebase-applet-config.json
+ * Exact Firebase project configuration for boom-truck-invoice
  */
 export const firebaseConfig = {
-  apiKey: firebaseConfigData.apiKey,
-  authDomain: firebaseConfigData.authDomain,
-  projectId: firebaseConfigData.projectId,
-  storageBucket: firebaseConfigData.storageBucket,
-  messagingSenderId: firebaseConfigData.messagingSenderId,
-  appId: firebaseConfigData.appId,
-  measurementId: firebaseConfigData.measurementId || undefined,
+  apiKey: "AIzaSyCpEyo1H_cmmCT8QSxqqOec0lBbI5fUns",
+  authDomain: "boom-truck-invoice.firebaseapp.com",
+  projectId: "boom-truck-invoice",
+  storageBucket: "boom-truck-invoice.firebasestorage.app",
+  messagingSenderId: "118817051640",
+  appId: "1:118817051640:web:eb0a6d8ca2be7c9fd6fc0d",
+  measurementId: "G-890BVJ4LF1"
 };
 
 /**
@@ -21,6 +20,6 @@ export const firebaseConfig = {
 export const app: FirebaseApp = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 /**
- * Firebase Authentication instance configured for Email/Password and other providers
+ * Firebase Authentication instance configured for Email/Password
  */
 export const auth: Auth = getAuth(app);
