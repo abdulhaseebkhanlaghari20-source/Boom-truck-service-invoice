@@ -1,0 +1,204 @@
+{
+  "entities": {
+    "CompanySettings": {
+      "title": "CompanySettings",
+      "description": "User profile and company branding configuration",
+      "type": "object",
+      "properties": {
+        "companyName": {
+          "type": "string",
+          "description": "Primary company name in English"
+        },
+        "companyNameAr": {
+          "type": "string",
+          "description": "Company name in Arabic"
+        },
+        "logoUrl": {
+          "type": "string",
+          "description": "Base64 or URL string of the company logo"
+        },
+        "watermarkUrl": {
+          "type": "string",
+          "description": "Optional custom watermark image URL or base64"
+        },
+        "enableWatermark": {
+          "type": "boolean",
+          "description": "Whether invoice watermark is displayed"
+        },
+        "watermarkOpacity": {
+          "type": "number",
+          "description": "Opacity factor for watermark"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Primary phone / mobile contact"
+        },
+        "secondaryPhone": {
+          "type": "string",
+          "description": "Secondary contact number"
+        },
+        "whatsapp": {
+          "type": "string",
+          "description": "WhatsApp contact number"
+        },
+        "email": {
+          "type": "string",
+          "description": "Company email address"
+        },
+        "address": {
+          "type": "string",
+          "description": "Full address in English"
+        },
+        "addressAr": {
+          "type": "string",
+          "description": "Full address in Arabic"
+        },
+        "vatNumber": {
+          "type": "string",
+          "description": "15-digit ZATCA Tax Identification Number"
+        },
+        "crNumber": {
+          "type": "string",
+          "description": "Commercial Registration number"
+        },
+        "bankName": {
+          "type": "string",
+          "description": "Bank name for payment transfers"
+        },
+        "bankAccountNumber": {
+          "type": "string",
+          "description": "Bank account number"
+        },
+        "iban": {
+          "type": "string",
+          "description": "International Bank Account Number (IBAN)"
+        },
+        "sealNote": {
+          "type": "string",
+          "description": "Official company stamp or disclaimer note"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of the last settings update"
+        }
+      },
+      "required": ["companyName", "phone", "email", "address", "vatNumber"]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "description": "Boom truck heavy equipment rental tax invoice document",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the invoice"
+        },
+        "invoiceNumber": {
+          "type": "string",
+          "description": "Display invoice number, e.g. INV-001"
+        },
+        "invoiceDate": {
+          "type": "string",
+          "description": "Invoice date YYYY-MM-DD"
+        },
+        "dueDate": {
+          "type": "string",
+          "description": "Payment due date YYYY-MM-DD"
+        },
+        "paymentStatus": {
+          "type": "string",
+          "enum": ["Unpaid", "Partially Paid", "Paid", "Overdue"],
+          "description": "Status of invoice settlement"
+        },
+        "customerName": {
+          "type": "string",
+          "description": "Customer individual or company name"
+        },
+        "customerPhone": {
+          "type": "string",
+          "description": "Customer contact telephone"
+        },
+        "customerVatNumber": {
+          "type": "string",
+          "description": "Customer VAT identification number"
+        },
+        "city": {
+          "type": "string",
+          "description": "Saudi Arabia operating city"
+        },
+        "truckCapacity": {
+          "type": "string",
+          "description": "Crane boom truck capacity tonnage"
+        },
+        "serviceDescription": {
+          "type": "string",
+          "description": "Detailed description of heavy lifting / transport service"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Quantity of shifts or rental units"
+        },
+        "rate": {
+          "type": "number",
+          "description": "Unit rate in Saudi Riyals (SAR)"
+        },
+        "vatOption": {
+          "type": "string",
+          "enum": ["VAT 15%", "No VAT"],
+          "description": "VAT calculation type"
+        },
+        "subtotal": {
+          "type": "number",
+          "description": "Taxable amount before VAT in SAR"
+        },
+        "vatAmount": {
+          "type": "number",
+          "description": "Calculated 15% VAT amount in SAR"
+        },
+        "total": {
+          "type": "number",
+          "description": "Grand total payable in SAR"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Invoice terms, payment instructions, or operator notes"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp when invoice was created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp when invoice was last updated"
+        }
+      },
+      "required": [
+        "id",
+        "invoiceNumber",
+        "invoiceDate",
+        "dueDate",
+        "paymentStatus",
+        "customerName",
+        "city",
+        "truckCapacity",
+        "serviceDescription",
+        "quantity",
+        "rate",
+        "vatOption",
+        "subtotal",
+        "vatAmount",
+        "total"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "CompanySettings",
+      "description": "Stores user company profile, logo, and VAT branding settings"
+    },
+    "/users/{userId}/invoices/{invoiceId}": {
+      "schema": "Invoice",
+      "description": "Stores individual boom truck tax invoices belonging to the user"
+    }
+  }
+}

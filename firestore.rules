@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Default Deny All - No unauthenticated or unauthorized access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // User Profile & Company Settings Document
+    // Path: /users/{userId}
+    match /users/{userId} {
+      // Only the authenticated owner can read or write their company settings
+      allow get, set, update, delete: if isOwner(userId);
+      
+      // Invoices Subcollection
+      // Path: /users/{userId}/invoices/{invoiceId}
+      match /invoices/{invoiceId} {
+        // Only the owner of this account can list, get, create, update, or delete their invoices
+        allow read, write: if isOwner(userId);
+      }
+    }
+  }
+}

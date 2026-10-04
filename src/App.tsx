@@ -31,6 +31,14 @@ import { PreviewModal } from './components/PreviewModal';
 import { InvoicePreview } from './components/InvoicePreview';
 import { AuthScreen } from './components/AuthScreen';
 import { useFirebaseAuth, logOut } from './lib/auth';
+import {
+  saveUserCompanySettings,
+  loadUserCompanySettings,
+  saveUserInvoice,
+  loadUserInvoices,
+  deleteUserInvoice,
+  subscribeUserInvoices,
+} from './lib/firestoreService';
 import { Loader2, CheckCircle2, AlertCircle, Info, X, Truck } from 'lucide-react';
 
 const STORAGE_KEYS = {
@@ -126,22 +134,6 @@ export default function App() {
     return DEFAULT_COMPANY_SETTINGS;
   });
 
-  const handleSaveSettings = (newSettings: CompanySettings) => {
-    setCompanySettings(newSettings);
-    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(newSettings));
-    // If drafting a new invoice (not an existing historical invoice), update it to show new settings immediately
-    if (!isEditingExisting) {
-      setCurrentInvoice((prev) => ({
-        ...prev,
-        // live drafting connects to newSettings
-      }));
-    }
-    showToast(
-      lang === 'ar' ? 'تم حفظ بيانات المؤسسة بنجاح' : 'Company settings saved successfully',
-      'success'
-    );
-  };
-
   // 3. Invoices State
   const [invoices, setInvoices] = useState<Invoice[]>(() => {
     try {
@@ -153,9 +145,88 @@ export default function App() {
     return INITIAL_INVOICES;
   });
 
+  // Load and synchronize user's data from Cloud Firestore
+  useEffect(() => {
+    if (!user) return;
+    const uid = user.uid;
+
+    // Load company settings from users/{uid}
+    loadUserCompanySettings(uid)
+      .then((remoteSettings) => {
+        if (remoteSettings && remoteSettings.companyName) {
+          setCompanySettings(remoteSettings);
+          localStorage.setItem(`${STORAGE_KEYS.SETTINGS}_${uid}`, JSON.stringify(remoteSettings));
+        } else {
+          // If first time with no Firestore document, initialize with default/current settings
+          saveUserCompanySettings(uid, companySettings).catch((err) =>
+            console.warn('Initial settings sync warning:', err)
+          );
+        }
+      })
+      .catch((err) => {
+        console.warn('Could not load company settings from Firestore:', err);
+      });
+
+    // Real-time subscription to users/{uid}/invoices
+    const unsubscribe = subscribeUserInvoices(
+      uid,
+      (remoteInvoices) => {
+        if (remoteInvoices && remoteInvoices.length > 0) {
+          setInvoices(remoteInvoices);
+          localStorage.setItem(`${STORAGE_KEYS.INVOICES}_${uid}`, JSON.stringify(remoteInvoices));
+        } else if (remoteInvoices && remoteInvoices.length === 0) {
+          // Check local cache for migration if newly registered
+          const cached = localStorage.getItem(`${STORAGE_KEYS.INVOICES}_${uid}`);
+          if (cached) {
+            try {
+              const parsed = JSON.parse(cached);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                parsed.forEach((inv) => saveUserInvoice(uid, inv).catch(console.warn));
+                setInvoices(parsed);
+                return;
+              }
+            } catch (e) {}
+          }
+          setInvoices([]);
+        }
+      },
+      (err) => {
+        console.warn('Firestore subscription notice:', err);
+      }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, [user]);
+
+  const handleSaveSettings = (newSettings: CompanySettings) => {
+    setCompanySettings(newSettings);
+    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(newSettings));
+    if (user) {
+      localStorage.setItem(`${STORAGE_KEYS.SETTINGS}_${user.uid}`, JSON.stringify(newSettings));
+      saveUserCompanySettings(user.uid, newSettings).catch((err) => {
+        console.warn('Firestore save company settings notice:', err);
+      });
+    }
+    // If drafting a new invoice (not an existing historical invoice), update it to show new settings immediately
+    if (!isEditingExisting) {
+      setCurrentInvoice((prev) => ({
+        ...prev,
+      }));
+    }
+    showToast(
+      lang === 'ar' ? 'تم حفظ بيانات المؤسسة بنجاح' : 'Company settings saved successfully',
+      'success'
+    );
+  };
+
   const saveInvoicesToStorage = (updated: Invoice[]) => {
     setInvoices(updated);
     localStorage.setItem(STORAGE_KEYS.INVOICES, JSON.stringify(updated));
+    if (user) {
+      localStorage.setItem(`${STORAGE_KEYS.INVOICES}_${user.uid}`, JSON.stringify(updated));
+    }
   };
 
   // 4. Current Invoice State for Form
@@ -210,6 +281,22 @@ export default function App() {
     invoices
   );
 
+  // Reload invoices from Firestore when user opens the Invoice List tab
+  useEffect(() => {
+    if (activeTab === 'list' && user) {
+      loadUserInvoices(user.uid)
+        .then((remoteInvoices) => {
+          if (remoteInvoices) {
+            setInvoices(remoteInvoices);
+            localStorage.setItem(`${STORAGE_KEYS.INVOICES}_${user.uid}`, JSON.stringify(remoteInvoices));
+          }
+        })
+        .catch((err) => {
+          console.warn('Notice loading invoices on list tab:', err);
+        });
+    }
+  }, [activeTab, user]);
+
   // Save handler from form
   const handleSaveInvoice = (invToSave: Invoice) => {
     if (isInvoiceNumberDuplicate(invToSave.invoiceNumber, invToSave.id, invoices)) {
@@ -236,6 +323,14 @@ export default function App() {
     saveInvoicesToStorage(updated);
     setCurrentInvoice(invoiceWithCompany);
     setIsEditingExisting(true);
+
+    // Save to Firestore under users/{userId}/invoices/{invoiceId}
+    if (user) {
+      saveUserInvoice(user.uid, invoiceWithCompany).catch((err) => {
+        console.warn('Notice saving invoice to Firestore:', err);
+      });
+    }
+
     showToast(translations[lang].savedSuccess, 'success');
   };
 
@@ -262,6 +357,14 @@ export default function App() {
     if (currentInvoice.id === id) {
       handleNewInvoice();
     }
+
+    // Delete from Firestore under users/{userId}/invoices/{invoiceId}
+    if (user) {
+      deleteUserInvoice(user.uid, id).catch((err) => {
+        console.warn('Notice deleting invoice from Firestore:', err);
+      });
+    }
+
     showToast(translations[lang].deletedSuccess, 'info');
   };
 

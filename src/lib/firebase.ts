@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
 
 /**
  * Exact Firebase project configuration for boom-truck-invoice
@@ -23,3 +24,9 @@ export const app: FirebaseApp = getApps().length > 0 ? getApp() : initializeApp(
  * Firebase Authentication instance configured for Email/Password
  */
 export const auth: Auth = getAuth(app);
+
+/**
+ * Cloud Firestore Database instance
+ */
+export const db: Firestore = getFirestore(app);
+
