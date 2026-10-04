@@ -40,6 +40,7 @@ import {
   deleteUserInvoice,
   subscribeUserInvoices,
   checkUserIsAdmin,
+  subscribeUserAdminStatus,
 } from './lib/firestoreService';
 import { Loader2, CheckCircle2, AlertCircle, Info, X, Truck } from 'lucide-react';
 
@@ -206,25 +207,30 @@ export default function App() {
     };
   }, [user]);
 
-  // Admin Authorization State
+  // Admin Authorization State (Real-time Firestore listener)
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
   useEffect(() => {
-    if (user) {
-      checkUserIsAdmin(user).then((adminStatus) => {
-        setIsAdmin(adminStatus);
-        if (typeof window !== 'undefined' && window.location.pathname === '/admin') {
-          if (adminStatus) {
-            setActiveTab('admin');
-          } else {
-            setActiveTab('create');
-            window.history.replaceState(null, '', '/');
-          }
-        }
-      });
-    } else {
+    if (!user) {
       setIsAdmin(false);
+      return;
     }
+
+    const unsubscribe = subscribeUserAdminStatus(user.uid, (adminStatus) => {
+      setIsAdmin(adminStatus);
+      if (typeof window !== 'undefined' && window.location.pathname === '/admin') {
+        if (adminStatus) {
+          setActiveTab('admin');
+        } else {
+          setActiveTab('create');
+          window.history.replaceState(null, '', '/');
+        }
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, [user]);
 
   const handleSaveSettings = (newSettings: CompanySettings) => {

@@ -242,6 +242,26 @@ export async function checkUserIsAdmin(user: User | null): Promise<boolean> {
 }
 
 /**
+ * Real-time listener for user's Admin authorization in Firestore
+ */
+export function subscribeUserAdminStatus(
+  userId: string,
+  onUpdate: (isAdmin: boolean) => void
+): Unsubscribe {
+  const adminDocRef = doc(db, 'admins', userId);
+  return onSnapshot(
+    adminDocRef,
+    (snap) => {
+      onUpdate(snap.exists());
+    },
+    (err) => {
+      console.warn('Admin status listener notice:', err);
+      onUpdate(false);
+    }
+  );
+}
+
+/**
  * Fetches all registered platform users, their heavy equipment invoices,
  * and business revenue statistics (Protected Admin Query)
  */
