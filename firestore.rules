@@ -17,12 +17,13 @@ service cloud.firestore {
     }
 
     // Secure UID-based Admin Authorization:
-    // Admin access is granted ONLY based on authorized Firebase UIDs or admins/{uid} document
+    // Admin access is granted ONLY based on Firestore admins/{uid} document,
+    // or the supported Admin UID "7N820XwPYZWjjqbQBjh5V9qeiNt1".
+    // No email address is used for authorization.
     function isAdmin() {
       return isSignedIn() && (
         exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
-        request.auth.uid == "7N820XwPYZWjjqbQBjh5V9qeiNt1" ||
-        request.auth.uid == "xBcYEtdi6IfQ6y0cqYK8PiDSL3q2"
+        request.auth.uid == "7N820XwPYZWjjqbQBjh5V9qeiNt1"
       );
     }
 

@@ -221,34 +221,32 @@ export function subscribeUserInvoices(
   );
 }
 
-// Authorized Admin UIDs configured for this deployment
-export const AUTHORIZED_ADMIN_UIDS = [
-  '7N820XwPYZWjjqbQBjh5V9qeiNt1',
-  'xBcYEtdi6IfQ6y0cqYK8PiDSL3q2',
-];
+// Supported Primary Admin UID
+export const SUPPORTED_ADMIN_UID = '7N820XwPYZWjjqbQBjh5V9qeiNt1';
 
 /**
  * Verifies whether the authenticated user has Admin privileges in Firestore.
- * Admin access is granted strictly based on authorized UID or document at `admins/{user.uid}`.
- * Does not depend on any email address.
+ * Admin access is granted strictly if an authorized document exists at `admins/{user.uid}`,
+ * or if the user matches the supported Admin UID `7N820XwPYZWjjqbQBjh5V9qeiNt1`.
+ * No hardcoded email checks are used.
+ * Any other UID is an admin ONLY if it actually exists in Firestore `admins/{uid}`.
  */
 export async function checkUserIsAdmin(user: User | null): Promise<boolean> {
   if (!user || !user.uid) return false;
 
-  // Direct UID authorization
-  if (AUTHORIZED_ADMIN_UIDS.includes(user.uid)) {
+  // Check supported Admin UID
+  if (user.uid === SUPPORTED_ADMIN_UID) {
     return true;
   }
 
+  // Any other UID must have an existing document in Firestore admins/{uid}
   try {
     const adminDocRef = doc(db, 'admins', user.uid);
     const snap = await getDoc(adminDocRef);
-
-    // Document must exist at admins/{uid}
     return snap.exists();
   } catch (err) {
     console.warn('Admin check notice:', err);
-    return AUTHORIZED_ADMIN_UIDS.includes(user.uid);
+    return false;
   }
 }
 
@@ -259,7 +257,7 @@ export function subscribeUserAdminStatus(
   userId: string,
   onUpdate: (isAdmin: boolean) => void
 ): Unsubscribe {
-  if (AUTHORIZED_ADMIN_UIDS.includes(userId)) {
+  if (userId === SUPPORTED_ADMIN_UID) {
     onUpdate(true);
   }
 
@@ -267,11 +265,11 @@ export function subscribeUserAdminStatus(
   return onSnapshot(
     adminDocRef,
     (snap) => {
-      onUpdate(snap.exists() || AUTHORIZED_ADMIN_UIDS.includes(userId));
+      onUpdate(snap.exists() || userId === SUPPORTED_ADMIN_UID);
     },
     (err) => {
       console.warn('Admin status listener notice:', err);
-      onUpdate(AUTHORIZED_ADMIN_UIDS.includes(userId));
+      onUpdate(userId === SUPPORTED_ADMIN_UID);
     }
   );
 }
@@ -294,10 +292,22 @@ export async function fetchAdminData(): Promise<{
     usersDocs = usersSnap.docs;
   } catch (err: any) {
     console.warn('Listing /users restricted by Firestore rules, using targeted UID query fallback:', err);
-    // If global list is blocked because rules are not yet published, query target UIDs individually
+    // If listing all users is restricted by rules, retrieve the authenticated user and supported admin
     const targetUids = Array.from(
-      new Set([auth.currentUser?.uid, ...AUTHORIZED_ADMIN_UIDS])
+      new Set([auth.currentUser?.uid, SUPPORTED_ADMIN_UID])
     ).filter(Boolean) as string[];
+
+    // Also check if any additional admins exist in Firestore `admins` collection
+    try {
+      const adminsSnap = await getDocs(collection(db, 'admins'));
+      adminsSnap.forEach((docSnap) => {
+        if (!targetUids.includes(docSnap.id)) {
+          targetUids.push(docSnap.id);
+        }
+      });
+    } catch {
+      // Ignored if admins collection cannot be listed
+    }
 
     for (const uid of targetUids) {
       try {
@@ -418,7 +428,20 @@ export async function fetchAdminData(): Promise<{
       stats,
     };
   } catch (error) {
-    handleFirestoreError(error, OperationType.LIST, usersPath);
+    console.warn('Admin processing notice:', error);
+    return {
+      users: [],
+      invoices: [],
+      stats: {
+        totalUsers: 0,
+        totalInvoices: 0,
+        totalInvoiceValue: 0,
+        thisMonthInvoices: 0,
+        thisMonthValue: 0,
+        paidValue: 0,
+        unpaidValue: 0,
+      },
+    };
   }
 }
 
