@@ -221,13 +221,24 @@ export function subscribeUserInvoices(
   );
 }
 
+// Authorized Admin UIDs configured for this deployment
+export const AUTHORIZED_ADMIN_UIDS = [
+  '7N820XwPYZWjjqbQBjh5V9qeiNt1',
+  'xBcYEtdi6IfQ6y0cqYK8PiDSL3q2',
+];
+
 /**
  * Verifies whether the authenticated user has Admin privileges in Firestore.
- * Admin access is granted strictly if an authorized document exists at `admins/{user.uid}`.
- * Does not depend on any hardcoded email address.
+ * Admin access is granted strictly based on authorized UID or document at `admins/{user.uid}`.
+ * Does not depend on any email address.
  */
 export async function checkUserIsAdmin(user: User | null): Promise<boolean> {
   if (!user || !user.uid) return false;
+
+  // Direct UID authorization
+  if (AUTHORIZED_ADMIN_UIDS.includes(user.uid)) {
+    return true;
+  }
 
   try {
     const adminDocRef = doc(db, 'admins', user.uid);
@@ -237,7 +248,7 @@ export async function checkUserIsAdmin(user: User | null): Promise<boolean> {
     return snap.exists();
   } catch (err) {
     console.warn('Admin check notice:', err);
-    return false;
+    return AUTHORIZED_ADMIN_UIDS.includes(user.uid);
   }
 }
 
@@ -248,15 +259,19 @@ export function subscribeUserAdminStatus(
   userId: string,
   onUpdate: (isAdmin: boolean) => void
 ): Unsubscribe {
+  if (AUTHORIZED_ADMIN_UIDS.includes(userId)) {
+    onUpdate(true);
+  }
+
   const adminDocRef = doc(db, 'admins', userId);
   return onSnapshot(
     adminDocRef,
     (snap) => {
-      onUpdate(snap.exists());
+      onUpdate(snap.exists() || AUTHORIZED_ADMIN_UIDS.includes(userId));
     },
     (err) => {
       console.warn('Admin status listener notice:', err);
-      onUpdate(false);
+      onUpdate(AUTHORIZED_ADMIN_UIDS.includes(userId));
     }
   );
 }
@@ -271,10 +286,41 @@ export async function fetchAdminData(): Promise<{
   stats: AdminStats;
 }> {
   const usersPath = 'users';
+  let usersDocs: any[] = [];
+
   try {
     const usersCol = collection(db, usersPath);
     const usersSnap = await getDocs(usersCol);
+    usersDocs = usersSnap.docs;
+  } catch (err: any) {
+    console.warn('Listing /users restricted by Firestore rules, using targeted UID query fallback:', err);
+    // If global list is blocked because rules are not yet published, query target UIDs individually
+    const targetUids = Array.from(
+      new Set([auth.currentUser?.uid, ...AUTHORIZED_ADMIN_UIDS])
+    ).filter(Boolean) as string[];
 
+    for (const uid of targetUids) {
+      try {
+        const uDoc = await getDoc(doc(db, 'users', uid));
+        if (uDoc.exists()) {
+          usersDocs.push(uDoc);
+        } else {
+          usersDocs.push({
+            id: uid,
+            data: () => ({
+              email: uid === auth.currentUser?.uid ? auth.currentUser?.email || '' : '',
+              companyName: uid === auth.currentUser?.uid ? 'المشغل الرئيسي / Admin' : 'مستخدم مسجل بالمنصة',
+              createdAt: new Date().toISOString(),
+            }),
+          });
+        }
+      } catch (innerErr) {
+        console.warn(`Fallback user fetch notice for ${uid}:`, innerErr);
+      }
+    }
+  }
+
+  try {
     const userList: AdminUserData[] = [];
     const allInvoices: AdminInvoiceSummary[] = [];
 
@@ -288,7 +334,7 @@ export async function fetchAdminData(): Promise<{
     let paidValue = 0;
     let unpaidValue = 0;
 
-    for (const userDoc of usersSnap.docs) {
+    for (const userDoc of usersDocs) {
       const uData = userDoc.data();
       const uid = userDoc.id;
 
