@@ -4,12 +4,14 @@ import {
   getDoc,
   getDocs,
   setDoc,
+  updateDoc,
   deleteDoc,
+  writeBatch,
   onSnapshot,
   query,
   type Unsubscribe,
 } from 'firebase/firestore';
-import type { User } from 'firebase/auth';
+import { sendPasswordResetEmail, type User } from 'firebase/auth';
 import { db, auth } from './firebase';
 import {
   Invoice,
@@ -397,6 +399,8 @@ export async function fetchAdminData(): Promise<{
         address: uData.address || '',
         createdAt: uData.createdAt || '',
         updatedAt: uData.updatedAt || '',
+        lastLoginAt: uData.lastLoginAt || uData.updatedAt || uData.createdAt || '',
+        status: uData.status === 'suspended' ? 'suspended' : 'active',
         invoiceCount: userInvoiceCount,
         totalInvoiced: userTotalInvoiced,
       });
@@ -442,6 +446,125 @@ export async function fetchAdminData(): Promise<{
         unpaidValue: 0,
       },
     };
+  }
+}
+
+/**
+ * Records or updates the user's login activity and ensures account status field is active
+ */
+export async function recordUserSession(user: User): Promise<void> {
+  if (!user || !user.uid) return;
+  try {
+    const userDocRef = doc(db, 'users', user.uid);
+    const existingSnap = await getDoc(userDocRef);
+    const nowIso = new Date().toISOString();
+
+    if (!existingSnap.exists()) {
+      await setDoc(
+        userDocRef,
+        {
+          email: user.email || '',
+          status: 'active',
+          lastLoginAt: nowIso,
+          createdAt: nowIso,
+          updatedAt: nowIso,
+        },
+        { merge: true }
+      );
+    } else {
+      const existingData = existingSnap.data();
+      await setDoc(
+        userDocRef,
+        {
+          email: user.email || existingData?.email || '',
+          lastLoginAt: nowIso,
+          updatedAt: nowIso,
+          // If status is not set, initialize as active
+          status: existingData?.status || 'active',
+        },
+        { merge: true }
+      );
+    }
+  } catch (err) {
+    console.warn('Session recording notice:', err);
+  }
+}
+
+/**
+ * Checks if a user's account has been marked as suspended in Firestore
+ */
+export async function checkIsUserSuspended(uid: string): Promise<boolean> {
+  if (!uid) return false;
+  try {
+    const userDocRef = doc(db, 'users', uid);
+    const snap = await getDoc(userDocRef);
+    if (!snap.exists()) return false;
+    return snap.data()?.status === 'suspended';
+  } catch (err) {
+    console.warn('Suspension check notice:', err);
+    return false;
+  }
+}
+
+/**
+ * Updates a user's active/suspended status in Firestore
+ * (Admin Protected Action)
+ */
+export async function updateUserAccountStatus(
+  targetUid: string,
+  newStatus: 'active' | 'suspended'
+): Promise<void> {
+  const userPath = `users/${targetUid}`;
+  try {
+    const userDocRef = doc(db, 'users', targetUid);
+    await updateDoc(userDocRef, {
+      status: newStatus,
+      updatedAt: new Date().toISOString(),
+    });
+  } catch (err) {
+    handleFirestoreError(err, OperationType.UPDATE, userPath);
+  }
+}
+
+/**
+ * Triggers Firebase's official password reset email to the user's registered email
+ * Note: Never attempts to view, retrieve, or expose any actual password.
+ */
+export async function sendUserPasswordReset(email: string): Promise<void> {
+  if (!email || !email.includes('@')) {
+    throw new Error('Invalid email address provided for password reset.');
+  }
+  await sendPasswordResetEmail(auth, email.trim());
+}
+
+/**
+ * Deletes all of a user's Firestore data (profile and subcollection invoices).
+ * Note: Firebase Client SDK cannot delete another user's Firebase Authentication account.
+ * (Admin Protected Action)
+ */
+export async function deleteUserFirestoreData(targetUid: string): Promise<{ deletedInvoicesCount: number }> {
+  const userPath = `users/${targetUid}`;
+  let deletedInvoicesCount = 0;
+
+  try {
+    // 1. Delete all invoices in /users/{targetUid}/invoices
+    const invCol = collection(db, 'users', targetUid, 'invoices');
+    const invSnap = await getDocs(invCol);
+
+    const batch = writeBatch(db);
+    invSnap.forEach((docSnap) => {
+      batch.delete(docSnap.ref);
+      deletedInvoicesCount++;
+    });
+
+    // 2. Delete the user profile document
+    const userDocRef = doc(db, 'users', targetUid);
+    batch.delete(userDocRef);
+
+    await batch.commit();
+    return { deletedInvoicesCount };
+  } catch (err) {
+    handleFirestoreError(err, OperationType.DELETE, userPath);
   }
 }
 

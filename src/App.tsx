@@ -41,6 +41,8 @@ import {
   subscribeUserInvoices,
   checkUserIsAdmin,
   subscribeUserAdminStatus,
+  recordUserSession,
+  checkIsUserSuspended,
 } from './lib/firestoreService';
 import { Loader2, CheckCircle2, AlertCircle, Info, X, Truck } from 'lucide-react';
 
@@ -209,12 +211,22 @@ export default function App() {
 
   // Admin Authorization State (Real-time Firestore listener)
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [isSuspended, setIsSuspended] = useState<boolean>(false);
 
   useEffect(() => {
     if (!user) {
       setIsAdmin(false);
+      setIsSuspended(false);
       return;
     }
+
+    // Record login activity in Firestore for Admin tracking
+    recordUserSession(user);
+
+    // Verify if non-admin user account has been suspended by Admin
+    checkIsUserSuspended(user.uid).then((suspended) => {
+      setIsSuspended(suspended);
+    });
 
     const unsubscribe = subscribeUserAdminStatus(user.uid, (adminStatus) => {
       setIsAdmin(adminStatus);
@@ -605,6 +617,31 @@ export default function App() {
   // 2. Unauthenticated state: Show Login / Signup / Forgot Password screen
   if (!user) {
     return <AuthScreen lang={lang} onLanguageChange={setLang} />;
+  }
+
+  // 2.5 Suspended state: Soft-lock enforcement screen
+  if (isSuspended && !isAdmin) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white p-4 text-center selection:bg-rose-500/20">
+        <div className="w-16 h-16 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 mb-5 shadow-xl">
+          <AlertCircle className="w-8 h-8" />
+        </div>
+        <h1 className="text-xl sm:text-2xl font-black text-white mb-2">
+          {lang === 'ar' ? 'تم تعليق هذا الحساب' : 'Account Suspended'}
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-400 max-w-md mb-6 leading-relaxed">
+          {lang === 'ar'
+            ? 'تم إيقاف صلاحيات الوصول لهذا الحساب من قِبل إدارة النظام. يرجى التواصل مع إدارة المنصة للمزيد من المعلومات.'
+            : 'Access to this account has been suspended by the platform administrator. Please contact support.'}
+        </p>
+        <button
+          onClick={handleLogout}
+          className="px-6 py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl transition-all shadow-md active:scale-95 cursor-pointer"
+        >
+          {lang === 'ar' ? 'تسجيل الخروج' : 'Sign Out'}
+        </button>
+      </div>
+    );
   }
 
   // 3. Authenticated state: Show EXISTING application

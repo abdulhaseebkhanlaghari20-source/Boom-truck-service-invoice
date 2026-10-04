@@ -18,13 +18,19 @@ service cloud.firestore {
 
     // Secure UID-based Admin Authorization:
     // Admin access is granted ONLY based on Firestore admins/{uid} document,
-    // or the supported Admin UID "7N820XwPYZWjjqbQBjh5V9qeiNt1".
+    // or the supported primary Admin UID "7N820XwPYZWjjqbQBjh5V9qeiNt1".
     // No email address is used for authorization.
     function isAdmin() {
       return isSignedIn() && (
         exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
         request.auth.uid == "7N820XwPYZWjjqbQBjh5V9qeiNt1"
       );
+    }
+
+    // Check if user is active (not suspended by Administrator)
+    function isNotSuspended(userId) {
+      return !exists(/databases/$(database)/documents/users/$(userId)) ||
+             get(/databases/$(database)/documents/users/$(userId)).data.get('status', 'active') != 'suspended';
     }
 
     // Admins collection for role-based authorization
@@ -36,14 +42,15 @@ service cloud.firestore {
     // User Profile & Company Settings Document
     // Path: /users/{userId}
     match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
-      allow write: if isOwner(userId) || isAdmin();
+      // Normal owner access allowed only if account is NOT suspended; Admin has full access
+      allow read: if (isOwner(userId) && isNotSuspended(userId)) || isAdmin();
+      allow write: if (isOwner(userId) && isNotSuspended(userId)) || isAdmin();
       
       // Invoices Subcollection
       // Path: /users/{userId}/invoices/{invoiceId}
       match /invoices/{invoiceId} {
-        allow read: if isOwner(userId) || isAdmin();
-        allow write: if isOwner(userId) || isAdmin();
+        allow read: if (isOwner(userId) && isNotSuspended(userId)) || isAdmin();
+        allow write: if (isOwner(userId) && isNotSuspended(userId)) || isAdmin();
       }
     }
   }

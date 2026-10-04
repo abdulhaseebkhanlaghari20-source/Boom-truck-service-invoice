@@ -82,6 +82,8 @@ export interface AdminUserData {
   address?: string;
   createdAt?: string;
   updatedAt?: string;
+  lastLoginAt?: string;
+  status?: 'active' | 'suspended';
   invoiceCount: number;
   totalInvoiced: number;
 }
