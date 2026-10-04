@@ -30,6 +30,7 @@ import { WhatsAppModal } from './components/WhatsAppModal';
 import { PreviewModal } from './components/PreviewModal';
 import { InvoicePreview } from './components/InvoicePreview';
 import { AuthScreen } from './components/AuthScreen';
+import { AdminDashboard } from './components/AdminDashboard';
 import { useFirebaseAuth, logOut } from './lib/auth';
 import {
   saveUserCompanySettings,
@@ -38,6 +39,7 @@ import {
   loadUserInvoices,
   deleteUserInvoice,
   subscribeUserInvoices,
+  checkUserIsAdmin,
 } from './lib/firestoreService';
 import { Loader2, CheckCircle2, AlertCircle, Info, X, Truck } from 'lucide-react';
 
@@ -157,8 +159,12 @@ export default function App() {
           setCompanySettings(remoteSettings);
           localStorage.setItem(`${STORAGE_KEYS.SETTINGS}_${uid}`, JSON.stringify(remoteSettings));
         } else {
-          // If first time with no Firestore document, initialize with default/current settings
-          saveUserCompanySettings(uid, companySettings).catch((err) =>
+          // If first time with no Firestore document, initialize with default/current settings and email
+          const initial = {
+            ...companySettings,
+            email: user.email || companySettings.email,
+          };
+          saveUserCompanySettings(uid, initial).catch((err) =>
             console.warn('Initial settings sync warning:', err)
           );
         }
@@ -200,12 +206,35 @@ export default function App() {
     };
   }, [user]);
 
-  const handleSaveSettings = (newSettings: CompanySettings) => {
-    setCompanySettings(newSettings);
-    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(newSettings));
+  // Admin Authorization State
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+
+  useEffect(() => {
     if (user) {
-      localStorage.setItem(`${STORAGE_KEYS.SETTINGS}_${user.uid}`, JSON.stringify(newSettings));
-      saveUserCompanySettings(user.uid, newSettings).catch((err) => {
+      checkUserIsAdmin(user).then((adminStatus) => {
+        setIsAdmin(adminStatus);
+        if (typeof window !== 'undefined' && window.location.pathname === '/admin') {
+          if (adminStatus) {
+            setActiveTab('admin');
+          } else {
+            setActiveTab('create');
+            window.history.replaceState(null, '', '/');
+          }
+        }
+      });
+    } else {
+      setIsAdmin(false);
+    }
+  }, [user]);
+
+  const handleSaveSettings = (newSettings: CompanySettings) => {
+    const userEmail = user?.email || newSettings.email;
+    const settingsToSave = { ...newSettings, email: userEmail };
+    setCompanySettings(settingsToSave);
+    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settingsToSave));
+    if (user) {
+      localStorage.setItem(`${STORAGE_KEYS.SETTINGS}_${user.uid}`, JSON.stringify(settingsToSave));
+      saveUserCompanySettings(user.uid, settingsToSave).catch((err) => {
         console.warn('Firestore save company settings notice:', err);
       });
     }
@@ -236,7 +265,26 @@ export default function App() {
   const [isEditingExisting, setIsEditingExisting] = useState<boolean>(false);
 
   // 5. Active View Tab
-  const [activeTab, setActiveTab] = useState<ViewTab>('create');
+  const [activeTab, setActiveTab] = useState<ViewTab>(() => {
+    if (typeof window !== 'undefined' && window.location.pathname === '/admin') {
+      return 'admin';
+    }
+    return 'create';
+  });
+
+  // Sync browser URL with /admin route
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (activeTab === 'admin') {
+      if (window.location.pathname !== '/admin') {
+        window.history.pushState(null, '', '/admin');
+      }
+    } else {
+      if (window.location.pathname === '/admin') {
+        window.history.pushState(null, '', '/');
+      }
+    }
+  }, [activeTab]);
 
   // 6. Modals State
   const [previewModalInvoice, setPreviewModalInvoice] = useState<Invoice | null>(null);
@@ -564,6 +612,7 @@ export default function App() {
         setLang={setLang}
         onNewInvoice={handleNewInvoice}
         onLogout={handleLogout}
+        isAdmin={isAdmin}
       />
 
       {/* Main Viewport Content */}
@@ -617,6 +666,34 @@ export default function App() {
             onSave={handleSaveSettings}
             lang={lang}
           />
+        )}
+
+        {activeTab === 'admin' && (
+          isAdmin ? (
+            <AdminDashboard
+              lang={lang}
+              onViewInvoice={(inv) => setPreviewModalInvoice(inv)}
+              onBackToApp={() => setActiveTab('create')}
+            />
+          ) : (
+            <div className="bg-white rounded-xl p-8 border border-slate-200 text-center max-w-md mx-auto my-12 shadow-xs">
+              <AlertCircle className="w-12 h-12 text-rose-500 mx-auto mb-3" />
+              <h2 className="text-lg font-bold text-slate-900 mb-1">
+                {lang === 'ar' ? 'غير مصرح بالدخول' : 'Access Restricted'}
+              </h2>
+              <p className="text-xs text-slate-500 mb-4">
+                {lang === 'ar'
+                  ? 'لوحة التحكم هذه مخصصة للمدير المعتمد فقط.'
+                  : 'The Admin Dashboard is only accessible to authorized administrators.'}
+              </p>
+              <button
+                onClick={() => setActiveTab('create')}
+                className="px-4 py-2 bg-slate-900 text-white text-xs font-semibold rounded-lg hover:bg-slate-800 transition-colors"
+              >
+                {lang === 'ar' ? 'العودة للتطبيق' : 'Back to Invoices'}
+              </button>
+            </div>
+          )
         )}
       </main>
 

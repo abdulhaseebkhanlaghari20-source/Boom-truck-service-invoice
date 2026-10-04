@@ -1,7 +1,7 @@
 import React from 'react';
 import { ViewTab, Language } from '../types/invoice';
 import { translations } from '../translations/i18n';
-import { FileText, List, BarChart3, Settings, Globe, Plus, Truck, LogOut } from 'lucide-react';
+import { FileText, List, BarChart3, Settings, Globe, Plus, Truck, LogOut, ShieldAlert } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: ViewTab;
@@ -10,6 +10,7 @@ interface HeaderProps {
   setLang: (lang: Language) => void;
   onNewInvoice: () => void;
   onLogout?: () => void;
+  isAdmin?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -19,6 +20,7 @@ export const Header: React.FC<HeaderProps> = ({
   setLang,
   onNewInvoice,
   onLogout,
+  isAdmin = false,
 }) => {
   const t = translations[lang];
 
@@ -34,6 +36,15 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'list', label: t.navInvoices, icon: <List className="w-4 h-4" /> },
     { id: 'dashboard', label: t.navDashboard, icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'settings', label: t.navSettings, icon: <Settings className="w-4 h-4" /> },
+    ...(isAdmin
+      ? [
+          {
+            id: 'admin' as ViewTab,
+            label: lang === 'ar' ? 'لوحة الإدارة' : 'Admin',
+            icon: <ShieldAlert className="w-4 h-4 text-emerald-400" />,
+          },
+        ]
+      : []),
   ];
 
   return (

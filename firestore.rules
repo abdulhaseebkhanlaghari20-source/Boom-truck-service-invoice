@@ -2,7 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Default Deny All - No unauthenticated or unauthorized access
+    // Default Deny All
     match /{document=**} {
       allow read, write: if false;
     }
@@ -16,17 +16,29 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    // Secure UID-based Admin Authorization:
+    // Admin access is granted ONLY if an authorized document exists at /admins/{request.auth.uid}
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // Admins collection for role-based authorization
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
     // User Profile & Company Settings Document
     // Path: /users/{userId}
     match /users/{userId} {
-      // Only the authenticated owner can read or write their company settings
-      allow get, set, update, delete: if isOwner(userId);
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isOwner(userId) || isAdmin();
       
       // Invoices Subcollection
       // Path: /users/{userId}/invoices/{invoiceId}
       match /invoices/{invoiceId} {
-        // Only the owner of this account can list, get, create, update, or delete their invoices
-        allow read, write: if isOwner(userId);
+        allow read: if isOwner(userId) || isAdmin();
+        allow write: if isOwner(userId) || isAdmin();
       }
     }
   }

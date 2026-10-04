@@ -199,6 +199,10 @@
     "/users/{userId}/invoices/{invoiceId}": {
       "schema": "Invoice",
       "description": "Stores individual boom truck tax invoices belonging to the user"
+    },
+    "/admins/{adminId}": {
+      "schema": "AdminRole",
+      "description": "Stores administrator authorization and platform permissions"
     }
   }
 }

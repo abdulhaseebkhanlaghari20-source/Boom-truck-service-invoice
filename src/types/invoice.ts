@@ -69,5 +69,36 @@ export interface Invoice {
   companySnapshot?: CompanySettings;
 }
 
-export type ViewTab = 'create' | 'list' | 'dashboard' | 'settings';
+export type ViewTab = 'create' | 'list' | 'dashboard' | 'settings' | 'admin';
 export type Language = 'en' | 'ar';
+
+export interface AdminUserData {
+  uid: string;
+  email: string;
+  companyName?: string;
+  companyNameAr?: string;
+  phone?: string;
+  vatNumber?: string;
+  address?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  invoiceCount: number;
+  totalInvoiced: number;
+}
+
+export interface AdminInvoiceSummary extends Invoice {
+  userUid: string;
+  userEmail?: string;
+  userCompanyName?: string;
+}
+
+export interface AdminStats {
+  totalUsers: number;
+  totalInvoices: number;
+  totalInvoiceValue: number;
+  thisMonthInvoices: number;
+  thisMonthValue: number;
+  paidValue: number;
+  unpaidValue: number;
+}
+

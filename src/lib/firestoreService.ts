@@ -9,8 +9,15 @@ import {
   query,
   type Unsubscribe,
 } from 'firebase/firestore';
+import type { User } from 'firebase/auth';
 import { db, auth } from './firebase';
-import { Invoice, CompanySettings } from '../types/invoice';
+import {
+  Invoice,
+  CompanySettings,
+  AdminUserData,
+  AdminInvoiceSummary,
+  AdminStats,
+} from '../types/invoice';
 
 export enum OperationType {
   CREATE = 'create',
@@ -213,3 +220,139 @@ export function subscribeUserInvoices(
     }
   );
 }
+
+/**
+ * Verifies whether the authenticated user has Admin privileges in Firestore.
+ * Admin access is granted strictly if an authorized document exists at `admins/{user.uid}`.
+ * Does not depend on any hardcoded email address.
+ */
+export async function checkUserIsAdmin(user: User | null): Promise<boolean> {
+  if (!user || !user.uid) return false;
+
+  try {
+    const adminDocRef = doc(db, 'admins', user.uid);
+    const snap = await getDoc(adminDocRef);
+
+    // Document must exist at admins/{uid}
+    return snap.exists();
+  } catch (err) {
+    console.warn('Admin check notice:', err);
+    return false;
+  }
+}
+
+/**
+ * Fetches all registered platform users, their heavy equipment invoices,
+ * and business revenue statistics (Protected Admin Query)
+ */
+export async function fetchAdminData(): Promise<{
+  users: AdminUserData[];
+  invoices: AdminInvoiceSummary[];
+  stats: AdminStats;
+}> {
+  const usersPath = 'users';
+  try {
+    const usersCol = collection(db, usersPath);
+    const usersSnap = await getDocs(usersCol);
+
+    const userList: AdminUserData[] = [];
+    const allInvoices: AdminInvoiceSummary[] = [];
+
+    // Current month identifier YYYY-MM
+    const now = new Date();
+    const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+    let totalInvoiceValue = 0;
+    let thisMonthInvoices = 0;
+    let thisMonthValue = 0;
+    let paidValue = 0;
+    let unpaidValue = 0;
+
+    for (const userDoc of usersSnap.docs) {
+      const uData = userDoc.data();
+      const uid = userDoc.id;
+
+      let userInvoiceCount = 0;
+      let userTotalInvoiced = 0;
+
+      try {
+        const invCol = collection(db, 'users', uid, 'invoices');
+        const invSnap = await getDocs(invCol);
+
+        invSnap.forEach((invDoc) => {
+          const inv = invDoc.data() as Invoice;
+          const invoiceItem: AdminInvoiceSummary = {
+            ...inv,
+            id: invDoc.id,
+            userUid: uid,
+            userEmail: uData.email || '',
+            userCompanyName: uData.companyName || uData.companyNameAr || '',
+          };
+          allInvoices.push(invoiceItem);
+
+          userInvoiceCount++;
+          const val = Number(inv.total) || 0;
+          userTotalInvoiced += val;
+          totalInvoiceValue += val;
+
+          // Check monthly stats
+          if (inv.invoiceDate && inv.invoiceDate.startsWith(currentMonthKey)) {
+            thisMonthInvoices++;
+            thisMonthValue += val;
+          }
+
+          if (inv.paymentStatus === 'Paid') {
+            paidValue += val;
+          } else {
+            unpaidValue += val;
+          }
+        });
+      } catch (e) {
+        console.warn(`Could not load invoices for user ${uid}:`, e);
+      }
+
+      userList.push({
+        uid,
+        email: uData.email || (uid === auth.currentUser?.uid ? auth.currentUser?.email || '' : ''),
+        companyName: uData.companyName || '',
+        companyNameAr: uData.companyNameAr || '',
+        phone: uData.phone || '',
+        vatNumber: uData.vatNumber || '',
+        address: uData.address || '',
+        createdAt: uData.createdAt || '',
+        updatedAt: uData.updatedAt || '',
+        invoiceCount: userInvoiceCount,
+        totalInvoiced: userTotalInvoiced,
+      });
+    }
+
+    // Sort users by highest total invoiced or invoice count
+    userList.sort((a, b) => b.totalInvoiced - a.totalInvoiced || b.invoiceCount - a.invoiceCount);
+
+    // Sort all invoices newest first
+    allInvoices.sort(
+      (a, b) =>
+        new Date(b.createdAt || b.invoiceDate || 0).getTime() -
+        new Date(a.createdAt || a.invoiceDate || 0).getTime()
+    );
+
+    const stats: AdminStats = {
+      totalUsers: userList.length,
+      totalInvoices: allInvoices.length,
+      totalInvoiceValue,
+      thisMonthInvoices,
+      thisMonthValue,
+      paidValue,
+      unpaidValue,
+    };
+
+    return {
+      users: userList,
+      invoices: allInvoices,
+      stats,
+    };
+  } catch (error) {
+    handleFirestoreError(error, OperationType.LIST, usersPath);
+  }
+}
+
