@@ -312,7 +312,17 @@ export async function shareInvoiceEmail(
     downloadImageBlob(blob, filename);
 
     const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailtoUrl;
+    try {
+      const mailtoLink = document.createElement('a');
+      mailtoLink.href = mailtoUrl;
+      mailtoLink.target = '_blank';
+      mailtoLink.rel = 'noopener noreferrer';
+      document.body.appendChild(mailtoLink);
+      mailtoLink.click();
+      document.body.removeChild(mailtoLink);
+    } catch {
+      window.location.href = mailtoUrl;
+    }
 
     return {
       success: true,

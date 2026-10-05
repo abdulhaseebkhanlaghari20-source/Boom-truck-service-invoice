@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { Invoice, CompanySettings, Language } from '../types/invoice';
 import { translations } from '../translations/i18n';
-import { canShareImageFile } from '../utils/imageShare';
+import { canShareImageFile, getInvoiceImageFilename } from '../utils/imageShare';
 import {
   Share2,
   FileDown,
   X,
-  AlertTriangle,
   Loader2,
   CheckCircle2,
   Image as ImageIcon,
+  ExternalLink,
+  MessageCircle,
 } from 'lucide-react';
 
 interface WhatsAppModalProps {
@@ -30,39 +31,44 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
   if (!invoice) return null;
 
   const t = translations[lang];
-  const [imageDownloaded, setImageDownloaded] = useState(false);
-  const [showAttachReminder, setShowAttachReminder] = useState(false);
-  const [isProcessing, setIsProcessing] = useState<string | null>(null);
-
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const isNativeShareSupported = canShareImageFile();
+  const filename = getInvoiceImageFilename(invoice.invoiceNumber);
 
-  const handleShare = async () => {
+  // Format Saudi or international number for WhatsApp Web
+  const getWhatsAppWebUrl = () => {
+    const raw = invoice.customerPhone || '';
+    const digits = raw.replace(/[^0-9]/g, '');
+    if (!digits) return 'https://web.whatsapp.com/';
+    const intl = digits.startsWith('05') ? `966${digits.slice(1)}` : digits;
+    return `https://web.whatsapp.com/send?phone=${intl}`;
+  };
+
+  const handleShareOrDownload = async () => {
     if (!onSharePdf) return;
-    setIsProcessing('share');
+    setIsProcessing(true);
     try {
       await onSharePdf(invoice);
-      setImageDownloaded(true);
-      setShowAttachReminder(true);
     } finally {
-      setIsProcessing(null);
+      setIsProcessing(false);
     }
   };
 
   return (
     <div className="no-print fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-      <div className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div className="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
         <div className="bg-slate-900 text-white px-5 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-md bg-emerald-600 flex items-center justify-center text-white">
-              <Share2 className="w-4 h-4" />
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white shadow-xs">
+              <MessageCircle className="w-5 h-5" />
             </div>
             <div>
               <h3 className="text-sm font-bold">
-                {lang === 'ar' ? 'مشاركة الفاتورة عبر واتساب كصورة' : 'Share Invoice on WhatsApp as Image'}
+                {lang === 'ar' ? 'مشاركة الفاتورة عبر واتساب كصورة' : 'Share Invoice via WhatsApp (Image)'}
               </h3>
               <p className="text-[11px] text-slate-300 font-mono">
-                {invoice.invoiceNumber} · {invoice.customerName}
+                {invoice.invoiceNumber} · {invoice.customerName || (lang === 'ar' ? 'بدون اسم' : 'Customer')}
               </p>
             </div>
           </div>
@@ -76,100 +82,92 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
 
         {/* Content */}
         <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
-          {/* Mobile Native Share Sheet (If Supported) */}
-          {isNativeShareSupported && onSharePdf && (
-            <div className="p-3.5 bg-emerald-50 border border-emerald-300 rounded-lg space-y-2">
-              <div className="flex items-start gap-2.5">
-                <ImageIcon className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
-                <div className="space-y-0.5">
-                  <span className="text-xs font-bold text-emerald-950 block">
-                    {lang === 'ar' ? 'مشاركة صورة الفاتورة مباشرة:' : 'Direct Image File Share (Supported):'}
-                  </span>
-                  <p className="text-[11px] text-emerald-800 leading-relaxed">
-                    {lang === 'ar'
-                      ? 'يمكنك مشاركة صورة الفاتورة مباشرة واختيار واتساب من قائمة التطبيقات لإرسالها كمرفق صورة عالي الجودة.'
-                      : 'You can share the invoice as an image directly. Select WhatsApp in your device share sheet to send it as an image attachment.'}
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                disabled={isProcessing !== null}
-                onClick={handleShare}
-                className="w-full py-2.5 px-4 text-xs font-bold rounded-md bg-emerald-600 hover:bg-emerald-500 disabled:opacity-70 text-white flex items-center justify-center gap-2 transition-colors shadow-xs"
-              >
-                {isProcessing === 'share' ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>{lang === 'ar' ? 'جاري فتح المشاركة...' : 'Opening Share Sheet...'}</span>
-                  </>
-                ) : (
-                  <>
-                    <Share2 className="w-4 h-4" />
-                    <span>
-                      {lang === 'ar'
-                        ? 'مشاركة صورة الفاتورة (اختر واتساب)'
-                        : 'Share Invoice Image (Select WhatsApp)'}
-                    </span>
-                  </>
-                )}
-              </button>
-            </div>
-          )}
-
-          {/* Attach Reminder Banner if user downloaded or clicked fallback */}
-          {showAttachReminder && (
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-900 text-xs flex items-start gap-2 animate-in fade-in">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-              <div>
-                <span className="font-bold block text-emerald-900">
-                  {lang === 'ar' ? 'تم تجهيز صورة الفاتورة:' : 'Invoice Image Ready:'}
-                </span>
-                <p className="text-[11px] text-slate-700 mt-0.5">
-                  {lang === 'ar'
-                    ? 'يرجى الضغط على زر الإرفاق (📎) داخل محادثة واتساب واختيار صورة الفاتورة.'
-                    : 'Please attach the downloaded invoice image (📎) in your WhatsApp chat.'}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Standard Protocol Notice */}
-          <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs flex items-start gap-2.5">
-            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+          {/* Status Banner */}
+          <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-950 text-xs flex items-start gap-2.5">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <span className="font-bold block">
-                {lang === 'ar' ? 'إرسال الفاتورة كصورة رسمية:' : 'Official Invoice Image Attachment:'}
+              <span className="font-bold block text-emerald-900">
+                {lang === 'ar' ? 'صورة الفاتورة عالية الدقة (PNG):' : 'High-Resolution Invoice Image (PNG):'}
               </span>
-              <p className="text-[11px] text-slate-600 leading-relaxed">
+              <p className="text-[11px] text-emerald-800 leading-relaxed">
                 {lang === 'ar'
-                  ? 'يتم تحويل الفاتورة الكاملة (بما فيها الشعار، العلامة المائية، جدول المعدة، الحسابات والرمز الضريبي) إلى صورة PNG عالية الدقة لإرسالها كمرفق في واتساب بدلاً من النصوص العادية.'
-                  : 'The complete invoice (including logo, watermark, equipment table, totals, and QR code) is converted into a high-resolution PNG image attachment instead of plain text.'}
+                  ? `تم تجهيز ملف صورة الفاتورة (${filename}) بجميع التفاصيل، الشعار، والرمز الضريبي لتسليمها كصورة رسمية لعميلك.`
+                  : `The official invoice image (${filename}) is generated with all equipment specs, VAT breakdown, and ZATCA QR code.`}
               </p>
             </div>
           </div>
 
-          {/* Action Button: Share / Download Image */}
-          <div className="space-y-2 pt-1">
+          {/* Action Step 1: Open WhatsApp Web / App */}
+          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-2.5">
+            <span className="text-xs font-bold text-slate-800 block">
+              {lang === 'ar' ? 'طريقة الإرسال المباشرة:' : 'How to Send to Customer:'}
+            </span>
+            <ol className="text-xs text-slate-600 space-y-1.5 list-decimal list-inside leading-relaxed">
+              <li>
+                {lang === 'ar'
+                  ? 'افتح محادثة العميل على واتساب.'
+                  : 'Open your customer conversation in WhatsApp.'}
+              </li>
+              <li>
+                {lang === 'ar'
+                  ? `اضغط على أيقونة الإرفاق (📎 أو 📷) واختر صورة الفاتورة المحمّلة (${filename}).`
+                  : `Tap attach (📎 or 📷) and select the downloaded invoice image (${filename}).`}
+              </li>
+            </ol>
+
+            <a
+              href={getWhatsAppWebUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-2.5 px-4 text-xs font-bold rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white flex items-center justify-center gap-2 transition-colors shadow-xs"
+            >
+              <ExternalLink className="w-4 h-4" />
+              <span>
+                {invoice.customerPhone
+                  ? lang === 'ar'
+                    ? `فتح محادثة واتساب (${invoice.customerPhone})`
+                    : `Open WhatsApp Chat (${invoice.customerPhone})`
+                  : lang === 'ar'
+                  ? 'فتح واتساب ويب (WhatsApp Web)'
+                  : 'Open WhatsApp Web'}
+              </span>
+            </a>
+          </div>
+
+          {/* Action Step 2: Download / Re-share Image */}
+          <div className="pt-1 space-y-2">
             <button
               type="button"
-              disabled={isProcessing !== null}
-              onClick={handleShare}
-              className="w-full py-3 px-4 text-xs font-bold rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white flex items-center justify-center gap-2 transition-colors shadow-xs"
+              disabled={isProcessing}
+              onClick={handleShareOrDownload}
+              className="w-full py-2.5 px-4 text-xs font-semibold rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 flex items-center justify-center gap-2 transition-colors"
             >
-              {isProcessing === 'share' ? (
+              {isProcessing ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>{lang === 'ar' ? 'جاري تجهيز الصورة...' : 'Processing Invoice Image...'}</span>
+                  <Loader2 className="w-4 h-4 animate-spin text-slate-500" />
+                  <span>{lang === 'ar' ? 'جاري التجهيز...' : 'Preparing...'}</span>
                 </>
               ) : (
                 <>
-                  <ImageIcon className="w-4 h-4" />
-                  <span>
-                    {lang === 'ar'
-                      ? 'إرسال الفاتورة عبر واتساب (صورة PNG)'
-                      : 'Send Invoice via WhatsApp (PNG Image)'}
-                  </span>
+                  {isNativeShareSupported ? (
+                    <>
+                      <Share2 className="w-4 h-4 text-emerald-600" />
+                      <span>
+                        {lang === 'ar'
+                          ? 'مشاركة عبر قائمة الهاتف (اختر واتساب)'
+                          : 'Share via Device Sheet (Select WhatsApp)'}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <FileDown className="w-4 h-4 text-slate-600" />
+                      <span>
+                        {lang === 'ar'
+                          ? `إعادة تنزيل صورة الفاتورة (${filename})`
+                          : `Re-download Invoice Image (${filename})`}
+                      </span>
+                    </>
+                  )}
                 </>
               )}
             </button>

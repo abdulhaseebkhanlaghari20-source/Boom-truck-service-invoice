@@ -324,15 +324,25 @@ export default function App() {
 
   // Helper to ensure an invoice is rendered in the dedicated 794px container or current screen
   const getInvoicePdfElement = async (inv: Invoice): Promise<HTMLElement> => {
-    // 1. If the invoice preview is currently visible on screen and at full desktop/A4 width (>= 760px), use it directly
+    // 1. If invoice is on screen, unscaled, and window is full desktop (>= 850px), use it directly
     const onScreenEl = document.getElementById(`invoice-preview-sheet-${inv.id}`);
-    if (onScreenEl && onScreenEl.clientWidth >= 760 && onScreenEl.clientHeight > 100) {
+    const isScaled = !onScreenEl || window.innerWidth < 850 || (onScreenEl.style.transform && onScreenEl.style.transform !== 'none');
+
+    if (onScreenEl && !isScaled && onScreenEl.clientHeight > 200) {
       return onScreenEl;
     }
 
-    // 2. On mobile screens (< 760px), always use the dedicated 794px A4 offscreen container so PDF remains pristine A4
+    // 2. On mobile screens, scaled viewports, or list actions: always use the dedicated unscaled 794px A4 container
     setPdfTargetInvoice(inv);
-    await new Promise((r) => setTimeout(r, 180));
+    await new Promise((r) => setTimeout(r, 220));
+
+    // Ensure document fonts are loaded before capture
+    try {
+      if (typeof document !== 'undefined' && document.fonts) {
+        await document.fonts.ready;
+      }
+    } catch {}
+
     const offscreenEl = pdfOffscreenRef.current?.querySelector('[data-invoice-sheet="true"]') as HTMLElement;
     if (offscreenEl) return offscreenEl;
     if (onScreenEl) return onScreenEl;
@@ -574,13 +584,14 @@ export default function App() {
         );
       } else {
         // Device/browser does not support native image file sharing (e.g. Desktop Chrome)
-        // Image is automatically downloaded by shareInvoiceImageFile
+        // Image is automatically downloaded by shareInvoiceImageFile; open helpful guidance modal
         showToast(
           lang === 'ar'
             ? `تم تحميل صورة الفاتورة (${filename}). يرجى إرفاق الصورة المحمّلة في محادثة واتساب.`
             : `Invoice image downloaded (${filename}). Please attach this downloaded image in WhatsApp.`,
           'info'
         );
+        setWhatsAppModalInvoice(target);
       }
     } catch (err: any) {
       console.error('WhatsApp Image Share Error:', err);
@@ -763,18 +774,18 @@ export default function App() {
         onSharePdf={handleWhatsAppShare}
       />
 
-      {/* 794px Fixed Hidden PDF Rendering Container */}
+      {/* 794px Fixed Offscreen PDF Rendering Container */}
       <div
         ref={pdfOffscreenRef}
         aria-hidden="true"
         style={{
           position: 'fixed',
           top: 0,
-          left: 0,
+          left: '-9999px',
           width: '794px',
           background: '#ffffff',
           zIndex: -9999,
-          opacity: 0,
+          opacity: 1,
           pointerEvents: 'none',
         }}
       >
@@ -782,7 +793,7 @@ export default function App() {
           invoice={pdfTargetInvoice || currentInvoice}
           companySettings={companySettings}
           lang={lang}
-          isPrintOnly={false}
+          isPrintOnly={true}
         />
       </div>
 

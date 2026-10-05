@@ -619,6 +619,14 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
               </button>
               <button
                 type="button"
+                onClick={() => onShareWhatsApp(invoice)}
+                className="px-2 py-1 rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-semibold border border-emerald-300 transition-colors flex items-center gap-1"
+              >
+                <span className="font-bold text-[9px] px-1 py-0.2 rounded bg-emerald-700 text-white">WA</span>
+                <span>{lang === 'ar' ? 'واتساب' : 'WhatsApp'}</span>
+              </button>
+              <button
+                type="button"
                 onClick={onEmailPdf}
                 className="px-2 py-1 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold border border-indigo-200 transition-colors flex items-center gap-1"
               >
