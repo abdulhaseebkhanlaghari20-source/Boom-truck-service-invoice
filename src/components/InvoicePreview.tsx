@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Invoice, CompanySettings, Language } from '../types/invoice';
 import { formatDate, SAUDI_CITIES_AR, numberToWords, toTitleCase } from '../utils/formatters';
 import { generateQrCodeDataUrl } from '../utils/zatcaQr';
+import { DEFAULT_COMPANY_SETTINGS } from '../utils/demoData';
 import {
   MapPin,
   Phone,
@@ -23,8 +24,18 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
   lang,
   isPrintOnly = false,
 }) => {
-  // Automatically connect to Company Settings (uses historical companySnapshot for saved invoices)
-  const companySettings = invoice.companySnapshot || globalCompanySettings;
+  // Automatically connect to Company Settings with infallible fallback defaults (works for any normal user)
+  const companySettings: CompanySettings = {
+    ...DEFAULT_COMPANY_SETTINGS,
+    ...(invoice?.companySnapshot || globalCompanySettings || {}),
+  };
+
+  // Safe numerical values that never throw on undefined, null, or string representation
+  const safeQty = Math.max(0, Number(invoice?.quantity) || 1);
+  const safeRate = Math.max(0, Number(invoice?.rate) || 0);
+  const safeSubtotal = Math.max(0, Number(invoice?.subtotal) || 0);
+  const safeVatAmount = Math.max(0, Number(invoice?.vatAmount) || 0);
+  const safeTotal = Math.max(0, Number(invoice?.total) || (safeSubtotal + safeVatAmount));
 
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const containerRef = useRef<HTMLDivElement>(null);
@@ -35,13 +46,15 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
   useEffect(() => {
     let isMounted = true;
     generateQrCodeDataUrl(
-      companySettings.companyName || '[COMPANY NAME]',
-      companySettings.vatNumber || '[VAT NUMBER]',
-      invoice.invoiceDate,
-      invoice.total,
-      invoice.vatAmount
+      companySettings.companyName || 'Boom Truck Rental',
+      companySettings.vatNumber || '300000000000003',
+      invoice?.invoiceDate || new Date().toISOString(),
+      safeTotal,
+      safeVatAmount
     ).then((url) => {
       if (isMounted) setQrCodeDataUrl(url);
+    }).catch((err) => {
+      console.warn('QR generation notice:', err);
     });
     return () => {
       isMounted = false;
@@ -49,9 +62,9 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
   }, [
     companySettings.companyName,
     companySettings.vatNumber,
-    invoice.invoiceDate,
-    invoice.total,
-    invoice.vatAmount,
+    invoice?.invoiceDate,
+    safeTotal,
+    safeVatAmount,
   ]);
 
   // Responsive proportional A4 scaling for mobile screens
@@ -352,19 +365,19 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                     </div>
                   </td>
                   <td className="py-2.5 px-2 border-r border-slate-300 font-mono">
-                    {invoice.quantity}.00 Pcs
+                    {safeQty}.00 Pcs
                   </td>
                   <td className="py-2.5 px-2 border-r border-slate-300 font-mono">
-                    {invoice.rate.toFixed(2)}
+                    {safeRate.toFixed(2)}
                   </td>
                   <td className="py-2.5 px-2 border-r border-slate-300 font-mono">
-                    {invoice.vatAmount.toFixed(2)}
+                    {safeVatAmount.toFixed(2)}
                   </td>
                   <td className="py-2.5 px-2.5 border-r border-slate-300 font-mono font-bold">
-                    {invoice.total.toFixed(2)}
+                    {safeTotal.toFixed(2)}
                   </td>
                   <td className="py-2.5 px-2.5 font-mono font-bold">
-                    {invoice.total.toFixed(2)}
+                    {safeTotal.toFixed(2)}
                   </td>
                 </tr>
 
@@ -408,7 +421,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                   Subtotal / الإجمالي قبل ضريبة القيمة المضافة
                 </span>
                 <span className="font-mono font-bold text-slate-900 tabular-nums">
-                  {invoice.subtotal.toFixed(2)} ر.س
+                  {safeSubtotal.toFixed(2)} ر.س
                 </span>
               </div>
 
@@ -417,7 +430,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                   Vat 15% / ضريبة القيمة المضافة
                 </span>
                 <span className="font-mono font-bold text-slate-900 tabular-nums">
-                  (+) {invoice.vatAmount.toFixed(2)} ر.س
+                  (+) {safeVatAmount.toFixed(2)} ر.س
                 </span>
               </div>
 
@@ -426,7 +439,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                   Total Amount / الإجمالي شامل ضريبة القيمة المضافة
                 </span>
                 <span className="font-mono font-black text-slate-900 tabular-nums">
-                  {invoice.total.toFixed(2)} ر.س
+                  {safeTotal.toFixed(2)} ر.س
                 </span>
               </div>
 
@@ -435,7 +448,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                   Total Paid / مجموع المبلغ المدفوع
                 </span>
                 <span className="font-mono font-black text-slate-900 tabular-nums">
-                  {invoice.total.toFixed(2)} ر.س
+                  {safeTotal.toFixed(2)} ر.س
                 </span>
               </div>
             </div>
@@ -447,7 +460,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               Amount Chargeable (in words) / المبلغ الإجمالي بالكلمات :
             </span>
             <span className="font-semibold text-slate-900 italic">
-              {numberToWords(invoice.total, lang)}
+              {numberToWords(safeTotal, lang)}
             </span>
           </div>
 

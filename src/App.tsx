@@ -324,26 +324,34 @@ export default function App() {
 
   // Helper to ensure an invoice is rendered in the dedicated 794px container or current screen
   const getInvoicePdfElement = async (inv: Invoice): Promise<HTMLElement> => {
-    // 1. If invoice is on screen, unscaled, and window is full desktop (>= 850px), use it directly
-    const onScreenEl = document.getElementById(`invoice-preview-sheet-${inv.id}`);
+    const targetId = inv?.id;
+
+    // 1. If the offscreen A4 container is already mounted with this invoice, use it instantly (0ms delay to preserve user gesture!)
+    const offscreenEl = pdfOffscreenRef.current?.querySelector('[data-invoice-sheet="true"]') as HTMLElement;
+    if (offscreenEl && offscreenEl.id === `invoice-preview-sheet-${targetId}`) {
+      return offscreenEl;
+    }
+
+    // 2. If invoice is on screen, unscaled, and window is full desktop (>= 850px), use it directly
+    const onScreenEl = document.getElementById(`invoice-preview-sheet-${targetId}`);
     const isScaled = !onScreenEl || window.innerWidth < 850 || (onScreenEl.style.transform && onScreenEl.style.transform !== 'none');
 
     if (onScreenEl && !isScaled && onScreenEl.clientHeight > 200) {
       return onScreenEl;
     }
 
-    // 2. On mobile screens, scaled viewports, or list actions: always use the dedicated unscaled 794px A4 container
+    // 3. Otherwise, set target invoice and wait minimally for DOM update
     setPdfTargetInvoice(inv);
-    await new Promise((r) => setTimeout(r, 220));
+    await new Promise((r) => setTimeout(r, 60));
 
-    // Ensure document fonts are loaded before capture
     try {
-      if (typeof document !== 'undefined' && document.fonts) {
-        await document.fonts.ready;
+      if (typeof document !== 'undefined' && document.fonts && document.fonts.status !== 'loaded') {
+        await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 60))]);
       }
     } catch {}
 
-    const offscreenEl = pdfOffscreenRef.current?.querySelector('[data-invoice-sheet="true"]') as HTMLElement;
+    const updatedOffscreen = pdfOffscreenRef.current?.querySelector('[data-invoice-sheet="true"]') as HTMLElement;
+    if (updatedOffscreen) return updatedOffscreen;
     if (offscreenEl) return offscreenEl;
     if (onScreenEl) return onScreenEl;
     return pdfOffscreenRef.current || document.body;
@@ -790,7 +798,7 @@ export default function App() {
         }}
       >
         <InvoicePreview
-          invoice={pdfTargetInvoice || currentInvoice}
+          invoice={pdfTargetInvoice || previewModalInvoice || currentInvoice}
           companySettings={companySettings}
           lang={lang}
           isPrintOnly={true}

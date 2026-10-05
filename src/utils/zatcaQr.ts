@@ -39,12 +39,20 @@ export function generateZatcaTlvBase64(
   totalAmount: number,
   vatAmount: number
 ): string {
+  const safeSeller = String(sellerName || 'Boom Truck Services').trim();
+  const safeVat = String(vatNumber || '300000000000003').trim();
+  const safeTime = String(timestamp || new Date().toISOString()).trim();
+  const numTotal = Math.max(0, Number(totalAmount) || 0);
+  const numVat = Math.max(0, Number(vatAmount) || 0);
+  const strTotal = numTotal.toFixed(2);
+  const strVat = numVat.toFixed(2);
+
   try {
-    const t1 = toTlv(1, sellerName || 'Boom Truck Services');
-    const t2 = toTlv(2, vatNumber || '300000000000003');
-    const t3 = toTlv(3, timestamp || new Date().toISOString());
-    const t4 = toTlv(4, totalAmount.toFixed(2));
-    const t5 = toTlv(5, vatAmount.toFixed(2));
+    const t1 = toTlv(1, safeSeller);
+    const t2 = toTlv(2, safeVat);
+    const t3 = toTlv(3, safeTime);
+    const t4 = toTlv(4, strTotal);
+    const t5 = toTlv(5, strVat);
 
     const combined = concatenateUint8Arrays([t1, t2, t3, t4, t5]);
     
@@ -56,7 +64,7 @@ export function generateZatcaTlvBase64(
     return btoa(binary);
   } catch (err) {
     console.error('Failed to generate ZATCA TLV:', err);
-    return `ZATCA-INV:${sellerName}-${totalAmount.toFixed(2)}`;
+    return `ZATCA-INV:${safeSeller}-${strTotal}`;
   }
 }
 

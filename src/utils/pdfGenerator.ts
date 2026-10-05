@@ -253,10 +253,15 @@ async function renderDirectVectorInvoice(
   pdf.text(desc, 22, 121);
   pdf.setFont('helvetica', 'normal');
   pdf.text(invoice.truckCapacity, 105, 121);
-  pdf.text(`${invoice.quantity}`, 130, 121);
-  pdf.text(`${invoice.rate.toFixed(2)}`, 150, 121);
+  const safeRate = Math.max(0, Number(invoice.rate) || 0);
+  const safeSubtotal = Math.max(0, Number(invoice.subtotal) || 0);
+  const safeVat = Math.max(0, Number(invoice.vatAmount) || 0);
+  const safeTotal = Math.max(0, Number(invoice.total) || (safeSubtotal + safeVat));
+
+  pdf.text(`${invoice.quantity || 1}`, 130, 121);
+  pdf.text(`${safeRate.toFixed(2)}`, 150, 121);
   pdf.setFont('helvetica', 'bold');
-  pdf.text(`${invoice.subtotal.toFixed(2)}`, 180, 121);
+  pdf.text(`${safeSubtotal.toFixed(2)}`, 180, 121);
 
   pdf.setDrawColor(226, 232, 240);
   pdf.line(10, 127, 200, 127);
@@ -303,11 +308,11 @@ async function renderDirectVectorInvoice(
   pdf.setFontSize(9);
   pdf.setTextColor(71, 85, 105);
   pdf.text('Subtotal / المجموع الفرعي:', 110, calcTop + 8);
-  pdf.text(`SAR ${invoice.subtotal.toFixed(2)}`, 175, calcTop + 8);
+  pdf.text(`SAR ${safeSubtotal.toFixed(2)}`, 175, calcTop + 8);
 
   const vatLabel = invoice.vatOption === 'VAT 15%' ? 'VAT 15% / ضريبة ١٥٪:' : 'VAT (No VAT):';
   pdf.text(vatLabel, 110, calcTop + 16);
-  pdf.text(`SAR ${invoice.vatAmount.toFixed(2)}`, 175, calcTop + 16);
+  pdf.text(`SAR ${safeVat.toFixed(2)}`, 175, calcTop + 16);
 
   // Grand Total Highlight
   pdf.setFillColor(240, 253, 244);
@@ -316,7 +321,7 @@ async function renderDirectVectorInvoice(
   pdf.setFontSize(11);
   pdf.setTextColor(22, 101, 52); // emerald-800
   pdf.text('Grand Total / الإجمالي:', 112, calcTop + 30);
-  pdf.text(`SAR ${invoice.total.toFixed(2)}`, 166, calcTop + 30);
+  pdf.text(`SAR ${safeTotal.toFixed(2)}`, 166, calcTop + 30);
 
   // 6. Signature & Stamp Footer Area
   const footerY = 186;

@@ -23,7 +23,7 @@ export function getInvoiceImageFilename(invoiceNumber: string): string {
  * Checks if the browser supports native Web Share API with image file attachments.
  */
 export function canShareImageFile(): boolean {
-  if (typeof navigator === 'undefined' || !navigator.share || !navigator.canShare) {
+  if (typeof navigator === 'undefined' || !('share' in navigator) || !('canShare' in navigator)) {
     return false;
   }
   try {
@@ -55,8 +55,19 @@ export function dataUrlToBlob(dataUrl: string): Blob {
  * Renders the provided invoice HTML element into a high-quality PNG Blob.
  */
 export async function generateInvoiceImageBlob(element: HTMLElement): Promise<Blob> {
-  // Allow layout ticks & image renderings
-  await new Promise((resolve) => setTimeout(resolve, 120));
+  if (!element) {
+    throw new Error('Invoice DOM element not found');
+  }
+
+  // Quickly await fonts if still loading, capped at 60ms to preserve mobile user gesture
+  try {
+    if (typeof document !== 'undefined' && document.fonts && document.fonts.status !== 'loaded') {
+      await Promise.race([
+        document.fonts.ready,
+        new Promise((resolve) => setTimeout(resolve, 60)),
+      ]);
+    }
+  } catch {}
 
   const dataUrl = await toPng(element, {
     quality: 0.98,
@@ -98,27 +109,50 @@ export async function shareInvoiceImageFile(
   element: HTMLElement,
   invoice: Invoice
 ): Promise<ShareImageResult> {
-  const filename = getInvoiceImageFilename(invoice.invoiceNumber);
+  const invNumber = invoice?.invoiceNumber || 'INV-001';
+  const filename = getInvoiceImageFilename(invNumber);
 
   try {
     const blob = await generateInvoiceImageBlob(element);
+    if (!blob || blob.size === 0) {
+      throw new Error('Generated image blob is empty');
+    }
+
     const imageFile = new File([blob], filename, {
       type: 'image/png',
       lastModified: Date.now(),
     });
 
+    console.log('[InvoiceShare Audit]', {
+      invoiceId: invoice?.id,
+      invoiceNumber: invNumber,
+      blobSize: blob.size,
+      blobType: blob.type,
+      fileSize: imageFile.size,
+      fileType: imageFile.type,
+      filename,
+      hasNavigatorShare: typeof navigator !== 'undefined' && !!navigator.share,
+      hasCanShare: typeof navigator !== 'undefined' && !!navigator.canShare,
+    });
+
     // Check native sharing capability for this image file
-    const isShareSupported =
-      typeof navigator !== 'undefined' &&
-      !!navigator.share &&
-      !!navigator.canShare &&
-      navigator.canShare({ files: [imageFile] });
+    let isShareSupported = false;
+    if (typeof navigator !== 'undefined' && 'share' in navigator && 'canShare' in navigator) {
+      try {
+        isShareSupported = navigator.canShare({ files: [imageFile] });
+      } catch (canShareErr) {
+        console.warn('navigator.canShare error:', canShareErr);
+        isShareSupported = false;
+      }
+    }
 
     if (isShareSupported) {
       try {
+        // Requirement 2: navigator.share({ files: [imageFile], title: "Invoice", text: "Invoice" })
         await navigator.share({
           files: [imageFile],
-          title: `Invoice ${invoice.invoiceNumber}`,
+          title: `Invoice ${invNumber}`,
+          text: `Invoice ${invNumber}`,
         });
         return {
           success: true,
@@ -170,88 +204,91 @@ export interface ProfessionalEmailContent {
  */
 export function buildProfessionalEmailContent(
   invoice: Invoice,
-  companySettings: CompanySettings,
+  companySettings?: CompanySettings,
   lang: Language = 'en'
 ): ProfessionalEmailContent {
-  const companyNameEn = companySettings.companyName || 'Boom Truck Rental Services';
-  const customer = invoice.customerName || (lang === 'ar' ? 'العميل المحترم' : 'Valued Customer');
-  const formattedDate = formatDate(invoice.invoiceDate);
-  const formattedTotal = invoice.total.toFixed(2);
+  const safeInvoice = invoice || ({} as Invoice);
+  const safeSettings = companySettings || ({} as CompanySettings);
+  const companyNameEn = safeSettings.companyName || 'Boom Truck Rental Services';
+  const customer = safeInvoice.customerName || (lang === 'ar' ? 'العميل المحترم' : 'Valued Customer');
+  const formattedDate = formatDate(safeInvoice.invoiceDate);
+  const formattedTotal = Number(safeInvoice.total || 0).toFixed(2);
+  const invNumber = safeInvoice.invoiceNumber || 'INV-001';
 
   if (lang === 'ar') {
-    const subject = `فاتورة ضريبية ${invoice.invoiceNumber} - ${companySettings.companyNameAr || companySettings.companyName}`;
+    const subject = `فاتورة ضريبية ${invNumber} - ${safeSettings.companyNameAr || safeSettings.companyName || 'بوم ترَك'}`;
 
     let body = `السيد/السادة: ${customer}، المحترمين\n\n`;
     body += `السلام عليكم ورحمة الله وبركاته،\n\n`;
-    body += `مرفق لكم الفاتورة الضريبية رقم ${invoice.invoiceNumber} الخاصة بخدمات شاحنة الرافعة (بوم ترَك).\n\n`;
-    body += `• رقم الفاتورة: ${invoice.invoiceNumber}\n`;
+    body += `مرفق لكم الفاتورة الضريبية رقم ${invNumber} الخاصة بخدمات شاحنة الرافعة (بوم ترَك).\n\n`;
+    body += `• رقم الفاتورة: ${invNumber}\n`;
     body += `• إجمالي الفاتورة: ${formattedTotal} ريال سعودي\n`;
     body += `• تاريخ الفاتورة: ${formattedDate}\n`;
-    if (invoice.dueDate) {
-      body += `• تاريخ الاستحقاق: ${formatDate(invoice.dueDate)}\n`;
+    if (safeInvoice.dueDate) {
+      body += `• تاريخ الاستحقاق: ${formatDate(safeInvoice.dueDate)}\n`;
     }
-    body += `• الموقع: ${invoice.city}\n\n`;
+    body += `• الموقع: ${safeInvoice.city || '-'}\n\n`;
     body += `شاكرين ومقدرين حسن تعاملكم معنا.\n\n`;
 
-    if (companySettings.emailClosing) {
-      body += `${companySettings.emailClosing}\n\n`;
+    if (safeSettings.emailClosing) {
+      body += `${safeSettings.emailClosing}\n\n`;
     }
 
     body += `مع خالص التحية والتقدير،\n`;
-    if (companySettings.contactPerson) {
-      body += `${companySettings.contactPerson}${companySettings.jobTitle ? ` - ${companySettings.jobTitle}` : ''}\n`;
+    if (safeSettings.contactPerson) {
+      body += `${safeSettings.contactPerson}${safeSettings.jobTitle ? ` - ${safeSettings.jobTitle}` : ''}\n`;
     }
-    body += `${companySettings.companyNameAr || companySettings.companyName}\n`;
-    if (companySettings.companyName && companySettings.companyNameAr) {
-      body += `${companySettings.companyName}\n`;
+    body += `${safeSettings.companyNameAr || safeSettings.companyName || ''}\n`;
+    if (safeSettings.companyName && safeSettings.companyNameAr) {
+      body += `${safeSettings.companyName}\n`;
     }
-    if (companySettings.phone) body += `الجوال: ${companySettings.phone}\n`;
-    if (companySettings.whatsapp) body += `واتساب: ${companySettings.whatsapp}\n`;
-    if (companySettings.email) body += `البريد: ${companySettings.email}\n`;
-    if (companySettings.website) body += `الموقع: ${companySettings.website}\n`;
-    if (companySettings.addressAr || companySettings.address) {
-      body += `العنوان: ${companySettings.addressAr || companySettings.address}\n`;
+    if (safeSettings.phone) body += `الجوال: ${safeSettings.phone}\n`;
+    if (safeSettings.whatsapp) body += `واتساب: ${safeSettings.whatsapp}\n`;
+    if (safeSettings.email) body += `البريد: ${safeSettings.email}\n`;
+    if (safeSettings.website) body += `الموقع: ${safeSettings.website}\n`;
+    if (safeSettings.addressAr || safeSettings.address) {
+      body += `العنوان: ${safeSettings.addressAr || safeSettings.address}\n`;
     }
-    if (companySettings.vatNumber) body += `الرقم الضريبي: ${companySettings.vatNumber}\n`;
-    if (companySettings.crNumber) body += `السجل التجاري: ${companySettings.crNumber}\n`;
+    if (safeSettings.vatNumber) body += `الرقم الضريبي: ${safeSettings.vatNumber}\n`;
+    if (safeSettings.crNumber) body += `السجل التجاري: ${safeSettings.crNumber}\n`;
 
     return { subject, body };
   }
 
   // English (Default)
-  const subject = `Tax Invoice ${invoice.invoiceNumber} - ${companyNameEn}`;
+  const subject = `Tax Invoice ${invNumber} - ${companyNameEn}`;
 
   let body = `Dear ${customer},\n\n`;
-  body += `Please find attached our Tax Invoice ${invoice.invoiceNumber} for the Boom Truck service.\n\n`;
+  body += `Please find attached our Tax Invoice ${invNumber} for the Boom Truck service.\n\n`;
   body += `Invoice Details:\n`;
-  body += `• Invoice Number: ${invoice.invoiceNumber}\n`;
+  body += `• Invoice Number: ${invNumber}\n`;
   body += `• Invoice Amount: SAR ${formattedTotal}\n`;
   body += `• Invoice Date: ${formattedDate}\n`;
-  if (invoice.dueDate) {
-    body += `• Due Date: ${formatDate(invoice.dueDate)}\n`;
+  if (safeInvoice.dueDate) {
+    body += `• Due Date: ${formatDate(safeInvoice.dueDate)}\n`;
   }
-  body += `• Job Location: ${invoice.city}\n\n`;
+  body += `• Job Location: ${safeInvoice.city || '-'}\n\n`;
   body += `Thank you for your business.\n\n`;
 
-  if (companySettings.emailClosing) {
-    body += `${companySettings.emailClosing}\n\n`;
+  if (safeSettings.emailClosing) {
+    body += `${safeSettings.emailClosing}\n\n`;
   }
 
   body += `Best regards,\n`;
-  if (companySettings.contactPerson) {
-    body += `${companySettings.contactPerson}${companySettings.jobTitle ? ` - ${companySettings.jobTitle}` : ''}\n`;
+  if (safeSettings.contactPerson) {
+    body += `${safeSettings.contactPerson}${safeSettings.jobTitle ? ` - ${safeSettings.jobTitle}` : ''}\n`;
   }
   body += `${companyNameEn}\n`;
-  if (companySettings.companyNameAr) {
-    body += `${companySettings.companyNameAr}\n`;
+  if (safeSettings.companyNameAr) {
+    body += `${safeSettings.companyNameAr}\n`;
   }
-  if (companySettings.phone) body += `Mobile: ${companySettings.phone}\n`;
-  if (companySettings.whatsapp) body += `WhatsApp: ${companySettings.whatsapp}\n`;
-  if (companySettings.email) body += `Email: ${companySettings.email}\n`;
-  if (companySettings.website) body += `Website: ${companySettings.website}\n`;
-  if (companySettings.address) body += `Address: ${companySettings.address}\n`;
-  if (companySettings.vatNumber) body += `VAT No: ${companySettings.vatNumber}\n`;
-  if (companySettings.crNumber) body += `CR No: ${companySettings.crNumber}\n`;
+  if (safeSettings.phone) body += `Mobile: ${safeSettings.phone}\n`;
+  if (safeSettings.whatsapp) body += `WhatsApp: ${safeSettings.whatsapp}\n`;
+  if (safeSettings.email) body += `Email: ${safeSettings.email}\n`;
+  if (safeSettings.website) body += `Website: ${safeSettings.website}\n`;
+  if (safeSettings.address) body += `Address: ${safeSettings.address}\n`;
+  if (safeSettings.vatNumber) body += `VAT No: ${safeSettings.vatNumber}\n`;
+  if (safeSettings.crNumber) body += `CR No: ${safeSettings.crNumber}\n`;
 
   return { subject, body };
 }
@@ -263,10 +300,11 @@ export function buildProfessionalEmailContent(
 export async function shareInvoiceEmail(
   element: HTMLElement,
   invoice: Invoice,
-  companySettings: CompanySettings,
+  companySettings?: CompanySettings,
   lang: Language = 'en'
 ): Promise<ShareImageResult> {
-  const filename = getInvoiceImageFilename(invoice.invoiceNumber);
+  const invNumber = invoice?.invoiceNumber || 'INV-001';
+  const filename = getInvoiceImageFilename(invNumber);
   const { subject, body } = buildProfessionalEmailContent(invoice, companySettings, lang);
 
   try {
@@ -276,11 +314,14 @@ export async function shareInvoiceEmail(
       lastModified: Date.now(),
     });
 
-    const isShareSupported =
-      typeof navigator !== 'undefined' &&
-      !!navigator.share &&
-      !!navigator.canShare &&
-      navigator.canShare({ files: [imageFile] });
+    let isShareSupported = false;
+    if (typeof navigator !== 'undefined' && 'share' in navigator && 'canShare' in navigator) {
+      try {
+        isShareSupported = navigator.canShare({ files: [imageFile] });
+      } catch {
+        isShareSupported = false;
+      }
+    }
 
     if (isShareSupported) {
       try {
