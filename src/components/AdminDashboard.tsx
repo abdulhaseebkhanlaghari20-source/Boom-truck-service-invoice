@@ -28,22 +28,18 @@ import {
   Mail,
   Receipt,
   UserCheck,
-  UserX,
   Clock,
   CheckCircle2,
   AlertTriangle,
   ArrowLeft,
   ChevronRight,
-  Filter,
   KeyRound,
   Trash2,
   Ban,
   Check,
   Copy,
-  ExternalLink,
   Info,
   X,
-  Lock,
 } from 'lucide-react';
 
 interface AdminDashboardProps {

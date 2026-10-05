@@ -39,7 +39,6 @@ import {
   loadUserInvoices,
   deleteUserInvoice,
   subscribeUserInvoices,
-  checkUserIsAdmin,
   subscribeUserAdminStatus,
   recordUserSession,
   checkIsUserSuspended,

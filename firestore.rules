@@ -42,14 +42,19 @@ service cloud.firestore {
     // User Profile & Company Settings Document
     // Path: /users/{userId}
     match /users/{userId} {
-      // Normal owner access allowed only if account is NOT suspended; Admin has full access
-      allow read: if (isOwner(userId) && isNotSuspended(userId)) || isAdmin();
+      // Individual document get: owner access allowed only if account is NOT suspended; Admin has full access
+      allow get: if (isOwner(userId) && isNotSuspended(userId)) || isAdmin();
+
+      // Collection query / listing: ONLY Admin can query and list the entire users collection
+      allow list: if isAdmin();
+
+      // Normal owner update/create allowed only if account is NOT suspended; Admin has full access
       allow write: if (isOwner(userId) && isNotSuspended(userId)) || isAdmin();
       
       // Invoices Subcollection
       // Path: /users/{userId}/invoices/{invoiceId}
       match /invoices/{invoiceId} {
-        allow read: if (isOwner(userId) && isNotSuspended(userId)) || isAdmin();
+        allow get, list: if (isOwner(userId) && isNotSuspended(userId)) || isAdmin();
         allow write: if (isOwner(userId) && isNotSuspended(userId)) || isAdmin();
       }
     }
