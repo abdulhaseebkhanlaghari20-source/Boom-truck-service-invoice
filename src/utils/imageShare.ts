@@ -309,9 +309,25 @@ export async function shareInvoiceEmail(
 
   try {
     const blob = await generateInvoiceImageBlob(element);
+    if (!blob || blob.size === 0) {
+      throw new Error('Generated image blob is empty');
+    }
+
     const imageFile = new File([blob], filename, {
       type: 'image/png',
       lastModified: Date.now(),
+    });
+
+    console.log('[InvoiceEmailShare Audit]', {
+      invoiceId: invoice?.id,
+      invoiceNumber: invNumber,
+      blobSize: blob.size,
+      blobType: blob.type,
+      fileSize: imageFile.size,
+      fileType: imageFile.type,
+      filename,
+      hasNavigatorShare: typeof navigator !== 'undefined' && !!navigator.share,
+      hasCanShare: typeof navigator !== 'undefined' && !!navigator.canShare,
     });
 
     let isShareSupported = false;

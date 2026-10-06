@@ -13,7 +13,7 @@ interface PreviewModalProps {
   onPrint: () => void;
   onDownloadPdf: () => void;
   onSharePdf: () => void;
-  onEmailPdf: () => void;
+  onEmailPdf: (invoice?: Invoice) => void;
   onShareWhatsApp: (invoice: Invoice) => void;
 }
 
@@ -89,13 +89,12 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
             </button>
 
             <button
-              onClick={onEmailPdf}
+              onClick={() => onEmailPdf(invoice)}
               className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded bg-indigo-700 hover:bg-indigo-600 text-white transition-colors"
             >
               <Mail className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">{t.emailPdf}</span>
             </button>
-
             <button
               onClick={onClose}
               className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition-colors ms-1"
@@ -173,7 +172,7 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
             </button>
 
             <button
-              onClick={onEmailPdf}
+              onClick={() => onEmailPdf(invoice)}
               className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded bg-indigo-700 hover:bg-indigo-600 text-white transition-colors"
             >
               <Mail className="w-3.5 h-3.5" />
