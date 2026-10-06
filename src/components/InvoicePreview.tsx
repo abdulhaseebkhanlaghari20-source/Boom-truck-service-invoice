@@ -191,7 +191,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
 
                 <div className="min-w-0 flex-1 space-y-0.5">
                   <h1
-                    className={`font-bold font-['Poppins'] text-slate-900 tracking-tight leading-snug break-words ${
+                    className={`font-bold text-slate-900 tracking-tight leading-snug break-words ${
                       companyNameEn.length > 35
                         ? 'text-xs'
                         : companyNameEn.length > 22
@@ -666,7 +666,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
         className="invoice-sheet print-only bg-white text-slate-900 p-6 mx-auto leading-normal select-text relative flex flex-col justify-between overflow-hidden"
         dir={lang === 'ar' ? 'rtl' : 'ltr'}
         style={{
-          fontFamily: "'Poppins', 'Cairo', sans-serif",
+          fontFamily: 'Arial, "Arial Arabic", "Noto Sans Arabic", sans-serif',
           width: '794px',
           minWidth: '794px',
           maxWidth: '794px',
@@ -696,7 +696,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
         className="invoice-sheet bg-white text-slate-900 border border-slate-300 shadow-md rounded-lg p-6 w-[794px] min-h-[1123px] shrink-0 leading-normal select-text relative flex flex-col justify-between overflow-hidden"
         dir={lang === 'ar' ? 'rtl' : 'ltr'}
         style={{
-          fontFamily: "'Poppins', 'Cairo', sans-serif",
+          fontFamily: 'Arial, "Arial Arabic", "Noto Sans Arabic", sans-serif',
           width: '794px',
           minWidth: '794px',
           maxWidth: '794px',

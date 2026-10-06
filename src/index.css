@@ -1,13 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap');
 @import "tailwindcss";
 
 @layer base {
   :root {
-    font-family: 'Poppins', 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: Arial, "Arial Arabic", "Noto Sans Arabic", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
 
   [dir="rtl"] {
-    font-family: 'Cairo', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: "Arial Arabic", Arial, "Noto Sans Arabic", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
 
   html, body {
@@ -16,10 +16,13 @@
   }
 }
 
-/* Poppins Primary Font Across Complete Invoice */
+/* Global Arial Typography System across Entire Invoice */
 .invoice-sheet,
 [data-invoice-sheet="true"] {
-  font-family: 'Poppins', 'Cairo', sans-serif !important;
+  font-family: Arial, "Arial Arabic", "Noto Sans Arabic", sans-serif !important;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .invoice-sheet *,
@@ -27,16 +30,22 @@
   font-family: inherit;
 }
 
-/* Ensure numerals and tabular figures inside the invoice use Poppins */
+/* Numerals and Tabular figures inside the invoice strictly using Arial */
 .invoice-sheet .font-mono,
 [data-invoice-sheet="true"] .font-mono {
-  font-family: 'Poppins', monospace !important;
+  font-family: Arial, "Arial Arabic", sans-serif !important;
   font-feature-settings: 'tnum' on, 'lnum' on;
 }
 
 .invoice-sheet .font-sans,
 [data-invoice-sheet="true"] .font-sans {
-  font-family: 'Poppins', 'Cairo', sans-serif !important;
+  font-family: Arial, "Arial Arabic", "Noto Sans Arabic", sans-serif !important;
+}
+
+/* Precise Arial Hierarchy Classes within Invoice */
+.invoice-sheet [dir="rtl"],
+[data-invoice-sheet="true"] [dir="rtl"] {
+  font-family: "Arial Arabic", Arial, "Noto Sans Arabic", sans-serif !important;
 }
 
 @media print {
