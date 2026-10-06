@@ -167,14 +167,52 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
       <div className="relative z-10 flex flex-col justify-between flex-1 space-y-2.5">
         <div>
           {/* ========================================================
-              1. CLEAN NEUTRAL HEADER (White background, optimized for any company logo)
+              1. CLEAN CORPORATE HEADER (Logo Centered, English Left, Arabic Right)
               ======================================================== */}
-          <div className="bg-white text-slate-900 rounded-lg overflow-hidden relative border border-slate-200 shadow-2xs mb-2">
-            <div className="py-3 px-4 sm:px-5 flex flex-row justify-between items-center gap-4">
-              {/* Left Area: English Company Identity & Logo (LTR) */}
-              <div className="flex items-center gap-3.5 min-w-0 flex-1" dir="ltr">
+          <div className="bg-white text-slate-900 rounded-lg overflow-hidden relative border border-slate-200 shadow-2xs mb-2 p-3 sm:p-4">
+            <div className="grid grid-cols-12 gap-3 items-center">
+              {/* Left Column: English Company Information (LTR) */}
+              <div className="col-span-5 text-start space-y-1 min-w-0" dir="ltr">
+                <h1
+                  className={`font-bold text-slate-900 tracking-tight leading-tight break-words ${
+                    companyNameEn.length > 35
+                      ? 'text-xs'
+                      : companyNameEn.length > 22
+                      ? 'text-sm'
+                      : 'text-base'
+                  }`}
+                >
+                  {toTitleCase(companyNameEn)}
+                </h1>
+                {serviceEn && (
+                  <p className="text-[10px] font-bold text-emerald-800 tracking-wide leading-tight">
+                    {serviceEn}
+                  </p>
+                )}
+                {vatNo && (
+                  <div className="text-[10px] text-slate-800 leading-tight">
+                    <span className="font-bold text-slate-900">VAT: </span>
+                    <span className="font-mono">{vatNo}</span>
+                  </div>
+                )}
+                {crNo && (
+                  <div className="text-[10px] text-slate-800 leading-tight">
+                    <span className="font-bold text-slate-900">CR: </span>
+                    <span className="font-mono">{crNo}</span>
+                  </div>
+                )}
+                {addressVal && (
+                  <div className="text-[9.5px] text-slate-700 leading-snug break-words">
+                    <span className="font-bold text-slate-900">Address: </span>
+                    <span>{addressVal}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Center Column: Company Logo */}
+              <div className="col-span-2 flex flex-col items-center justify-center">
                 {companySettings.logoUrl ? (
-                  <div className="w-20 h-16 rounded-md p-1 flex items-center justify-center shrink-0">
+                  <div className="w-20 h-16 rounded-md p-0.5 flex items-center justify-center">
                     <img
                       src={companySettings.logoUrl}
                       alt="Company Logo"
@@ -183,42 +221,17 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                     />
                   </div>
                 ) : (
-                  <div className="w-16 h-14 bg-emerald-50 border border-emerald-300 rounded-md flex flex-col items-center justify-center p-1 shrink-0 text-center">
+                  <div className="w-16 h-14 bg-emerald-50 border border-emerald-300 rounded-md flex flex-col items-center justify-center p-1 text-center">
                     <span className="text-[10px] font-black tracking-tight text-slate-800">COMPANY</span>
                     <span className="text-[7.5px] font-bold text-emerald-700">LOGO</span>
                   </div>
                 )}
-
-                <div className="min-w-0 flex-1 space-y-0.5">
-                  <h1
-                    className={`font-bold text-slate-900 tracking-tight leading-snug break-words ${
-                      companyNameEn.length > 35
-                        ? 'text-xs'
-                        : companyNameEn.length > 22
-                        ? 'text-sm'
-                        : 'text-base'
-                    }`}
-                  >
-                    {toTitleCase(companyNameEn)}
-                  </h1>
-                  <p className="text-[10.5px] font-semibold uppercase text-emerald-700 tracking-wide mt-0.5 leading-tight">
-                    {serviceEn}
-                  </p>
-                  {taglineEn && (
-                    <p className="text-[8.5px] font-medium uppercase text-slate-500 tracking-wider mt-0.5 leading-tight">
-                      {taglineEn}
-                    </p>
-                  )}
-                </div>
               </div>
 
-              {/* Crisp Vertical Accent Divider between English & Arabic Branding */}
-              <div className="w-[1.5px] h-12 bg-slate-200 shrink-0 mx-2" />
-
-              {/* Right Area: Arabic Company Identity (RTL) */}
-              <div className="text-end rtl:text-start min-w-0 flex-1 space-y-0.5 shrink-0" dir="rtl">
+              {/* Right Column: Arabic Company Information (RTL) */}
+              <div className="col-span-5 text-end space-y-1 min-w-0" dir="rtl">
                 <h2
-                  className={`font-bold text-slate-900 leading-snug break-words ${
+                  className={`font-bold text-slate-900 leading-tight break-words ${
                     companyNameAr.length > 35
                       ? 'text-sm'
                       : companyNameAr.length > 22
@@ -228,26 +241,41 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                 >
                   {companyNameAr}
                 </h2>
-                <div className="text-xs font-semibold text-emerald-700 mt-0.5 leading-tight">
-                  {serviceAr}
-                </div>
-                {taglineAr && (
-                  <div className="text-[10px] font-medium text-slate-500 mt-0.5 leading-tight">
-                    {taglineAr}
+                {serviceAr && (
+                  <div className="text-[10.5px] font-bold text-emerald-800 leading-tight">
+                    {serviceAr}
+                  </div>
+                )}
+                {vatNo && (
+                  <div className="text-[10px] text-slate-800 leading-tight">
+                    <span className="font-bold text-slate-900">الرقم الضريبي: </span>
+                    <span className="font-mono">{vatNo}</span>
+                  </div>
+                )}
+                {crNo && (
+                  <div className="text-[10px] text-slate-800 leading-tight">
+                    <span className="font-bold text-slate-900">السجل التجاري: </span>
+                    <span className="font-mono">{crNo}</span>
+                  </div>
+                )}
+                {(addressArVal || addressVal) && (
+                  <div className="text-[9.5px] text-slate-700 leading-snug break-words">
+                    <span className="font-bold text-slate-900">العنوان: </span>
+                    <span>{addressArVal || addressVal}</span>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Bottom Thin Emerald Decorative Accent Stripe (Matching App Accents) */}
-            <div className="w-full h-[2.5px] bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600" />
+            {/* Bottom Accent Line */}
+            <div className="w-full h-[2px] bg-slate-200 mt-2.5" />
           </div>
 
-          {/* 2. INVOICE TITLE: Centered Bordered Box */}
+          {/* 2. INVOICE TITLE: Clean Horizontal Title Bar */}
           <div className="flex justify-center my-1.5">
-            <div className="border border-slate-700/80 rounded-md px-12 py-1 text-center bg-white shadow-2xs">
-              <span className="text-base font-extrabold text-slate-900 tracking-wide font-sans">
-                Tax Invoice الفاتورة الضريبية
+            <div className="w-full border border-slate-300 rounded-md py-1.5 text-center bg-slate-100/90 shadow-2xs">
+              <span className="text-sm sm:text-base font-bold text-slate-900 tracking-wide">
+                Tax Invoice / الفاتورة الضريبية
               </span>
             </div>
           </div>
@@ -531,128 +559,34 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
         </div>
 
         {/* ========================================================
-            8. MASTER CORPORATE FULL-WIDTH FOOTER (Matching App Brand: Slate-900 + Emerald)
+            8. MASTER CORPORATE FOOTER (Thin & Compact: Phone + Email Only)
             ======================================================== */}
-        <div className="bg-slate-900 text-white rounded-lg shadow-sm overflow-hidden relative border border-slate-800 mt-2">
-          {/* Top Thin Emerald Decorative Accent Stripe */}
-          <div className="w-full h-[2.5px] bg-gradient-to-r from-emerald-600 via-emerald-400 to-emerald-600" />
+        {(phoneVal || emailVal) && (
+          <div className="bg-slate-900 text-white rounded-lg shadow-2xs overflow-hidden relative border border-slate-800 mt-2">
+            {/* Top Thin Accent Stripe */}
+            <div className="w-full h-[2px] bg-emerald-600" />
 
-          <div className="py-2 px-3.5 sm:px-4">
-            {/* Upper Row: Dynamic Contact & Company Metadata */}
-            <div className="flex flex-row items-center justify-between gap-3 text-[10.5px]">
-              {/* 1. Address / Location (Left) */}
-              {addressVal && (
-                <div className="flex items-center gap-1.5 min-w-0 max-w-[28%]">
-                  <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <div className="min-w-0 leading-tight">
-                    <div className="text-slate-100 font-medium truncate text-[10px]">{addressVal}</div>
-                    {addressArVal && (
-                      <div className="text-[9px] text-slate-400 truncate" dir="rtl">
-                        {addressArVal}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Vertical Divider */}
-              {addressVal && (phoneVal || emailVal || vatNo) && (
-                <div className="w-[1px] h-7 bg-slate-800 shrink-0" />
-              )}
-
-              {/* 2. Mobile (Center-Left) */}
-              {phoneVal && (
-                <div className="flex items-center gap-1.5 shrink-0">
+            <div className="py-1.5 px-4 flex flex-row items-center justify-between text-[10.5px]">
+              {/* Phone / Mobile */}
+              {phoneVal ? (
+                <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
                   <Phone className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <div className="leading-tight">
-                    <div className="font-mono text-slate-100 font-semibold text-[10px]">{phoneVal}</div>
-                    <div className="text-[8px] text-slate-400">Mobile / الجوال</div>
-                  </div>
+                  <span className="font-bold text-slate-300">Phone / الجوال:</span>
+                  <span className="font-mono text-slate-100">{phoneVal}</span>
                 </div>
-              )}
+              ) : <div />}
 
-              {/* WhatsApp if distinct from phone */}
-              {whatsappVal && whatsappVal !== phoneVal && (
-                <>
-                  <div className="w-[1px] h-7 bg-slate-800 shrink-0" />
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <MessageSquare className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <div className="leading-tight">
-                      <div className="font-mono text-slate-100 font-semibold text-[10px]">{whatsappVal}</div>
-                      <div className="text-[8px] text-slate-400">WhatsApp / واتساب</div>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {/* Vertical Divider */}
+              {/* Email */}
               {emailVal && (
-                <div className="w-[1px] h-7 bg-slate-800 shrink-0" />
-              )}
-
-              {/* 3. Email (Center) */}
-              {emailVal && (
-                <div className="flex items-center gap-1.5 min-w-0">
+                <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
                   <Mail className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <div className="min-w-0 leading-tight">
-                    <div className="text-slate-100 truncate text-[10px]">{emailVal}</div>
-                    <div className="text-[8px] text-slate-400">Email / البريد</div>
-                  </div>
-                </div>
-              )}
-
-              {/* Website if available */}
-              {websiteVal && (
-                <>
-                  <div className="w-[1px] h-7 bg-slate-800 shrink-0" />
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <Globe className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <div className="min-w-0 leading-tight">
-                      <div className="text-slate-100 truncate font-mono text-[9.5px]">{websiteVal}</div>
-                      <div className="text-[8px] text-slate-400">Website / الموقع</div>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {/* Vertical Divider */}
-              {(vatNo || crNo) && (
-                <div className="w-[1px] h-7 bg-slate-800 shrink-0" />
-              )}
-
-              {/* 4. VAT & CR Numbers (Right) */}
-              {(vatNo || crNo) && (
-                <div className="text-end shrink-0 space-y-0.5">
-                  {vatNo && (
-                    <div className="text-[9.5px] font-mono text-slate-200">
-                      <span className="text-emerald-400 font-bold font-sans">VAT: </span>
-                      <span>{vatNo}</span>
-                    </div>
-                  )}
-                  {crNo && (
-                    <div className="text-[9.5px] font-mono text-slate-200">
-                      <span className="text-emerald-400 font-bold font-sans">CR: </span>
-                      <span>{crNo}</span>
-                    </div>
-                  )}
+                  <span className="font-bold text-slate-300">Email / البريد:</span>
+                  <span className="text-slate-100">{emailVal}</span>
                 </div>
               )}
             </div>
-
-            {/* Bottom Center Bar: Closing Note with Thin Emerald Lines */}
-            {(closingEn || closingAr) && (
-              <div className="mt-2 pt-1.5 border-t border-slate-800 flex items-center justify-center gap-3 text-[10px] text-slate-300 font-medium">
-                <span className="w-10 sm:w-16 h-[1px] bg-emerald-500/70" />
-                <span className="tracking-wide">
-                  {closingEn}
-                  {closingEn && closingAr && <span className="text-emerald-400 mx-2 font-bold">|</span>}
-                  {closingAr}
-                </span>
-                <span className="w-10 sm:w-16 h-[1px] bg-emerald-500/70" />
-              </div>
-            )}
           </div>
-        </div>
+        )}
       </div>
     </>
   );
