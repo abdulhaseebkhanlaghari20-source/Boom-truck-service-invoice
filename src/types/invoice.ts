@@ -5,6 +5,8 @@ export type VatOption = 'VAT 15%' | 'No VAT';
 export interface CompanySettings {
   companyName: string;
   companyNameAr?: string;
+  businessActivity?: string; // Business Activity / Service
+  businessActivityAr?: string; // Arabic Business Activity / Service
   logoUrl: string; // Base64 or URL for company logo
   watermarkUrl?: string; // Optional custom watermark (defaults to logoUrl)
   enableWatermark?: boolean; // Toggle watermark on invoice (default: true)
@@ -35,6 +37,19 @@ export interface CompanySettings {
   emailClosing?: string;
 }
 
+export interface InvoiceItem {
+  id: string;
+  serviceName?: string;
+  description: string;
+  unit?: string; // e.g. "Pcs", "Day", "Hour", "Month", "Trip"
+  quantity: number;
+  rate: number; // in SAR
+  vatRate?: number; // 0.15 or 0
+  vatAmount?: number;
+  subtotal?: number;
+  total?: number;
+}
+
 export interface Invoice {
   id: string;
   invoiceNumber: string; // e.g. INV-001
@@ -45,21 +60,29 @@ export interface Invoice {
   // 1. Customer Section
   customerName: string;
   customerPhone: string;
+  customerAddress?: string;
   customerVatNumber?: string;
 
-  // 2. Boom Truck Service Section
+  // 2. Service & Location Section
   city: string; // Riyadh, Jeddah, Dammam, etc.
   customCity?: string;
-  truckCapacity: string; // e.g. "20 Ton" (1 Ton through 30 Ton)
+  jobLocation?: string;
+  truckCapacity: string; // e.g. "20 Ton"
   serviceDescription: string;
   quantity: number;
   rate: number; // in SAR
+  unit?: string;
+
+  // Multiple Line Items support
+  items?: InvoiceItem[];
 
   // 3. Invoice & Tax Calculations
   vatOption: VatOption;
   subtotal: number;
   vatAmount: number;
   total: number;
+  paidAmount?: number;
+  amountDue?: number;
 
   notes?: string;
   createdAt: string;

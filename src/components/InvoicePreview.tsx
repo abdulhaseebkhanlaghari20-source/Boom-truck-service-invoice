@@ -1,13 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Invoice, CompanySettings, Language } from '../types/invoice';
+import { Invoice, CompanySettings, Language, InvoiceItem } from '../types/invoice';
 import { formatDate, SAUDI_CITIES_AR, numberToWords, toTitleCase } from '../utils/formatters';
 import { generateQrCodeDataUrl } from '../utils/zatcaQr';
-import { DEFAULT_COMPANY_SETTINGS } from '../utils/demoData';
 import {
   MapPin,
   Phone,
   Mail,
-  Globe,
   MessageSquare,
 } from 'lucide-react';
 
@@ -24,18 +22,84 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
   lang,
   isPrintOnly = false,
 }) => {
-  // Automatically connect to Company Settings with infallible fallback defaults (works for any normal user)
+  // Dynamic Company Settings from current invoice snapshot or global settings without hardcoded dummy strings
   const companySettings: CompanySettings = {
-    ...DEFAULT_COMPANY_SETTINGS,
-    ...(invoice?.companySnapshot || globalCompanySettings || {}),
+    ...(globalCompanySettings || {}),
+    ...(invoice?.companySnapshot || {}),
   };
 
-  // Safe numerical values that never throw on undefined, null, or string representation
-  const safeQty = Math.max(0, Number(invoice?.quantity) || 1);
-  const safeRate = Math.max(0, Number(invoice?.rate) || 0);
-  const safeSubtotal = Math.max(0, Number(invoice?.subtotal) || 0);
-  const safeVatAmount = Math.max(0, Number(invoice?.vatAmount) || 0);
-  const safeTotal = Math.max(0, Number(invoice?.total) || (safeSubtotal + safeVatAmount));
+  // Safe helper to reject bracketed placeholders or undefined strings
+  const cleanVal = (val?: string) => {
+    if (!val) return '';
+    const trimmed = val.trim();
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) return '';
+    return trimmed;
+  };
+
+  // Dynamic corporate identity values
+  const companyNameEn = cleanVal(companySettings.companyName);
+  const companyNameAr = cleanVal(companySettings.companyNameAr);
+  const businessActivityEn = cleanVal(companySettings.businessActivity || companySettings.businessServiceEn);
+  const businessActivityAr = cleanVal(companySettings.businessActivityAr || companySettings.businessServiceAr);
+
+  const vatNo = cleanVal(companySettings.vatNumber);
+  const crNo = cleanVal(companySettings.crNumber);
+  const primaryPhone = cleanVal(companySettings.phone);
+  const secondaryPhone = cleanVal(companySettings.secondaryPhone);
+  const phoneVal = [primaryPhone, secondaryPhone].filter(Boolean).join(', ');
+  const whatsappVal = cleanVal(companySettings.whatsapp);
+  const emailVal = cleanVal(companySettings.email);
+  const addressVal = cleanVal(companySettings.address);
+  const addressArVal = cleanVal(companySettings.addressAr);
+  const bankNameVal = cleanVal(companySettings.bankName);
+  const bankAccountVal = cleanVal(companySettings.bankAccountNumber);
+  const ibanVal = cleanVal(companySettings.iban);
+
+  const is15Percent = invoice?.vatOption === 'VAT 15%';
+
+  // Resolve dynamic line items from current invoice
+  const rawItems: InvoiceItem[] = (invoice?.items && invoice.items.length > 0)
+    ? invoice.items
+    : [
+        {
+          id: 'item-1',
+          serviceName: '',
+          description: invoice?.serviceDescription || '',
+          unit: invoice?.unit || 'Pcs',
+          quantity: Math.max(0, Number(invoice?.quantity) || 1),
+          rate: Math.max(0, Number(invoice?.rate) || 0),
+          vatRate: is15Percent ? 0.15 : 0,
+          vatAmount: Math.max(0, Number(invoice?.vatAmount) || 0),
+          subtotal: Math.max(0, Number(invoice?.subtotal) || 0),
+          total: Math.max(0, Number(invoice?.total) || 0),
+        },
+      ];
+
+  // Dynamically calculate subtotal, VAT, and total
+  const safeSubtotal = invoice?.subtotal !== undefined
+    ? Number(invoice.subtotal)
+    : rawItems.reduce((acc, it) => acc + (Number(it.quantity || 0) * Number(it.rate || 0)), 0);
+
+  const safeVatAmount = invoice?.vatAmount !== undefined
+    ? Number(invoice.vatAmount)
+    : (is15Percent ? Math.round(safeSubtotal * 15) / 100 : 0);
+
+  const safeTotal = invoice?.total !== undefined
+    ? Number(invoice.total)
+    : (safeSubtotal + safeVatAmount);
+
+  // Dynamic payment tracking
+  const paidAmount = invoice?.paidAmount !== undefined
+    ? Number(invoice.paidAmount)
+    : invoice?.paymentStatus === 'Paid'
+    ? safeTotal
+    : invoice?.paymentStatus === 'Partially Paid'
+    ? Math.round((safeTotal / 2) * 100) / 100
+    : 0;
+
+  const amountDue = invoice?.amountDue !== undefined
+    ? Number(invoice.amountDue)
+    : Math.max(0, Math.round((safeTotal - paidAmount) * 100) / 100);
 
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const containerRef = useRef<HTMLDivElement>(null);
@@ -43,31 +107,38 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
   const [scale, setScale] = useState<number>(1);
   const [scaledHeight, setScaledHeight] = useState<number | undefined>(undefined);
 
+  // Dynamic ZATCA QR Code generation using actual company settings and invoice data
   useEffect(() => {
     let isMounted = true;
+    const sellerName = companyNameEn || companyNameAr || 'Company';
+    const vatNumber = vatNo || '300000000000003';
+    const invoiceTimestamp = invoice?.invoiceDate ? `${invoice.invoiceDate}T12:00:00Z` : new Date().toISOString();
+
     generateQrCodeDataUrl(
-      companySettings.companyName || 'Boom Truck Rental',
-      companySettings.vatNumber || '300000000000003',
-      invoice?.invoiceDate || new Date().toISOString(),
+      sellerName,
+      vatNumber,
+      invoiceTimestamp,
       safeTotal,
       safeVatAmount
     ).then((url) => {
       if (isMounted) setQrCodeDataUrl(url);
     }).catch((err) => {
-      console.warn('QR generation notice:', err);
+      console.warn('Dynamic QR generation notice:', err);
     });
+
     return () => {
       isMounted = false;
     };
   }, [
-    companySettings.companyName,
-    companySettings.vatNumber,
+    companyNameEn,
+    companyNameAr,
+    vatNo,
     invoice?.invoiceDate,
     safeTotal,
     safeVatAmount,
   ]);
 
-  // Responsive proportional A4 scaling for mobile screens
+  // Proportional A4 preview scaling for smaller viewports
   useEffect(() => {
     if (isPrintOnly) return;
 
@@ -99,56 +170,25 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
     };
   }, [isPrintOnly, invoice, companySettings]);
 
-  // Clean helper: rejects empty or bracketed placeholder strings like '[VAT NUMBER]'
-  const cleanVal = (val?: string) => {
-    if (!val) return '';
-    const trimmed = val.trim();
-    if (trimmed.startsWith('[') && trimmed.endsWith(']')) return '';
-    return trimmed;
-  };
-
   const displayCity =
-    invoice.city === 'Other' && invoice.customCity ? invoice.customCity : invoice.city;
-  const cityAr = SAUDI_CITIES_AR[displayCity] || displayCity;
+    invoice?.city === 'Other' && invoice?.customCity ? invoice.customCity : (invoice?.city || '');
+  const cityAr = displayCity ? (SAUDI_CITIES_AR[displayCity] || displayCity) : '';
+
+  const clientAddress = cleanVal(invoice?.customerAddress) || (displayCity ? (cityAr ? `${displayCity} (${cityAr})` : displayCity) : '');
 
   const paymentMethodLabel =
-    invoice.paymentStatus === 'Paid'
+    invoice?.paymentStatus === 'Paid'
       ? 'Cash / نقداً'
-      : invoice.paymentStatus === 'Partially Paid'
+      : invoice?.paymentStatus === 'Partially Paid'
       ? 'Partially Paid / مدفوع جزئياً'
+      : invoice?.paymentStatus === 'Overdue'
+      ? 'Overdue / متأخر'
       : 'Bank Transfer / تحويل بنكي';
 
-  // Dynamic corporate identity values
-  const companyNameEn = cleanVal(companySettings.companyName) || 'Boom Truck Rental';
-  const companyNameAr = cleanVal(companySettings.companyNameAr) || 'بوم ترَك لتأجير المعدات';
-  const serviceEn = cleanVal(companySettings.businessServiceEn) || 'BOOM TRUCK RENTAL SERVICES';
-  const serviceAr = cleanVal(companySettings.businessServiceAr) || 'لتأجير بوم ترك';
-  const taglineEn = cleanVal(companySettings.taglineEn) || 'LIFT  |  TRANSPORT  |  HEAVY EQUIPMENT SOLUTIONS';
-  const taglineAr = cleanVal(companySettings.taglineAr) || 'خدمات رفع ونقل ومعدات متكاملة';
-
-  const vatNo = cleanVal(companySettings.vatNumber);
-  const crNo = cleanVal(companySettings.crNumber);
-  const primaryPhone = cleanVal(companySettings.phone);
-  const secondaryPhone = cleanVal(companySettings.secondaryPhone);
-  const phoneVal = [primaryPhone, secondaryPhone].filter(Boolean).join(', ');
-  const emailVal = cleanVal(companySettings.email);
-  const addressVal = cleanVal(companySettings.address);
-  const addressArVal = cleanVal(companySettings.addressAr);
-  const bankAccountVal = cleanVal(companySettings.bankAccountNumber);
-  const sealNoteVal = cleanVal(companySettings.sealNote);
-
-  // Paid and Due amounts calculated safely
-  const paidAmount = invoice.paymentStatus === 'Paid'
-    ? safeTotal
-    : invoice.paymentStatus === 'Partially Paid'
-    ? safeTotal / 2
-    : 0;
-  const amountDue = Math.max(0, safeTotal - paidAmount);
-
-  // Inner A4 Sheet Content (100% Fixed Master Reference A4 Layout)
+  // Inner A4 Sheet Content (100% Dynamic Content with Master Reference Layout)
   const a4SheetContent = (
     <>
-      {/* Center Background Watermark */}
+      {/* Center Background Watermark (Render only if enabled and user has uploaded watermark/logo) */}
       {companySettings.enableWatermark !== false && (companySettings.watermarkUrl || companySettings.logoUrl) && (
         <div
           className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-0"
@@ -177,20 +217,22 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
             <div className="grid grid-cols-12 gap-2 items-center">
               {/* Left Column: English Company Information (LTR) */}
               <div className="col-span-5 text-start space-y-0.5 min-w-0" dir="ltr">
-                <h1
-                  className={`font-bold text-[#0f2744] tracking-tight leading-tight break-words ${
-                    companyNameEn.length > 35
-                      ? 'text-xs'
-                      : companyNameEn.length > 22
-                      ? 'text-sm'
-                      : 'text-base'
-                  }`}
-                >
-                  {toTitleCase(companyNameEn)}
-                </h1>
-                {serviceEn && (
+                {companyNameEn && (
+                  <h1
+                    className={`font-bold text-[#0f2744] tracking-tight leading-tight break-words ${
+                      companyNameEn.length > 35
+                        ? 'text-xs'
+                        : companyNameEn.length > 22
+                        ? 'text-sm'
+                        : 'text-base'
+                    }`}
+                  >
+                    {toTitleCase(companyNameEn)}
+                  </h1>
+                )}
+                {businessActivityEn && (
                   <p className="text-[10px] font-bold text-[#1e4976] tracking-wide leading-tight">
-                    {serviceEn}
+                    {businessActivityEn}
                   </p>
                 )}
                 {vatNo && (
@@ -225,29 +267,28 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                     />
                   </div>
                 ) : (
-                  <div className="w-16 h-14 bg-[#f0f5fa] border border-[#cbdde8] rounded flex flex-col items-center justify-center p-1 text-center">
-                    <span className="text-[10px] font-bold tracking-tight text-[#0f2744]">COMPANY</span>
-                    <span className="text-[7.5px] font-bold text-[#1e4976]">LOGO</span>
-                  </div>
+                  <div className="w-16 h-14" />
                 )}
               </div>
 
               {/* Right Column: Arabic Company Information (RTL) */}
               <div className="col-span-5 text-end space-y-0.5 min-w-0" dir="rtl">
-                <h2
-                  className={`font-bold text-[#0f2744] leading-tight break-words ${
-                    companyNameAr.length > 35
-                      ? 'text-sm'
-                      : companyNameAr.length > 22
-                      ? 'text-base'
-                      : 'text-lg'
-                  }`}
-                >
-                  {companyNameAr}
-                </h2>
-                {serviceAr && (
+                {companyNameAr && (
+                  <h2
+                    className={`font-bold text-[#0f2744] leading-tight break-words ${
+                      companyNameAr.length > 35
+                        ? 'text-sm'
+                        : companyNameAr.length > 22
+                        ? 'text-base'
+                        : 'text-lg'
+                    }`}
+                  >
+                    {companyNameAr}
+                  </h2>
+                )}
+                {businessActivityAr && (
                   <div className="text-[10.5px] font-bold text-[#1e4976] leading-tight">
-                    {serviceAr}
+                    {businessActivityAr}
                   </div>
                 )}
                 {vatNo && (
@@ -297,39 +338,35 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                 <span dir="rtl">بيانات العميل</span>
               </div>
               <div className="p-2.5 space-y-1.5 text-slate-800">
+                {/* 1. Client Name */}
                 <div className="flex justify-between items-baseline gap-2">
                   <span className="font-bold text-[#0f2744] whitespace-nowrap">
                     Client Name / اسم العميل :
                   </span>
                   <span className="font-bold text-slate-900 truncate text-end">
-                    {invoice.customerName || '-'}
+                    {invoice?.customerName || '-'}
                   </span>
                 </div>
+                {/* 2. Mobile */}
                 <div className="flex justify-between items-baseline gap-2">
                   <span className="font-bold text-[#0f2744] whitespace-nowrap">
                     Mobile / رقم الجوال :
                   </span>
                   <span className="font-mono text-slate-900 text-end">
-                    {invoice.customerPhone || '-'}
+                    {invoice?.customerPhone || '-'}
                   </span>
                 </div>
+                {/* 3. Address */}
                 <div className="flex justify-between items-baseline gap-2">
                   <span className="font-bold text-[#0f2744] whitespace-nowrap">
                     Address / العنوان :
                   </span>
                   <span className="text-slate-800 truncate text-end">
-                    {displayCity} ({cityAr})
+                    {clientAddress || '-'}
                   </span>
                 </div>
-                <div className="flex justify-between items-baseline gap-2">
-                  <span className="font-bold text-[#0f2744] whitespace-nowrap">
-                    Job Location / موقع العمل :
-                  </span>
-                  <span className="text-slate-800 truncate text-end">
-                    {displayCity}
-                  </span>
-                </div>
-                {invoice.customerVatNumber && (
+                {/* Optional Customer VAT */}
+                {invoice?.customerVatNumber && (
                   <div className="flex justify-between items-baseline gap-2">
                     <span className="font-bold text-[#0f2744] whitespace-nowrap">
                       VAT No. / الرقم الضريبي :
@@ -349,30 +386,34 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                 <span dir="rtl">بيانات الفاتورة</span>
               </div>
               <div className="p-2.5 space-y-1.5 text-slate-800">
+                {/* Invoice Number */}
                 <div className="flex justify-between items-baseline gap-2">
                   <span className="font-bold text-[#0f2744] whitespace-nowrap">
                     Invoice No. / رقم الفاتورة :
                   </span>
                   <span className="font-mono font-bold text-[#0f2744] text-end">
-                    {invoice.invoiceNumber || '0177'}
+                    {invoice?.invoiceNumber || '-'}
                   </span>
                 </div>
+                {/* Date */}
                 <div className="flex justify-between items-baseline gap-2">
                   <span className="font-bold text-[#0f2744] whitespace-nowrap">
                     Date / تاريخ الفاتورة :
                   </span>
                   <span className="font-mono text-slate-900 text-end">
-                    {formatDate(invoice.invoiceDate)}
+                    {invoice?.invoiceDate ? formatDate(invoice.invoiceDate) : '-'}
                   </span>
                 </div>
+                {/* Due Date */}
                 <div className="flex justify-between items-baseline gap-2">
                   <span className="font-bold text-[#0f2744] whitespace-nowrap">
                     Due Date / تاريخ الاستحقاق :
                   </span>
                   <span className="font-mono text-slate-900 text-end">
-                    {formatDate(invoice.dueDate || invoice.invoiceDate)}
+                    {invoice?.dueDate ? formatDate(invoice.dueDate) : (invoice?.invoiceDate ? formatDate(invoice.invoiceDate) : '-')}
                   </span>
                 </div>
+                {/* Payment Method */}
                 <div className="flex justify-between items-baseline gap-2">
                   <span className="font-bold text-[#0f2744] whitespace-nowrap">
                     Payment Method / طريقة الدفع :
@@ -381,12 +422,21 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                     {paymentMethodLabel}
                   </span>
                 </div>
+                {/* Job Location */}
+                <div className="flex justify-between items-baseline gap-2">
+                  <span className="font-bold text-[#0f2744] whitespace-nowrap">
+                    Job Location / موقع العمل :
+                  </span>
+                  <span className="text-slate-800 truncate text-end">
+                    {invoice?.jobLocation || displayCity || '-'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
 
           {/* ========================================================
-              4. LARGE BILINGUAL SERVICE TABLE
+              4. FULLY DYNAMIC ITEMS / SERVICES TABLE (Supports Multiple Line Items)
               ======================================================== */}
           <div className="my-2">
             <table className="w-full text-xs text-center border-collapse border border-[#cbdde8]">
@@ -420,47 +470,71 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#cbdde8]">
-                {/* Line 1: Service Record */}
-                <tr className="bg-white font-normal text-slate-900">
-                  <td className="py-2 px-1.5 border-r border-[#cbdde8] font-bold font-mono">1</td>
-                  <td className="py-2 px-3 border-r border-[#cbdde8] text-start">
-                    <div className="font-semibold text-slate-900">
-                      {invoice.serviceDescription ||
-                        `Boom Truck For One Day (${displayCity})`}
-                    </div>
-                    <div className="text-[10px] text-slate-500 font-normal">
-                      {invoice.truckCapacity || '20 Ton'} Boom Truck Crane with licensed operator
-                    </div>
-                  </td>
-                  <td className="py-2 px-2 border-r border-[#cbdde8] font-mono">
-                    {safeQty}.00 Pcs
-                  </td>
-                  <td className="py-2 px-2 border-r border-[#cbdde8] font-mono">
-                    {safeRate.toFixed(2)}
-                  </td>
-                  <td className="py-2 px-2 border-r border-[#cbdde8] font-mono">
-                    {safeVatAmount.toFixed(2)}
-                  </td>
-                  <td className="py-2 px-2.5 border-r border-[#cbdde8] font-mono">
-                    {safeSubtotal.toFixed(2)}
-                  </td>
-                  <td className="py-2 px-2.5 font-mono font-bold text-[#0f2744]">
-                    {safeTotal.toFixed(2)}
-                  </td>
-                </tr>
+                {/* Dynamic Line Items */}
+                {rawItems.map((item, idx) => {
+                  const itemQty = Math.max(0, Number(item.quantity) || 0);
+                  const itemRate = Math.max(0, Number(item.rate) || 0);
+                  const itemSubtotal = item.subtotal !== undefined
+                    ? Number(item.subtotal)
+                    : Math.round(itemQty * itemRate * 100) / 100;
+                  const itemVat = item.vatAmount !== undefined
+                    ? Number(item.vatAmount)
+                    : (is15Percent ? Math.round(itemSubtotal * 15) / 100 : 0);
+                  const itemTotal = item.total !== undefined
+                    ? Number(item.total)
+                    : (itemSubtotal + itemVat);
+
+                  return (
+                    <tr key={item.id || idx} className="bg-white font-normal text-slate-900">
+                      <td className="py-2 px-1.5 border-r border-[#cbdde8] font-bold font-mono">
+                        {idx + 1}
+                      </td>
+                      <td className="py-2 px-3 border-r border-[#cbdde8] text-start">
+                        {item.serviceName && (
+                          <div className="font-bold text-slate-900 leading-tight">
+                            {item.serviceName}
+                          </div>
+                        )}
+                        {item.description ? (
+                          <div className="text-[10.5px] text-slate-600 leading-tight">
+                            {item.description}
+                          </div>
+                        ) : !item.serviceName ? (
+                          <span className="text-slate-400">-</span>
+                        ) : null}
+                      </td>
+                      <td className="py-2 px-2 border-r border-[#cbdde8] font-mono">
+                        {itemQty} {item.unit || ''}
+                      </td>
+                      <td className="py-2 px-2 border-r border-[#cbdde8] font-mono">
+                        {itemRate.toFixed(2)}
+                      </td>
+                      <td className="py-2 px-2 border-r border-[#cbdde8] font-mono">
+                        {itemVat.toFixed(2)}
+                      </td>
+                      <td className="py-2 px-2.5 border-r border-[#cbdde8] font-mono">
+                        {itemSubtotal.toFixed(2)}
+                      </td>
+                      <td className="py-2 px-2.5 font-mono font-bold text-[#0f2744]">
+                        {itemTotal.toFixed(2)}
+                      </td>
+                    </tr>
+                  );
+                })}
 
                 {/* Empty Rows to replicate master reference spacing and proportions */}
-                {[2, 3, 4, 5, 6].map((rowNum) => (
-                  <tr key={rowNum} className="h-6.5 bg-[#fbfdff]">
-                    <td className="py-1 px-1.5 border-r border-[#cbdde8] font-mono text-slate-300"></td>
-                    <td className="py-1 px-3 border-r border-[#cbdde8]"></td>
-                    <td className="py-1 px-2 border-r border-[#cbdde8]"></td>
-                    <td className="py-1 px-2 border-r border-[#cbdde8]"></td>
-                    <td className="py-1 px-2 border-r border-[#cbdde8]"></td>
-                    <td className="py-1 px-2.5 border-r border-[#cbdde8]"></td>
-                    <td className="py-1 px-2.5"></td>
-                  </tr>
-                ))}
+                {rawItems.length < 5 &&
+                  Array.from({ length: 5 - rawItems.length }).map((_, rIdx) => (
+                    <tr key={`empty-${rIdx}`} className="h-6.5 bg-[#fbfdff]">
+                      <td className="py-1 px-1.5 border-r border-[#cbdde8] font-mono text-slate-300"></td>
+                      <td className="py-1 px-3 border-r border-[#cbdde8]"></td>
+                      <td className="py-1 px-2 border-r border-[#cbdde8]"></td>
+                      <td className="py-1 px-2 border-r border-[#cbdde8]"></td>
+                      <td className="py-1 px-2 border-r border-[#cbdde8]"></td>
+                      <td className="py-1 px-2.5 border-r border-[#cbdde8]"></td>
+                      <td className="py-1 px-2.5"></td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
@@ -484,7 +558,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               )}
             </div>
 
-            {/* Right: Totals Box */}
+            {/* Right: Dynamic Totals Box */}
             <div className="flex-1 max-w-md border border-[#cbdde8] rounded overflow-hidden text-xs bg-white">
               {/* Subtotal */}
               <div className="flex justify-between items-center px-3 py-1.5 border-b border-[#cbdde8]">
@@ -496,10 +570,10 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                 </span>
               </div>
 
-              {/* VAT 15% */}
+              {/* VAT */}
               <div className="flex justify-between items-center px-3 py-1.5 border-b border-[#cbdde8]">
                 <span className="font-bold text-slate-800">
-                  VAT 15% / ضريبة القيمة المضافة
+                  {is15Percent ? 'VAT 15% / ضريبة القيمة المضافة' : 'VAT / ضريبة القيمة المضافة'}
                 </span>
                 <span className="font-mono font-bold text-slate-900 tabular-nums">
                   (+) {safeVatAmount.toFixed(2)} ر.س
@@ -551,19 +625,9 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           </div>
 
           {/* ========================================================
-              7. LOWER SECTION: Bank Details & Signatures
+              7. LOWER SECTION: Bank Details & 3 Signatures (NO NOTES SECTION)
               ======================================================== */}
           <div className="border border-[#cbdde8] rounded text-[11px] text-slate-800 my-1.5 overflow-hidden bg-white">
-            {/* Notes / Seal Note */}
-            <div className="px-3 py-1.5 border-b border-[#cbdde8] bg-[#fbfdff] font-normal text-slate-700">
-              <span className="text-[#0f2744] font-bold">Notes / ملاحظات : </span>
-              <span>
-                {invoice.notes ||
-                  sealNoteVal ||
-                  'Certified boom truck crane & licensed operator. Services performed per Saudi safety standards.'}
-              </span>
-            </div>
-
             {/* 4 Equal Columns: Bank Details | Prepared By | Approved By | Received By */}
             <div className="grid grid-cols-4 divide-x divide-[#cbdde8] text-center">
               {/* Col 1: Bank Details */}
@@ -573,7 +637,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                 </div>
                 <div className="text-[10px] text-slate-700">
                   <span className="font-bold text-[#0f2744]">Bank Name / اسم البنك: </span>
-                  <span>{cleanVal(companySettings.bankName) || '-'}</span>
+                  <span>{bankNameVal || '-'}</span>
                 </div>
                 <div className="text-[10px] text-slate-700 font-mono">
                   <span className="font-bold text-[#0f2744] font-sans">Account No. / رقم الحساب: </span>
@@ -581,7 +645,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                 </div>
                 <div className="text-[10px] text-slate-700 font-mono">
                   <span className="font-bold text-[#0f2744] font-sans">IBAN / رقم الآيبان: </span>
-                  <span>{cleanVal(companySettings.iban) || '-'}</span>
+                  <span>{ibanVal || '-'}</span>
                 </div>
               </div>
 
@@ -619,22 +683,40 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
         </div>
 
         {/* ========================================================
-            8. CONTACT FOOTER: Dark Navy, Phone + Email Only
+            8. CONTACT FOOTER: Dynamic Company Address, Phone, WhatsApp, Email
             ======================================================== */}
-        {(phoneVal || emailVal) && (
+        {(addressVal || phoneVal || whatsappVal || emailVal) && (
           <div className="bg-[#0f2744] text-white rounded shadow-2xs overflow-hidden relative border border-[#0f2744] mt-1.5">
             {/* Top Accent Stripe */}
             <div className="w-full h-[2px] bg-sky-400" />
 
-            <div className="py-1.5 px-4 flex flex-row items-center justify-between text-[10.5px]">
+            <div className="py-1.5 px-4 flex flex-wrap items-center justify-between gap-y-1 gap-x-4 text-[10.5px]">
+              {/* Address */}
+              {addressVal && (
+                <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
+                  <MapPin className="w-3.5 h-3.5 text-sky-300 shrink-0" />
+                  <span className="font-bold text-sky-100">Address / العنوان:</span>
+                  <span className="text-white truncate max-w-[280px]">{addressVal}</span>
+                </div>
+              )}
+
               {/* Phone / Mobile */}
-              {phoneVal ? (
+              {phoneVal && (
                 <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
                   <Phone className="w-3.5 h-3.5 text-sky-300 shrink-0" />
-                  <span className="font-bold text-sky-100">Mobile / رقم الجوال:</span>
+                  <span className="font-bold text-sky-100">Phone / الجوال:</span>
                   <span className="font-mono text-white">{phoneVal}</span>
                 </div>
-              ) : <div />}
+              )}
+
+              {/* WhatsApp */}
+              {whatsappVal && (
+                <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
+                  <MessageSquare className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span className="font-bold text-sky-100">WhatsApp / واتساب:</span>
+                  <span className="font-mono text-white">{whatsappVal}</span>
+                </div>
+              )}
 
               {/* Email */}
               {emailVal && (
@@ -655,7 +737,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
   if (isPrintOnly) {
     return (
       <div
-        id={`invoice-preview-sheet-${invoice.id}`}
+        id={`invoice-preview-sheet-${invoice?.id || 'temp'}`}
         data-invoice-sheet="true"
         className="invoice-sheet print-only bg-white text-slate-900 p-6 mx-auto leading-normal select-text relative flex flex-col justify-between overflow-hidden"
         dir={lang === 'ar' ? 'rtl' : 'ltr'}
@@ -685,7 +767,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
     >
       <div
         ref={sheetRef}
-        id={`invoice-preview-sheet-${invoice.id}`}
+        id={`invoice-preview-sheet-${invoice?.id || 'temp'}`}
         data-invoice-sheet="true"
         className="invoice-sheet bg-white text-slate-900 border border-slate-300 shadow-md rounded-lg p-6 w-[794px] min-h-[1123px] shrink-0 leading-normal select-text relative flex flex-col justify-between overflow-hidden"
         dir={lang === 'ar' ? 'rtl' : 'ltr'}
@@ -705,3 +787,4 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
     </div>
   );
 };
+

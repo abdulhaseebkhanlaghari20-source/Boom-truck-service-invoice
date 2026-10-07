@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Invoice, CompanySettings, Language, PaymentStatus, VatOption } from '../types/invoice';
+import { Invoice, CompanySettings, Language, PaymentStatus, VatOption, InvoiceItem } from '../types/invoice';
 import { translations } from '../translations/i18n';
 import {
   SAUDI_CITIES,
@@ -7,6 +7,7 @@ import {
   BOOM_TRUCK_CAPACITIES,
   formatCurrency,
   calculateInvoiceTotals,
+  calculateMultiItemTotals,
 } from '../utils/formatters';
 import { InvoicePreview } from './InvoicePreview';
 import {
@@ -22,6 +23,8 @@ import {
   User,
   Truck,
   FileText,
+  Trash2,
+  Layers,
 } from 'lucide-react';
 
 interface InvoiceFormProps {
@@ -39,6 +42,45 @@ interface InvoiceFormProps {
   isDuplicateInvoiceNumber: boolean;
   isEditingExisting?: boolean;
 }
+
+// Preset services catalogue for quick selection
+const SERVICE_PRESETS = [
+  {
+    name: 'Boom Truck Rental (Daily)',
+    nameAr: 'تأجير بوم ترك (يومي)',
+    description: 'Boom Truck Crane rental with certified operator and rigging accessories',
+    unit: 'Day',
+    rate: 1000,
+  },
+  {
+    name: 'Boom Truck Rental (Monthly)',
+    nameAr: 'تأجير بوم ترك (شهري)',
+    description: 'Monthly boom truck hire including licensed operator for project site',
+    unit: 'Month',
+    rate: 18000,
+  },
+  {
+    name: 'Mobile Crane Lifting Service',
+    nameAr: 'خدمة رفع كرين متحرك',
+    description: 'Heavy hydraulic mobile crane lifting service for structural installation',
+    unit: 'Shift',
+    rate: 2500,
+  },
+  {
+    name: 'Heavy Equipment Transport',
+    nameAr: 'نقل معدات ثقيلة',
+    description: 'Lowbed trailer and flatbed haulage for machinery and heavy materials',
+    unit: 'Trip',
+    rate: 1500,
+  },
+  {
+    name: 'Certified Operator & Rigger',
+    nameAr: 'مشغل رافعة وريجر معتمد',
+    description: 'Licensed equipment operator and certified rigger for site operations',
+    unit: 'Day',
+    rate: 350,
+  },
+];
 
 export const InvoiceForm: React.FC<InvoiceFormProps> = ({
   invoice,
@@ -64,19 +106,139 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
     setInvoice((prev) => {
       const next = { ...prev, [field]: value, updatedAt: new Date().toISOString() };
 
-      const qty = field === 'quantity' ? Number(value) : prev.quantity;
-      const rate = field === 'rate' ? Number(value) : prev.rate;
-      const vat = field === 'vatOption' ? (value as VatOption) : prev.vatOption;
+      const is15 = (field === 'vatOption' ? value : prev.vatOption) === 'VAT 15%';
+      const currentItems: InvoiceItem[] = (next.items && next.items.length > 0)
+        ? next.items
+        : [
+            {
+              id: 'item-1',
+              serviceName: '',
+              description: next.serviceDescription || '',
+              unit: next.unit || 'Pcs',
+              quantity: Math.max(1, Number(next.quantity) || 1),
+              rate: Math.max(0, Number(next.rate) || 0),
+              vatRate: is15 ? 0.15 : 0,
+            },
+          ];
 
-      if (field === 'quantity' || field === 'rate' || field === 'vatOption') {
-        const { subtotal, vatAmount, total } = calculateInvoiceTotals(qty, rate, vat);
+      if (field === 'vatOption' || field === 'quantity' || field === 'rate') {
+        const { subtotal, vatAmount, total } = calculateMultiItemTotals(currentItems, next.vatOption);
         next.subtotal = subtotal;
         next.vatAmount = vatAmount;
         next.total = total;
+        if (next.paymentStatus === 'Paid') {
+          next.paidAmount = total;
+          next.amountDue = 0;
+        } else if (next.paymentStatus === 'Unpaid') {
+          next.paidAmount = 0;
+          next.amountDue = total;
+        }
+      }
+
+      if (field === 'paymentStatus') {
+        const stat = value as PaymentStatus;
+        if (stat === 'Paid') {
+          next.paidAmount = next.total;
+          next.amountDue = 0;
+        } else if (stat === 'Unpaid') {
+          next.paidAmount = 0;
+          next.amountDue = next.total;
+        } else if (stat === 'Partially Paid') {
+          next.paidAmount = Math.round((next.total / 2) * 100) / 100;
+          next.amountDue = Math.max(0, Math.round((next.total - next.paidAmount) * 100) / 100);
+        }
       }
 
       return next;
     });
+  };
+
+  // Line item helpers
+  const getItemsList = (): InvoiceItem[] => {
+    if (invoice.items && invoice.items.length > 0) return invoice.items;
+    return [
+      {
+        id: 'item-1',
+        serviceName: '',
+        description: invoice.serviceDescription || '',
+        unit: invoice.unit || 'Pcs',
+        quantity: Math.max(1, Number(invoice.quantity) || 1),
+        rate: Math.max(0, Number(invoice.rate) || 0),
+        vatRate: invoice.vatOption === 'VAT 15%' ? 0.15 : 0,
+      },
+    ];
+  };
+
+  const handleUpdateItem = (index: number, updates: Partial<InvoiceItem>) => {
+    const list = [...getItemsList()];
+    list[index] = { ...list[index], ...updates };
+
+    const { subtotal, vatAmount, total } = calculateMultiItemTotals(list, invoice.vatOption);
+
+    setInvoice((prev) => ({
+      ...prev,
+      items: list,
+      serviceDescription: list[0]?.description || list[0]?.serviceName || '',
+      quantity: list[0]?.quantity || 1,
+      rate: list[0]?.rate || 0,
+      unit: list[0]?.unit || 'Pcs',
+      subtotal,
+      vatAmount,
+      total,
+      paidAmount: prev.paymentStatus === 'Paid' ? total : prev.paymentStatus === 'Unpaid' ? 0 : prev.paidAmount,
+      amountDue: prev.paymentStatus === 'Paid' ? 0 : prev.paymentStatus === 'Unpaid' ? total : Math.max(0, total - (prev.paidAmount || 0)),
+      updatedAt: new Date().toISOString(),
+    }));
+  };
+
+  const handleAddItem = (preset?: typeof SERVICE_PRESETS[0]) => {
+    const list = [...getItemsList()];
+    const newItem: InvoiceItem = {
+      id: `item-${Date.now()}`,
+      serviceName: preset ? (lang === 'ar' ? preset.nameAr : preset.name) : '',
+      description: preset?.description || '',
+      unit: preset?.unit || 'Pcs',
+      quantity: 1,
+      rate: preset?.rate || 0,
+      vatRate: invoice.vatOption === 'VAT 15%' ? 0.15 : 0,
+    };
+    list.push(newItem);
+
+    const { subtotal, vatAmount, total } = calculateMultiItemTotals(list, invoice.vatOption);
+
+    setInvoice((prev) => ({
+      ...prev,
+      items: list,
+      subtotal,
+      vatAmount,
+      total,
+      paidAmount: prev.paymentStatus === 'Paid' ? total : prev.paymentStatus === 'Unpaid' ? 0 : prev.paidAmount,
+      amountDue: prev.paymentStatus === 'Paid' ? 0 : prev.paymentStatus === 'Unpaid' ? total : Math.max(0, total - (prev.paidAmount || 0)),
+      updatedAt: new Date().toISOString(),
+    }));
+  };
+
+  const handleRemoveItem = (index: number) => {
+    const list = [...getItemsList()];
+    if (list.length <= 1) return;
+    list.splice(index, 1);
+
+    const { subtotal, vatAmount, total } = calculateMultiItemTotals(list, invoice.vatOption);
+
+    setInvoice((prev) => ({
+      ...prev,
+      items: list,
+      serviceDescription: list[0]?.description || list[0]?.serviceName || '',
+      quantity: list[0]?.quantity || 1,
+      rate: list[0]?.rate || 0,
+      unit: list[0]?.unit || 'Pcs',
+      subtotal,
+      vatAmount,
+      total,
+      paidAmount: prev.paymentStatus === 'Paid' ? total : prev.paymentStatus === 'Unpaid' ? 0 : prev.paidAmount,
+      amountDue: prev.paymentStatus === 'Paid' ? 0 : prev.paymentStatus === 'Unpaid' ? total : Math.max(0, total - (prev.paidAmount || 0)),
+      updatedAt: new Date().toISOString(),
+    }));
   };
 
   const handleFormSubmit = (e: React.FormEvent) => {
@@ -174,7 +336,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
               </div>
             )}
 
-            {/* SECTION 1: Customer (Name, Phone, VAT Number) */}
+            {/* SECTION 1: Customer (Name, Mobile, Address, VAT Number) */}
             <div className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-5 shadow-xs space-y-3.5">
               <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100">
                 <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
@@ -189,6 +351,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">
+                {/* 1. Client Name */}
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-bold text-slate-700 mb-1">
                     {t.customerName} *
@@ -203,6 +366,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
                   />
                 </div>
 
+                {/* 2. Client Mobile */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
                     {t.customerPhone} *
@@ -217,7 +381,22 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
                   />
                 </div>
 
+                {/* 3. Client Address */}
                 <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    {lang === 'ar' ? 'عنوان العميل' : 'Client Address'}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder={lang === 'ar' ? 'المدينة / الحي / الموقع' : 'e.g. Dammam, Al Adamah Dist.'}
+                    value={invoice.customerAddress || ''}
+                    onChange={(e) => updateField('customerAddress', e.target.value)}
+                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-lg border border-slate-300/90 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all shadow-2xs font-medium"
+                  />
+                </div>
+
+                {/* Customer VAT Number */}
+                <div className="sm:col-span-2">
                   <label className="block text-xs font-bold text-slate-700 mb-1">
                     {t.customerVatNumber}
                   </label>
@@ -232,129 +411,169 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
               </div>
             </div>
 
-            {/* SECTION 2: Boom Truck Service (City, Capacity [1-30 Ton], Description, Quantity, Rate) */}
+            {/* SECTION 2: Dynamic Services & Multiple Line Items */}
             <div className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-5 shadow-xs space-y-3.5">
-              <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100">
-                <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
-                  <Truck className="w-4 h-4" />
+              <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 flex-wrap gap-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+                    <Layers className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">
+                      {lang === 'ar' ? 'البنود والخدمات' : 'Items & Services'}
+                    </h3>
+                    <p className="text-[11px] text-slate-400 font-medium">
+                      {lang === 'ar' ? 'اختر خدمة جاهزة أو أضف بنوداً متعددة' : 'Select a preset service or add multiple line items'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900">{t.sectionService}</h3>
-                  <p className="text-[11px] text-slate-400 font-medium">
-                    {lang === 'ar' ? 'مواصفات الرافعة والموقع والتعرفة' : 'Boom Truck Specs, Location & Tariff'}
-                  </p>
+
+                {/* Service Preset Catalogue Quick Add */}
+                <div className="flex items-center gap-2">
+                  <select
+                    onChange={(e) => {
+                      const idx = Number(e.target.value);
+                      if (!isNaN(idx) && SERVICE_PRESETS[idx]) {
+                        handleAddItem(SERVICE_PRESETS[idx]);
+                        e.target.value = '';
+                      }
+                    }}
+                    defaultValue=""
+                    className="text-xs bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  >
+                    <option value="" disabled>
+                      {lang === 'ar' ? '+ إضافة من دليل الخدمات...' : '+ Add from Services Catalogue...'}
+                    </option>
+                    {SERVICE_PRESETS.map((p, i) => (
+                      <option key={p.name} value={i}>
+                        {lang === 'ar' ? p.nameAr : p.name} ({p.rate} SAR / {p.unit})
+                      </option>
+                    ))}
+                  </select>
+
+                  <button
+                    type="button"
+                    onClick={() => handleAddItem()}
+                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-300 transition-colors"
+                  >
+                    <PlusCircle className="w-3.5 h-3.5" />
+                    <span>{lang === 'ar' ? 'بند جديد' : 'Add Item'}</span>
+                  </button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">
-                {/* City / Location */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    {t.cityLocation} *
-                  </label>
-                  <select
-                    value={invoice.city}
-                    onChange={(e) => updateField('city', e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm font-medium rounded-lg border border-slate-300/90 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 bg-white transition-all shadow-2xs"
+              {/* Items List */}
+              <div className="space-y-3">
+                {getItemsList().map((item, idx) => (
+                  <div
+                    key={item.id || idx}
+                    className="p-3 rounded-lg border border-slate-200 bg-slate-50/50 space-y-2.5"
                   >
-                    {SAUDI_CITIES.map((c) => (
-                      <option key={c} value={c}>
-                        {lang === 'ar' ? SAUDI_CITIES_AR[c] || c : c}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-700">
+                        #{idx + 1} {item.serviceName ? `· ${item.serviceName}` : ''}
+                      </span>
+                      {getItemsList().length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveItem(idx)}
+                          className="text-rose-600 hover:text-rose-700 p-1 rounded hover:bg-rose-50 transition-colors"
+                          title={lang === 'ar' ? 'حذف البند' : 'Delete Item'}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
 
-                {/* Boom Truck Capacity (1 Ton through 30 Ton) */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    {t.boomTruckCapacity} *
-                  </label>
-                  <select
-                    value={invoice.truckCapacity}
-                    onChange={(e) => updateField('truckCapacity', e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm font-bold rounded-lg border border-slate-300/90 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 bg-white text-slate-900 transition-all shadow-2xs"
-                  >
-                    {BOOM_TRUCK_CAPACITIES.map((cap) => (
-                      <option key={cap} value={cap}>
-                        {lang === 'ar' ? cap.replace('Ton', 'طن') : cap}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 text-xs">
+                      {/* Service Name */}
+                      <div className="sm:col-span-5">
+                        <label className="block text-[11px] font-bold text-slate-600 mb-0.5">
+                          {lang === 'ar' ? 'اسم الخدمة / البند' : 'Service Name'}
+                        </label>
+                        <input
+                          type="text"
+                          placeholder={lang === 'ar' ? 'مثال: تأجير بوم ترك' : 'e.g. Boom Truck Rental'}
+                          value={item.serviceName || ''}
+                          onChange={(e) => handleUpdateItem(idx, { serviceName: e.target.value })}
+                          className="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        />
+                      </div>
 
-                {/* Custom City if "Other" is chosen */}
-                {invoice.city === 'Other' && (
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      {lang === 'ar' ? 'حدد الموقع المخصص' : 'Custom City / Site Location'} *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder={t.customLocationPlaceholder}
-                      value={invoice.customCity || ''}
-                      onChange={(e) => updateField('customCity', e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-lg border border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-500/20 bg-amber-50/40 shadow-2xs"
-                    />
+                      {/* Description */}
+                      <div className="sm:col-span-7">
+                        <label className="block text-[11px] font-bold text-slate-600 mb-0.5">
+                          {lang === 'ar' ? 'الوصف التفصيلي' : 'Description'}
+                        </label>
+                        <input
+                          type="text"
+                          placeholder={lang === 'ar' ? 'تفاصيل الخدمة أو الرافعة' : 'Service or equipment details'}
+                          value={item.description || ''}
+                          onChange={(e) => handleUpdateItem(idx, { description: e.target.value })}
+                          className="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        />
+                      </div>
+
+                      {/* Unit */}
+                      <div className="sm:col-span-3">
+                        <label className="block text-[11px] font-bold text-slate-600 mb-0.5">
+                          {lang === 'ar' ? 'الوحدة' : 'Unit'}
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Day / Shift / Trip / Pcs"
+                          value={item.unit || 'Pcs'}
+                          onChange={(e) => handleUpdateItem(idx, { unit: e.target.value })}
+                          className="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        />
+                      </div>
+
+                      {/* Quantity */}
+                      <div className="sm:col-span-3">
+                        <label className="block text-[11px] font-bold text-slate-600 mb-0.5">
+                          {lang === 'ar' ? 'الكمية' : 'Quantity'}
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="any"
+                          value={item.quantity || ''}
+                          onChange={(e) => handleUpdateItem(idx, { quantity: Math.max(0, Number(e.target.value)) })}
+                          className="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 bg-white font-mono focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        />
+                      </div>
+
+                      {/* Rate */}
+                      <div className="sm:col-span-3">
+                        <label className="block text-[11px] font-bold text-slate-600 mb-0.5">
+                          {lang === 'ar' ? 'سعر الوحدة (ر.س)' : 'Rate (SAR)'}
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="any"
+                          value={item.rate || ''}
+                          onChange={(e) => handleUpdateItem(idx, { rate: Math.max(0, Number(e.target.value)) })}
+                          className="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 bg-white font-mono focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        />
+                      </div>
+
+                      {/* Line Subtotal Preview */}
+                      <div className="sm:col-span-3 flex flex-col justify-end">
+                        <div className="text-[10px] text-slate-500 font-medium">
+                          {lang === 'ar' ? 'الإجمالي' : 'Total'}
+                        </div>
+                        <div className="text-xs font-bold text-[#0f2744] font-mono py-1.5">
+                          {((Number(item.quantity || 0) * Number(item.rate || 0))).toFixed(2)} SAR
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                )}
-
-                {/* Description */}
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    {t.serviceDescription} *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder={t.serviceDescriptionPlaceholder}
-                    value={invoice.serviceDescription}
-                    onChange={(e) => updateField('serviceDescription', e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-lg border border-slate-300/90 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all shadow-2xs font-medium"
-                  />
-                </div>
-
-                {/* Quantity */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    {t.quantity} *
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    step="1"
-                    required
-                    value={invoice.quantity || ''}
-                    onChange={(e) => updateField('quantity', Math.max(1, Number(e.target.value)))}
-                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm font-mono font-bold rounded-lg border border-slate-300/90 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all shadow-2xs"
-                  />
-                </div>
-
-                {/* Rate */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    {t.rate} *
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      min="0"
-                      step="any"
-                      required
-                      value={invoice.rate || ''}
-                      onChange={(e) => updateField('rate', Math.max(0, Number(e.target.value)))}
-                      className="w-full px-3.5 py-2.5 text-xs sm:text-sm font-mono font-bold rounded-lg border border-slate-300/90 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all shadow-2xs"
-                    />
-                    <span className="absolute end-3 top-2.5 text-[10px] sm:text-xs font-bold text-slate-400 pointer-events-none">
-                      SAR
-                    </span>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
 
-            {/* SECTION 3: Invoice (Number, Date, Due Date, VAT [15% / No VAT], Payment Status) */}
+            {/* SECTION 3: Invoice Details (Number, Dates, Payment, Job Location, VAT) */}
             <div className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-5 shadow-xs space-y-3.5">
               <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100">
                 <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
@@ -363,7 +582,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">{t.sectionInvoice}</h3>
                   <p className="text-[11px] text-slate-400 font-medium">
-                    {lang === 'ar' ? 'رقم الفاتورة والتواريخ والضريبة' : 'Invoice Number, Dates & Tax Options'}
+                    {lang === 'ar' ? 'بيانات الفاتورة وموقع العمل وطريقة الدفع' : 'Invoice Number, Dates, Location & Payment'}
                   </p>
                 </div>
               </div>
@@ -438,6 +657,76 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
                   />
                 </div>
 
+                {/* Job Location */}
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    {lang === 'ar' ? 'موقع العمل' : 'Job Location'} *
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <select
+                      value={invoice.city}
+                      onChange={(e) => {
+                        updateField('city', e.target.value);
+                        if (e.target.value !== 'Other') {
+                          updateField('jobLocation', e.target.value);
+                        }
+                      }}
+                      className="w-full px-3.5 py-2.5 text-xs sm:text-sm font-medium rounded-lg border border-slate-300/90 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    >
+                      {SAUDI_CITIES.map((c) => (
+                        <option key={c} value={c}>
+                          {lang === 'ar' ? SAUDI_CITIES_AR[c] || c : c}
+                        </option>
+                      ))}
+                    </select>
+
+                    <input
+                      type="text"
+                      placeholder={lang === 'ar' ? 'الموقع بالتفصيل (مشروع / حي / موقع)' : 'Detailed Job Location / Site'}
+                      value={invoice.jobLocation || ''}
+                      onChange={(e) => updateField('jobLocation', e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-lg border border-slate-300/90 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    />
+                  </div>
+                </div>
+
+                {/* If Partially Paid: Paid Amount & Amount Due */}
+                {invoice.paymentStatus === 'Partially Paid' && (
+                  <>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        {lang === 'ar' ? 'المبلغ المدفوع (ر.س)' : 'Paid Amount (SAR)'}
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="any"
+                        value={invoice.paidAmount ?? ''}
+                        onChange={(e) => {
+                          const paid = Math.max(0, Number(e.target.value) || 0);
+                          setInvoice((prev) => ({
+                            ...prev,
+                            paidAmount: paid,
+                            amountDue: Math.max(0, Math.round((prev.total - paid) * 100) / 100),
+                          }));
+                        }}
+                        className="w-full px-3.5 py-2.5 text-xs sm:text-sm font-mono rounded-lg border border-slate-300/90 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        {lang === 'ar' ? 'المبلغ المستحق (ر.س)' : 'Amount Due (SAR)'}
+                      </label>
+                      <input
+                        type="number"
+                        disabled
+                        value={invoice.amountDue ?? Math.max(0, invoice.total - (invoice.paidAmount || 0))}
+                        className="w-full px-3.5 py-2.5 text-xs sm:text-sm font-mono rounded-lg border border-slate-200 bg-slate-100 text-slate-700"
+                      />
+                    </div>
+                  </>
+                )}
+
                 {/* VAT Option Selection */}
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">
@@ -469,20 +758,6 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
                       <span>{t.noVat}</span>
                     </button>
                   </div>
-                </div>
-
-                {/* Optional Notes */}
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    {t.notes}
-                  </label>
-                  <input
-                    type="text"
-                    placeholder={t.notesPlaceholder}
-                    value={invoice.notes || ''}
-                    onChange={(e) => updateField('notes', e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-lg border border-slate-300/90 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all shadow-2xs font-medium"
-                  />
                 </div>
               </div>
             </div>

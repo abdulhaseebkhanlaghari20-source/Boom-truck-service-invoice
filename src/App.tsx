@@ -69,9 +69,11 @@ function createEmptyInvoice(invoices: Invoice[], lang: Language): Invoice {
     paymentStatus: 'Unpaid',
     customerName: '',
     customerPhone: '',
+    customerAddress: '',
     customerVatNumber: '',
     city: 'Riyadh',
     customCity: '',
+    jobLocation: 'Riyadh',
     truckCapacity: '20 Ton',
     serviceDescription:
       lang === 'ar'
@@ -79,10 +81,30 @@ function createEmptyInvoice(invoices: Invoice[], lang: Language): Invoice {
         : '20 Ton Boom Truck lifting and transportation services',
     quantity: qty,
     rate: rate,
+    unit: 'Day',
+    items: [
+      {
+        id: `item-${Date.now()}`,
+        serviceName: lang === 'ar' ? 'تأجير بوم ترك' : 'Boom Truck Rental',
+        description:
+          lang === 'ar'
+            ? 'تأجير شاحنة رافعة هيدروليكية حمولة 20 طن'
+            : '20 Ton Boom Truck lifting and transportation services',
+        unit: 'Day',
+        quantity: qty,
+        rate: rate,
+        vatRate: 0.15,
+        vatAmount: vatAmount,
+        subtotal: subtotal,
+        total: total,
+      },
+    ],
     vatOption: 'VAT 15%',
     subtotal: subtotal,
     vatAmount: vatAmount,
     total: total,
+    paidAmount: 0,
+    amountDue: total,
     notes:
       lang === 'ar'
         ? 'مشغل معتمد ومعدات رفع مؤهلة مشمولة. السداد خلال ١٤ يوماً من تاريخ الفاتورة.'

@@ -1,4 +1,4 @@
-import { Invoice, Language, VatOption } from '../types/invoice';
+import { Invoice, InvoiceItem, Language, VatOption } from '../types/invoice';
 
 export const SAUDI_CITIES = [
   'Riyadh',
@@ -66,6 +66,37 @@ export function calculateInvoiceTotals(
   const subtotal = Math.round(cleanQty * cleanRate * 100) / 100;
   const is15Percent = vatOption === 'VAT 15%';
   const vatAmount = is15Percent ? Math.round(subtotal * 15) / 100 : 0;
+  const total = Math.round((subtotal + vatAmount) * 100) / 100;
+
+  return { subtotal, vatAmount, total };
+}
+
+/**
+ * Calculates exact subtotal, VAT, and grand total for multiple invoice line items
+ */
+export function calculateMultiItemTotals(
+  items: InvoiceItem[],
+  vatOption: VatOption
+): { subtotal: number; vatAmount: number; total: number } {
+  let subtotal = 0;
+  let vatAmount = 0;
+  const is15Percent = vatOption === 'VAT 15%';
+
+  items.forEach((item) => {
+    const q = Math.max(0, Number(item.quantity) || 0);
+    const r = Math.max(0, Number(item.rate) || 0);
+    const itemSub = Math.round(q * r * 100) / 100;
+    subtotal += itemSub;
+    if (is15Percent) {
+      const itemVat = item.vatAmount !== undefined
+        ? Number(item.vatAmount)
+        : Math.round(itemSub * 15) / 100;
+      vatAmount += itemVat;
+    }
+  });
+
+  subtotal = Math.round(subtotal * 100) / 100;
+  vatAmount = Math.round(vatAmount * 100) / 100;
   const total = Math.round((subtotal + vatAmount) * 100) / 100;
 
   return { subtotal, vatAmount, total };
