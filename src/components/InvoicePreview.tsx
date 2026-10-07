@@ -125,26 +125,30 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
   const serviceAr = cleanVal(companySettings.businessServiceAr) || 'لتأجير بوم ترك';
   const taglineEn = cleanVal(companySettings.taglineEn) || 'LIFT  |  TRANSPORT  |  HEAVY EQUIPMENT SOLUTIONS';
   const taglineAr = cleanVal(companySettings.taglineAr) || 'خدمات رفع ونقل ومعدات متكاملة';
-  const closingEn = cleanVal(companySettings.closingNoteEn) || cleanVal(companySettings.emailClosing) || 'Thank you for your business';
-  const closingAr = cleanVal(companySettings.closingNoteAr) || 'شكراً لتعاملكم معنا';
 
   const vatNo = cleanVal(companySettings.vatNumber);
   const crNo = cleanVal(companySettings.crNumber);
   const primaryPhone = cleanVal(companySettings.phone);
   const secondaryPhone = cleanVal(companySettings.secondaryPhone);
   const phoneVal = [primaryPhone, secondaryPhone].filter(Boolean).join(', ');
-  const whatsappVal = cleanVal(companySettings.whatsapp);
   const emailVal = cleanVal(companySettings.email);
   const addressVal = cleanVal(companySettings.address);
   const addressArVal = cleanVal(companySettings.addressAr);
-  const websiteVal = cleanVal(companySettings.website);
   const bankAccountVal = cleanVal(companySettings.bankAccountNumber);
   const sealNoteVal = cleanVal(companySettings.sealNote);
+
+  // Paid and Due amounts calculated safely
+  const paidAmount = invoice.paymentStatus === 'Paid'
+    ? safeTotal
+    : invoice.paymentStatus === 'Partially Paid'
+    ? safeTotal / 2
+    : 0;
+  const amountDue = Math.max(0, safeTotal - paidAmount);
 
   // Inner A4 Sheet Content (100% Fixed Master Reference A4 Layout)
   const a4SheetContent = (
     <>
-      {/* Center Background Watermark (Uses uploaded custom watermark or logo from Settings) */}
+      {/* Center Background Watermark */}
       {companySettings.enableWatermark !== false && (companySettings.watermarkUrl || companySettings.logoUrl) && (
         <div
           className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-0"
@@ -156,7 +160,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
             referrerPolicy="no-referrer"
             className="w-auto h-auto max-w-[420px] max-h-[420px] object-contain transition-opacity"
             style={{
-              opacity: companySettings.watermarkOpacity !== undefined ? companySettings.watermarkOpacity : 0.055,
+              opacity: companySettings.watermarkOpacity !== undefined ? companySettings.watermarkOpacity : 0.05,
               filter: 'grayscale(100%) contrast(110%)',
             }}
           />
@@ -164,17 +168,17 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
       )}
 
       {/* Foreground Content */}
-      <div className="relative z-10 flex flex-col justify-between flex-1 space-y-2.5">
+      <div className="relative z-10 flex flex-col justify-between flex-1 space-y-2">
         <div>
           {/* ========================================================
-              1. CLEAN CORPORATE HEADER (Logo Centered, English Left, Arabic Right)
+              1. MASTER HEADER: English Left, Logo Centered, Arabic Right
               ======================================================== */}
-          <div className="bg-white text-slate-900 rounded-lg overflow-hidden relative border border-slate-200 shadow-2xs mb-2 p-3 sm:p-4">
-            <div className="grid grid-cols-12 gap-3 items-center">
+          <div className="bg-white text-slate-900 rounded-md overflow-hidden relative border border-[#cbdde8] mb-2 p-3 sm:p-3.5">
+            <div className="grid grid-cols-12 gap-2 items-center">
               {/* Left Column: English Company Information (LTR) */}
-              <div className="col-span-5 text-start space-y-1 min-w-0" dir="ltr">
+              <div className="col-span-5 text-start space-y-0.5 min-w-0" dir="ltr">
                 <h1
-                  className={`font-bold text-slate-900 tracking-tight leading-tight break-words ${
+                  className={`font-bold text-[#0f2744] tracking-tight leading-tight break-words ${
                     companyNameEn.length > 35
                       ? 'text-xs'
                       : companyNameEn.length > 22
@@ -185,25 +189,25 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                   {toTitleCase(companyNameEn)}
                 </h1>
                 {serviceEn && (
-                  <p className="text-[10px] font-bold text-emerald-800 tracking-wide leading-tight">
+                  <p className="text-[10px] font-bold text-[#1e4976] tracking-wide leading-tight">
                     {serviceEn}
                   </p>
                 )}
                 {vatNo && (
                   <div className="text-[10px] text-slate-800 leading-tight">
-                    <span className="font-bold text-slate-900">VAT: </span>
+                    <span className="font-bold text-[#0f2744]">VAT: </span>
                     <span className="font-mono">{vatNo}</span>
                   </div>
                 )}
                 {crNo && (
                   <div className="text-[10px] text-slate-800 leading-tight">
-                    <span className="font-bold text-slate-900">CR: </span>
+                    <span className="font-bold text-[#0f2744]">CR: </span>
                     <span className="font-mono">{crNo}</span>
                   </div>
                 )}
                 {addressVal && (
                   <div className="text-[9.5px] text-slate-700 leading-snug break-words">
-                    <span className="font-bold text-slate-900">Address: </span>
+                    <span className="font-bold text-[#0f2744]">Address: </span>
                     <span>{addressVal}</span>
                   </div>
                 )}
@@ -212,7 +216,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               {/* Center Column: Company Logo */}
               <div className="col-span-2 flex flex-col items-center justify-center">
                 {companySettings.logoUrl ? (
-                  <div className="w-20 h-16 rounded-md p-0.5 flex items-center justify-center">
+                  <div className="w-20 h-16 rounded p-0.5 flex items-center justify-center">
                     <img
                       src={companySettings.logoUrl}
                       alt="Company Logo"
@@ -221,17 +225,17 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                     />
                   </div>
                 ) : (
-                  <div className="w-16 h-14 bg-emerald-50 border border-emerald-300 rounded-md flex flex-col items-center justify-center p-1 text-center">
-                    <span className="text-[10px] font-black tracking-tight text-slate-800">COMPANY</span>
-                    <span className="text-[7.5px] font-bold text-emerald-700">LOGO</span>
+                  <div className="w-16 h-14 bg-[#f0f5fa] border border-[#cbdde8] rounded flex flex-col items-center justify-center p-1 text-center">
+                    <span className="text-[10px] font-bold tracking-tight text-[#0f2744]">COMPANY</span>
+                    <span className="text-[7.5px] font-bold text-[#1e4976]">LOGO</span>
                   </div>
                 )}
               </div>
 
               {/* Right Column: Arabic Company Information (RTL) */}
-              <div className="col-span-5 text-end space-y-1 min-w-0" dir="rtl">
+              <div className="col-span-5 text-end space-y-0.5 min-w-0" dir="rtl">
                 <h2
-                  className={`font-bold text-slate-900 leading-tight break-words ${
+                  className={`font-bold text-[#0f2744] leading-tight break-words ${
                     companyNameAr.length > 35
                       ? 'text-sm'
                       : companyNameAr.length > 22
@@ -242,149 +246,185 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                   {companyNameAr}
                 </h2>
                 {serviceAr && (
-                  <div className="text-[10.5px] font-bold text-emerald-800 leading-tight">
+                  <div className="text-[10.5px] font-bold text-[#1e4976] leading-tight">
                     {serviceAr}
                   </div>
                 )}
                 {vatNo && (
                   <div className="text-[10px] text-slate-800 leading-tight">
-                    <span className="font-bold text-slate-900">الرقم الضريبي: </span>
+                    <span className="font-bold text-[#0f2744]">الرقم الضريبي: </span>
                     <span className="font-mono">{vatNo}</span>
                   </div>
                 )}
                 {crNo && (
                   <div className="text-[10px] text-slate-800 leading-tight">
-                    <span className="font-bold text-slate-900">السجل التجاري: </span>
+                    <span className="font-bold text-[#0f2744]">السجل التجاري: </span>
                     <span className="font-mono">{crNo}</span>
                   </div>
                 )}
                 {(addressArVal || addressVal) && (
                   <div className="text-[9.5px] text-slate-700 leading-snug break-words">
-                    <span className="font-bold text-slate-900">العنوان: </span>
+                    <span className="font-bold text-[#0f2744]">العنوان: </span>
                     <span>{addressArVal || addressVal}</span>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Bottom Accent Line */}
-            <div className="w-full h-[2px] bg-slate-200 mt-2.5" />
+            {/* Subtle Divider Line */}
+            <div className="w-full h-[2px] bg-[#e2ecf3] mt-2.5" />
           </div>
 
-          {/* 2. INVOICE TITLE: Clean Horizontal Title Bar */}
+          {/* ========================================================
+              2. INVOICE TITLE: Master Tax Invoice Title Bar
+              ======================================================== */}
           <div className="flex justify-center my-1.5">
-            <div className="w-full border border-slate-300 rounded-md py-1.5 text-center bg-slate-100/90 shadow-2xs">
-              <span className="text-sm sm:text-base font-bold text-slate-900 tracking-wide">
+            <div className="w-full bg-[#0f2744] text-white rounded py-1.5 px-4 text-center shadow-xs">
+              <span className="text-sm sm:text-base font-bold tracking-wider">
                 Tax Invoice / الفاتورة الضريبية
               </span>
             </div>
           </div>
 
-          {/* 3. CUSTOMER + INVOICE DETAILS: 2-Column Arrangement */}
-          <div className="grid grid-cols-2 gap-x-6 gap-y-2 py-2 text-xs text-slate-800">
-            {/* Left Column: Customer Information */}
-            <div className="space-y-1">
-              <div className="flex items-baseline gap-1.5">
-                <span className="font-bold text-slate-900 whitespace-nowrap">
-                  Client Name / اسم العميل :
-                </span>
-                <span className="font-bold text-slate-900 truncate">
-                  {invoice.customerName || '-'}
-                </span>
+          {/* ========================================================
+              3. TWO-COLUMN DETAILS: Client Details (Left) + Invoice Details (Right)
+              ======================================================== */}
+          <div className="grid grid-cols-2 gap-3 my-2 text-xs">
+            {/* Left Column: Client Details */}
+            <div className="border border-[#cbdde8] rounded overflow-hidden bg-white">
+              <div className="bg-[#f0f5fa] border-b border-[#cbdde8] px-3 py-1 font-bold text-[#0f2744] flex justify-between items-center">
+                <span>Client Details</span>
+                <span dir="rtl">بيانات العميل</span>
               </div>
-              <div className="flex items-baseline gap-1.5">
-                <span className="font-bold text-slate-900 whitespace-nowrap">
-                  VAT No. / الرقم الضريبي :
-                </span>
-                <span className="font-mono text-slate-800">
-                  {invoice.customerVatNumber || '-'}
-                </span>
-              </div>
-              <div className="flex items-baseline gap-1.5">
-                <span className="font-bold text-slate-900 whitespace-nowrap">
-                  Address / عنوان العميل :
-                </span>
-                <span className="text-slate-700 truncate">
-                  {displayCity} ({cityAr})
-                </span>
-              </div>
-              <div className="flex items-baseline gap-1.5">
-                <span className="font-bold text-slate-900 whitespace-nowrap">
-                  Mobile / جوال :
-                </span>
-                <span className="font-mono text-slate-800">
-                  {invoice.customerPhone || '-'}
-                </span>
+              <div className="p-2.5 space-y-1.5 text-slate-800">
+                <div className="flex justify-between items-baseline gap-2">
+                  <span className="font-bold text-[#0f2744] whitespace-nowrap">
+                    Client Name / اسم العميل :
+                  </span>
+                  <span className="font-bold text-slate-900 truncate text-end">
+                    {invoice.customerName || '-'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-baseline gap-2">
+                  <span className="font-bold text-[#0f2744] whitespace-nowrap">
+                    Mobile / رقم الجوال :
+                  </span>
+                  <span className="font-mono text-slate-900 text-end">
+                    {invoice.customerPhone || '-'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-baseline gap-2">
+                  <span className="font-bold text-[#0f2744] whitespace-nowrap">
+                    Address / العنوان :
+                  </span>
+                  <span className="text-slate-800 truncate text-end">
+                    {displayCity} ({cityAr})
+                  </span>
+                </div>
+                <div className="flex justify-between items-baseline gap-2">
+                  <span className="font-bold text-[#0f2744] whitespace-nowrap">
+                    Job Location / موقع العمل :
+                  </span>
+                  <span className="text-slate-800 truncate text-end">
+                    {displayCity}
+                  </span>
+                </div>
+                {invoice.customerVatNumber && (
+                  <div className="flex justify-between items-baseline gap-2">
+                    <span className="font-bold text-[#0f2744] whitespace-nowrap">
+                      VAT No. / الرقم الضريبي :
+                    </span>
+                    <span className="font-mono text-slate-900 text-end">
+                      {invoice.customerVatNumber}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Right Column: Invoice Metadata */}
-            <div className="space-y-1 text-end rtl:text-start">
-              <div className="flex items-baseline justify-end rtl:justify-start gap-1.5">
-                <span className="font-bold text-slate-900 whitespace-nowrap">
-                  Invoice No. / رقم الفاتورة :
-                </span>
-                <span className="font-mono font-bold text-slate-900">
-                  {invoice.invoiceNumber || '0177'}
-                </span>
+            {/* Right Column: Invoice Details */}
+            <div className="border border-[#cbdde8] rounded overflow-hidden bg-white">
+              <div className="bg-[#f0f5fa] border-b border-[#cbdde8] px-3 py-1 font-bold text-[#0f2744] flex justify-between items-center">
+                <span>Invoice Details</span>
+                <span dir="rtl">بيانات الفاتورة</span>
               </div>
-              <div className="flex items-baseline justify-end rtl:justify-start gap-1.5">
-                <span className="font-bold text-slate-900 whitespace-nowrap">
-                  Date / تاريخ الفاتورة :
-                </span>
-                <span className="font-mono text-slate-800">
-                  {formatDate(invoice.invoiceDate)}
-                </span>
-              </div>
-              <div className="flex items-baseline justify-end rtl:justify-start gap-1.5">
-                <span className="font-bold text-slate-900 whitespace-nowrap">
-                  Pay Via / طريقة الدفع :
-                </span>
-                <span className="font-semibold text-slate-900">
-                  {paymentMethodLabel}
-                </span>
+              <div className="p-2.5 space-y-1.5 text-slate-800">
+                <div className="flex justify-between items-baseline gap-2">
+                  <span className="font-bold text-[#0f2744] whitespace-nowrap">
+                    Invoice No. / رقم الفاتورة :
+                  </span>
+                  <span className="font-mono font-bold text-[#0f2744] text-end">
+                    {invoice.invoiceNumber || '0177'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-baseline gap-2">
+                  <span className="font-bold text-[#0f2744] whitespace-nowrap">
+                    Date / تاريخ الفاتورة :
+                  </span>
+                  <span className="font-mono text-slate-900 text-end">
+                    {formatDate(invoice.invoiceDate)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-baseline gap-2">
+                  <span className="font-bold text-[#0f2744] whitespace-nowrap">
+                    Due Date / تاريخ الاستحقاق :
+                  </span>
+                  <span className="font-mono text-slate-900 text-end">
+                    {formatDate(invoice.dueDate || invoice.invoiceDate)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-baseline gap-2">
+                  <span className="font-bold text-[#0f2744] whitespace-nowrap">
+                    Payment Method / طريقة الدفع :
+                  </span>
+                  <span className="font-semibold text-slate-900 text-end">
+                    {paymentMethodLabel}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* 4. SERVICE TABLE (Reference Table Design with Clean Grid & Empty Rows) */}
+          {/* ========================================================
+              4. LARGE BILINGUAL SERVICE TABLE
+              ======================================================== */}
           <div className="my-2">
-            <table className="w-full text-xs text-center border-collapse border border-slate-300">
+            <table className="w-full text-xs text-center border-collapse border border-[#cbdde8]">
               <thead>
-                <tr className="bg-slate-100 text-slate-900 font-bold border-b border-slate-300">
-                  <th className="py-2 px-1.5 border-r border-slate-300 w-10 text-center">#</th>
-                  <th className="py-2 px-3 border-r border-slate-300 text-start w-2/5">
-                    <div>Descriptions</div>
-                    <div className="text-[10px] text-slate-600 font-semibold">بيان الصنف</div>
+                <tr className="bg-[#0f2744] text-white font-bold border-b border-[#0f2744]">
+                  <th className="py-2 px-1.5 border-r border-[#1e4976] w-9 text-center">#</th>
+                  <th className="py-2 px-3 border-r border-[#1e4976] text-start w-2/5">
+                    <div>Description</div>
+                    <div className="text-[10px] text-sky-200 font-normal">الوصف</div>
                   </th>
-                  <th className="py-2 px-2 border-r border-slate-300 w-16">
-                    <div>QTY</div>
-                    <div className="text-[10px] text-slate-600 font-semibold">الكمية</div>
+                  <th className="py-2 px-2 border-r border-[#1e4976] w-16">
+                    <div>Quantity</div>
+                    <div className="text-[10px] text-sky-200 font-normal">الكمية</div>
                   </th>
-                  <th className="py-2 px-2 border-r border-slate-300 w-20">
+                  <th className="py-2 px-2 border-r border-[#1e4976] w-20">
                     <div>Rate</div>
-                    <div className="text-[10px] text-slate-600 font-semibold">السعر</div>
+                    <div className="text-[10px] text-sky-200 font-normal">سعر الوحدة</div>
                   </th>
-                  <th className="py-2 px-2 border-r border-slate-300 w-20">
+                  <th className="py-2 px-2 border-r border-[#1e4976] w-20">
                     <div>VAT 15%</div>
-                    <div className="text-[10px] text-slate-600 font-semibold">الضريبة</div>
+                    <div className="text-[10px] text-sky-200 font-normal">ضريبة القيمة المضافة</div>
                   </th>
-                  <th className="py-2 px-2.5 border-r border-slate-300 w-24">
-                    <div>Amount Inc. Vat</div>
-                    <div className="text-[10px] text-slate-600 font-semibold">المبلغ شامل الضريبة</div>
+                  <th className="py-2 px-2.5 border-r border-[#1e4976] w-24">
+                    <div>Subtotal</div>
+                    <div className="text-[10px] text-sky-200 font-normal">المجموع الفرعي</div>
                   </th>
                   <th className="py-2 px-2.5 w-24">
-                    <div>Subtotal</div>
-                    <div className="text-[10px] text-slate-600 font-semibold">المجموع الفرعي</div>
+                    <div>Total Amount</div>
+                    <div className="text-[10px] text-sky-200 font-normal">إجمالي المبلغ</div>
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-300">
-                {/* Line 1: Primary Boom Truck Service Data */}
-                <tr className="bg-white/80 font-medium text-slate-900">
-                  <td className="py-2.5 px-1.5 border-r border-slate-300 font-bold font-mono">1</td>
-                  <td className="py-2.5 px-3 border-r border-slate-300 text-start font-semibold">
-                    <div>
+              <tbody className="divide-y divide-[#cbdde8]">
+                {/* Line 1: Service Record */}
+                <tr className="bg-white font-normal text-slate-900">
+                  <td className="py-2 px-1.5 border-r border-[#cbdde8] font-bold font-mono">1</td>
+                  <td className="py-2 px-3 border-r border-[#cbdde8] text-start">
+                    <div className="font-semibold text-slate-900">
                       {invoice.serviceDescription ||
                         `Boom Truck For One Day (${displayCity})`}
                     </div>
@@ -392,32 +432,32 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                       {invoice.truckCapacity || '20 Ton'} Boom Truck Crane with licensed operator
                     </div>
                   </td>
-                  <td className="py-2.5 px-2 border-r border-slate-300 font-mono">
+                  <td className="py-2 px-2 border-r border-[#cbdde8] font-mono">
                     {safeQty}.00 Pcs
                   </td>
-                  <td className="py-2.5 px-2 border-r border-slate-300 font-mono">
+                  <td className="py-2 px-2 border-r border-[#cbdde8] font-mono">
                     {safeRate.toFixed(2)}
                   </td>
-                  <td className="py-2.5 px-2 border-r border-slate-300 font-mono">
+                  <td className="py-2 px-2 border-r border-[#cbdde8] font-mono">
                     {safeVatAmount.toFixed(2)}
                   </td>
-                  <td className="py-2.5 px-2.5 border-r border-slate-300 font-mono font-bold">
-                    {safeTotal.toFixed(2)}
+                  <td className="py-2 px-2.5 border-r border-[#cbdde8] font-mono">
+                    {safeSubtotal.toFixed(2)}
                   </td>
-                  <td className="py-2.5 px-2.5 font-mono font-bold">
+                  <td className="py-2 px-2.5 font-mono font-bold text-[#0f2744]">
                     {safeTotal.toFixed(2)}
                   </td>
                 </tr>
 
-                {/* 5 Empty Rows to replicate the professional height/spacing of the reference */}
+                {/* Empty Rows to replicate master reference spacing and proportions */}
                 {[2, 3, 4, 5, 6].map((rowNum) => (
-                  <tr key={rowNum} className="h-7 bg-white/40">
-                    <td className="py-1 px-1.5 border-r border-slate-300 font-mono text-slate-300"></td>
-                    <td className="py-1 px-3 border-r border-slate-300"></td>
-                    <td className="py-1 px-2 border-r border-slate-300"></td>
-                    <td className="py-1 px-2 border-r border-slate-300"></td>
-                    <td className="py-1 px-2 border-r border-slate-300"></td>
-                    <td className="py-1 px-2.5 border-r border-slate-300"></td>
+                  <tr key={rowNum} className="h-6.5 bg-[#fbfdff]">
+                    <td className="py-1 px-1.5 border-r border-[#cbdde8] font-mono text-slate-300"></td>
+                    <td className="py-1 px-3 border-r border-[#cbdde8]"></td>
+                    <td className="py-1 px-2 border-r border-[#cbdde8]"></td>
+                    <td className="py-1 px-2 border-r border-[#cbdde8]"></td>
+                    <td className="py-1 px-2 border-r border-[#cbdde8]"></td>
+                    <td className="py-1 px-2.5 border-r border-[#cbdde8]"></td>
                     <td className="py-1 px-2.5"></td>
                   </tr>
                 ))}
@@ -425,10 +465,12 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
             </table>
           </div>
 
-          {/* 5. QR CODE + TOTALS SECTION (Side by side like reference) */}
-          <div className="flex flex-row justify-between items-center gap-4 py-2">
+          {/* ========================================================
+              5. QR CODE + TOTALS SECTION
+              ======================================================== */}
+          <div className="flex flex-row justify-between items-center gap-4 py-1.5">
             {/* Left: Clean Bordered ZATCA QR Code */}
-            <div className="p-2 border border-slate-300 rounded bg-white shrink-0 shadow-2xs">
+            <div className="p-2 border border-[#cbdde8] rounded bg-white shrink-0 shadow-2xs">
               {qrCodeDataUrl ? (
                 <img
                   src={qrCodeDataUrl}
@@ -436,67 +478,85 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                   className="w-28 h-28 object-contain"
                 />
               ) : (
-                <div className="w-28 h-28 bg-slate-100 flex items-center justify-center text-xs text-slate-400">
+                <div className="w-28 h-28 bg-[#f0f5fa] flex items-center justify-center text-xs text-slate-400">
                   QR CODE
                 </div>
               )}
             </div>
 
-            {/* Right: Totals Table */}
-            <div className="flex-1 max-w-md border border-slate-300 rounded text-xs">
-              <div className="flex justify-between items-center px-3 py-1.5 border-b border-slate-200">
+            {/* Right: Totals Box */}
+            <div className="flex-1 max-w-md border border-[#cbdde8] rounded overflow-hidden text-xs bg-white">
+              {/* Subtotal */}
+              <div className="flex justify-between items-center px-3 py-1.5 border-b border-[#cbdde8]">
                 <span className="font-bold text-slate-800">
-                  Subtotal / الإجمالي قبل ضريبة القيمة المضافة
+                  Subtotal / المجموع الفرعي
                 </span>
                 <span className="font-mono font-bold text-slate-900 tabular-nums">
                   {safeSubtotal.toFixed(2)} ر.س
                 </span>
               </div>
 
-              <div className="flex justify-between items-center px-3 py-1.5 border-b border-slate-200">
+              {/* VAT 15% */}
+              <div className="flex justify-between items-center px-3 py-1.5 border-b border-[#cbdde8]">
                 <span className="font-bold text-slate-800">
-                  Vat 15% / ضريبة القيمة المضافة
+                  VAT 15% / ضريبة القيمة المضافة
                 </span>
                 <span className="font-mono font-bold text-slate-900 tabular-nums">
                   (+) {safeVatAmount.toFixed(2)} ر.س
                 </span>
               </div>
 
-              <div className="flex justify-between items-center px-3 py-1.5 border-b border-slate-200 bg-slate-50/70">
-                <span className="font-extrabold text-slate-900">
-                  Total Amount / الإجمالي شامل ضريبة القيمة المضافة
+              {/* Total Amount (Prominent Bold 700) */}
+              <div className="flex justify-between items-center px-3 py-1.5 border-b border-[#cbdde8] bg-[#f0f5fa]">
+                <span className="font-bold text-[#0f2744]">
+                  Total Amount / إجمالي المبلغ
                 </span>
-                <span className="font-mono font-black text-slate-900 tabular-nums">
+                <span className="font-mono font-bold text-[#0f2744] tabular-nums text-sm">
                   {safeTotal.toFixed(2)} ر.س
                 </span>
               </div>
 
-              <div className="flex justify-between items-center px-3 py-1.5 bg-slate-50/90">
-                <span className="font-extrabold text-slate-900">
-                  Total Paid / مجموع المبلغ المدفوع
+              {/* Paid Amount */}
+              <div className="flex justify-between items-center px-3 py-1.5 border-b border-[#cbdde8]/50">
+                <span className="font-bold text-slate-700">
+                  Paid Amount / المبلغ المدفوع
                 </span>
-                <span className="font-mono font-black text-slate-900 tabular-nums">
-                  {safeTotal.toFixed(2)} ر.س
+                <span className="font-mono font-bold text-slate-800 tabular-nums">
+                  {paidAmount.toFixed(2)} ر.س
+                </span>
+              </div>
+
+              {/* Amount Due */}
+              <div className="flex justify-between items-center px-3 py-1.5 bg-[#fbfdff]">
+                <span className="font-bold text-slate-700">
+                  Amount Due / المبلغ المستحق
+                </span>
+                <span className="font-mono font-bold text-slate-800 tabular-nums">
+                  {amountDue.toFixed(2)} ر.س
                 </span>
               </div>
             </div>
           </div>
 
-          {/* 6. AMOUNT IN WORDS BAR */}
-          <div className="bg-slate-200/80 border-y border-slate-300 px-3 py-1.5 text-xs text-slate-900 flex flex-row items-center justify-between gap-1">
-            <span className="font-bold whitespace-nowrap">
-              Amount Chargeable (in words) / المبلغ الإجمالي بالكلمات :
+          {/* ========================================================
+              6. AMOUNT IN WORDS SECTION
+              ======================================================== */}
+          <div className="bg-[#f0f5fa] border border-[#cbdde8] rounded px-3 py-1.5 text-xs text-slate-900 flex flex-row items-center justify-between gap-2 my-1">
+            <span className="font-bold text-[#0f2744] whitespace-nowrap">
+              Amount in Words / المبلغ بالكلمات :
             </span>
-            <span className="font-semibold text-slate-900 italic">
+            <span className="font-normal text-slate-800 italic text-end">
               {numberToWords(safeTotal, lang)}
             </span>
           </div>
 
-          {/* 7. NOTES + BANK DETAILS + 3 SIGNATURE COLUMNS */}
-          <div className="border border-slate-300 rounded text-[11px] text-slate-800 my-2 overflow-hidden">
-            {/* Seal Note */}
-            <div className="px-3 py-1.5 border-b border-slate-300 bg-slate-50 font-medium text-slate-700">
-              <strong className="text-slate-900 font-bold">Seal Note : </strong>
+          {/* ========================================================
+              7. LOWER SECTION: Bank Details & Signatures
+              ======================================================== */}
+          <div className="border border-[#cbdde8] rounded text-[11px] text-slate-800 my-1.5 overflow-hidden bg-white">
+            {/* Notes / Seal Note */}
+            <div className="px-3 py-1.5 border-b border-[#cbdde8] bg-[#fbfdff] font-normal text-slate-700">
+              <span className="text-[#0f2744] font-bold">Notes / ملاحظات : </span>
               <span>
                 {invoice.notes ||
                   sealNoteVal ||
@@ -505,53 +565,53 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
             </div>
 
             {/* 4 Equal Columns: Bank Details | Prepared By | Approved By | Received By */}
-            <div className="grid grid-cols-4 divide-x divide-slate-300 text-center">
+            <div className="grid grid-cols-4 divide-x divide-[#cbdde8] text-center">
               {/* Col 1: Bank Details */}
-              <div className="text-start p-2 space-y-0.5">
-                <div className="font-bold text-slate-900 border-b border-slate-200 pb-0.5 mb-1 text-center">
-                  Bank Details
+              <div className="text-start p-2 space-y-0.5 bg-[#f0f5fa]/40">
+                <div className="font-bold text-[#0f2744] border-b border-[#cbdde8] pb-0.5 mb-1 text-center">
+                  Bank Details / بيانات البنك
                 </div>
                 <div className="text-[10px] text-slate-700">
-                  <strong className="text-slate-900">Bank: </strong>
+                  <span className="font-bold text-[#0f2744]">Bank Name / اسم البنك: </span>
                   <span>{cleanVal(companySettings.bankName) || '-'}</span>
                 </div>
                 <div className="text-[10px] text-slate-700 font-mono">
-                  <strong className="text-slate-900 font-sans">A/C: </strong>
+                  <span className="font-bold text-[#0f2744] font-sans">Account No. / رقم الحساب: </span>
                   <span>{bankAccountVal || '-'}</span>
                 </div>
                 <div className="text-[10px] text-slate-700 font-mono">
-                  <strong className="text-slate-900 font-sans">IBAN: </strong>
+                  <span className="font-bold text-[#0f2744] font-sans">IBAN / رقم الآيبان: </span>
                   <span>{cleanVal(companySettings.iban) || '-'}</span>
                 </div>
               </div>
 
               {/* Col 2: Prepared By */}
               <div className="p-2 flex flex-col justify-between h-20">
-                <div className="font-bold text-slate-900 border-b border-slate-200 pb-0.5">
-                  Prepared By
+                <div className="font-bold text-[#0f2744] border-b border-[#cbdde8] pb-0.5">
+                  Prepared By / أعدها
                 </div>
-                <div className="text-[10px] text-slate-400 border-t border-dashed border-slate-300 pt-1">
-                  Sign/Stamp
+                <div className="text-[9.5px] text-slate-400 border-t border-dashed border-[#cbdde8] pt-1">
+                  Sign / Stamp / التوقيع / الختم
                 </div>
               </div>
 
               {/* Col 3: Approved By */}
               <div className="p-2 flex flex-col justify-between h-20">
-                <div className="font-bold text-slate-900 border-b border-slate-200 pb-0.5">
-                  Approved By
+                <div className="font-bold text-[#0f2744] border-b border-[#cbdde8] pb-0.5">
+                  Approved By / اعتمدها
                 </div>
-                <div className="text-[10px] text-slate-400 border-t border-dashed border-slate-300 pt-1">
-                  Sign/Stamp
+                <div className="text-[9.5px] text-slate-400 border-t border-dashed border-[#cbdde8] pt-1">
+                  Sign / Stamp / التوقيع / الختم
                 </div>
               </div>
 
               {/* Col 4: Received By */}
               <div className="p-2 flex flex-col justify-between h-20">
-                <div className="font-bold text-slate-900 border-b border-slate-200 pb-0.5">
-                  Received By
+                <div className="font-bold text-[#0f2744] border-b border-[#cbdde8] pb-0.5">
+                  Received By / استلمها
                 </div>
-                <div className="text-[10px] text-slate-400 border-t border-dashed border-slate-300 pt-1">
-                  Sign/Stamp
+                <div className="text-[9.5px] text-slate-400 border-t border-dashed border-[#cbdde8] pt-1">
+                  Sign / Stamp / التوقيع / الختم
                 </div>
               </div>
             </div>
@@ -559,29 +619,29 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
         </div>
 
         {/* ========================================================
-            8. MASTER CORPORATE FOOTER (Thin & Compact: Phone + Email Only)
+            8. CONTACT FOOTER: Dark Navy, Phone + Email Only
             ======================================================== */}
         {(phoneVal || emailVal) && (
-          <div className="bg-slate-900 text-white rounded-lg shadow-2xs overflow-hidden relative border border-slate-800 mt-2">
-            {/* Top Thin Accent Stripe */}
-            <div className="w-full h-[2px] bg-emerald-600" />
+          <div className="bg-[#0f2744] text-white rounded shadow-2xs overflow-hidden relative border border-[#0f2744] mt-1.5">
+            {/* Top Accent Stripe */}
+            <div className="w-full h-[2px] bg-sky-400" />
 
             <div className="py-1.5 px-4 flex flex-row items-center justify-between text-[10.5px]">
               {/* Phone / Mobile */}
               {phoneVal ? (
                 <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
-                  <Phone className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span className="font-bold text-slate-300">Phone / الجوال:</span>
-                  <span className="font-mono text-slate-100">{phoneVal}</span>
+                  <Phone className="w-3.5 h-3.5 text-sky-300 shrink-0" />
+                  <span className="font-bold text-sky-100">Mobile / رقم الجوال:</span>
+                  <span className="font-mono text-white">{phoneVal}</span>
                 </div>
               ) : <div />}
 
               {/* Email */}
               {emailVal && (
                 <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
-                  <Mail className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span className="font-bold text-slate-300">Email / البريد:</span>
-                  <span className="text-slate-100">{emailVal}</span>
+                  <Mail className="w-3.5 h-3.5 text-sky-300 shrink-0" />
+                  <span className="font-bold text-sky-100">Email / البريد:</span>
+                  <span className="text-white">{emailVal}</span>
                 </div>
               )}
             </div>
