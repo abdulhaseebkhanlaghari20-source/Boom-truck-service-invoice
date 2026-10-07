@@ -495,39 +495,12 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           </div>
 
           {/* ========================================================
-              4. FULLY DYNAMIC ITEMS / SERVICES TABLE WITH WATERMARK
-              - Large faded company/truck logo watermark behind the table
-              - Centered horizontally and vertically across table
-              - Approximately 10-12% opacity (0.11)
-              - Text and numbers remain crisp above watermark
+              4. FULLY DYNAMIC ITEMS / SERVICES TABLE (Clean & Crisp)
+              - Crisp white background with sharp borders
+              - No watermark behind table
+              - High readability and print clarity
               ======================================================== */}
-          <div className="my-2.5 relative overflow-hidden rounded border border-[#cbdde8] bg-white shadow-2xs min-h-[180px]">
-            {/* Master Reference Central Watermark */}
-            <div
-              className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-0"
-              aria-hidden="true"
-            >
-              {companySettings.watermarkUrl || companySettings.logoUrl ? (
-                <img
-                  src={companySettings.watermarkUrl || companySettings.logoUrl}
-                  alt=""
-                  referrerPolicy="no-referrer"
-                  className="w-auto h-auto max-w-[520px] max-h-[220px] object-contain transition-opacity"
-                  style={{
-                    opacity: companySettings.watermarkOpacity !== undefined ? companySettings.watermarkOpacity : 0.11,
-                    filter: 'grayscale(100%) contrast(115%)',
-                  }}
-                />
-              ) : (
-                <TruckWatermarkSvg
-                  className="w-[520px] h-[210px] text-[#0f2744]"
-                  style={{
-                    opacity: companySettings.watermarkOpacity !== undefined ? companySettings.watermarkOpacity : 0.11,
-                  }}
-                />
-              )}
-            </div>
-
+          <div className="my-2.5 overflow-hidden rounded border border-[#cbdde8] bg-white shadow-2xs">
             <table className="relative z-10 w-full text-xs text-center border-collapse">
               <thead>
                 <tr className="bg-[#0f2744] text-white font-bold border-b border-[#0f2744]">
@@ -559,7 +532,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#cbdde8]">
-                {/* Dynamic Line Items with semi-transparent backdrop so watermark is visible */}
+                {/* Dynamic Line Items with clean white background */}
                 {rawItems.map((item, idx) => {
                   const itemQty = Math.max(0, Number(item.quantity) || 0);
                   const itemRate = Math.max(0, Number(item.rate) || 0);
@@ -574,7 +547,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                     : (itemSubtotal + itemVat);
 
                   return (
-                    <tr key={item.id || idx} className="bg-white/75 font-normal text-slate-900 hover:bg-white/90">
+                    <tr key={item.id || idx} className="bg-white font-normal text-slate-900 hover:bg-[#f8fafc]">
                       <td className="py-2.5 px-1.5 border-r border-[#cbdde8] font-bold font-mono">
                         {idx + 1}
                       </td>
@@ -614,7 +587,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                 {/* Empty Rows to replicate master reference spacing and proportions */}
                 {rawItems.length < 5 &&
                   Array.from({ length: 5 - rawItems.length }).map((_, rIdx) => (
-                    <tr key={`empty-${rIdx}`} className="h-7 bg-white/60">
+                    <tr key={`empty-${rIdx}`} className="h-7 bg-white">
                       <td className="py-1 px-1.5 border-r border-[#cbdde8] font-mono text-slate-300"></td>
                       <td className="py-1 px-3 border-r border-[#cbdde8]"></td>
                       <td className="py-1 px-2 border-r border-[#cbdde8]"></td>
@@ -773,56 +746,50 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
 
         {/* ========================================================
             8. PROMINENT DARK NAVY FOOTER WITH GOLD ACCENT
-            - Contact row: Address, Phone, WhatsApp, Email with proper icons
-            - Address has enough horizontal space and is clearly readable
-            - Closing message: شكراً لكم | Thank You
+            - Top footer row: Phone | WhatsApp | Email
+            - Second footer row: Address (clear, spacious, full width)
+            - Bilingual closing message: شكراً لكم | Thank You
             - Gold accent stripe and dark navy styling
             ======================================================== */}
-        <div className="bg-[#0f2744] text-white rounded-md shadow-sm overflow-hidden relative border border-[#0f2744] mt-3">
+        <div className="bg-[#0f2744] text-white rounded-md shadow-sm overflow-hidden relative border border-[#0f2744] mt-2.5">
           {/* Top Gold Accent Stripe */}
           <div className="w-full h-[3px] bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500" />
 
-          {/* Contact Details Row */}
-          <div className="py-2.5 px-4 flex flex-wrap items-center justify-between gap-y-2 gap-x-5 text-[11px]">
-            {/* Address (Clean and clearly readable with adequate space) */}
-            {addressVal ? (
-              <div className="flex items-center gap-1.5 min-w-0 flex-1 max-w-[42%]" dir="ltr">
-                <MapPin className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-                <span className="font-bold text-slate-200 shrink-0">Address:</span>
-                <span className="text-white truncate" title={addressVal}>{addressVal}</span>
-              </div>
-            ) : null}
-
+          {/* Top Footer Row: Phone | WhatsApp | Email */}
+          <div className="py-2 px-4 flex items-center justify-around text-[11px] border-b border-sky-950/70 bg-[#0f2744]">
             {/* Phone */}
-            {phoneVal ? (
-              <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
-                <Phone className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-                <span className="font-bold text-slate-200">Phone:</span>
-                <span className="font-mono text-white">{phoneVal}</span>
-              </div>
-            ) : null}
+            <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
+              <Phone className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+              <span className="font-bold text-slate-200">Phone:</span>
+              <span className="font-mono text-white font-medium">{phoneVal || '-'}</span>
+            </div>
 
             {/* WhatsApp */}
-            {whatsappVal ? (
-              <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
-                <MessageSquare className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span className="font-bold text-slate-200">WhatsApp:</span>
-                <span className="font-mono text-white">{whatsappVal}</span>
-              </div>
-            ) : null}
+            <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
+              <MessageSquare className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <span className="font-bold text-slate-200">WhatsApp:</span>
+              <span className="font-mono text-white font-medium">{whatsappVal || phoneVal || '-'}</span>
+            </div>
 
             {/* Email */}
-            {emailVal ? (
-              <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
-                <Mail className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-                <span className="font-bold text-slate-200">Email:</span>
-                <span className="text-white">{emailVal}</span>
-              </div>
-            ) : null}
+            <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
+              <Mail className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+              <span className="font-bold text-slate-200">Email:</span>
+              <span className="text-white font-medium truncate max-w-[200px]">{emailVal || '-'}</span>
+            </div>
           </div>
 
+          {/* Second Footer Row: Address */}
+          {addressVal && (
+            <div className="py-1.5 px-4 flex items-center justify-center gap-2 text-[11px] border-b border-sky-950/50 bg-[#0d223c]" dir="ltr">
+              <MapPin className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+              <span className="font-bold text-slate-200 shrink-0">Address:</span>
+              <span className="text-white font-medium text-center">{addressVal}</span>
+            </div>
+          )}
+
           {/* Bilingual Closing Message */}
-          <div className="border-t border-sky-950/80 bg-[#0a1b2f] py-1.5 px-4 flex items-center justify-center gap-3 text-[11px] font-bold text-amber-200">
+          <div className="bg-[#0a1b2f] py-1.5 px-4 flex items-center justify-center gap-3 text-[11px] font-bold text-amber-200">
             <span dir="rtl">{companySettings.closingNoteAr || 'شكراً لكم'}</span>
             <span className="text-amber-400/60 font-normal">|</span>
             <span dir="ltr">{companySettings.closingNoteEn || 'Thank You'}</span>
@@ -838,16 +805,21 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
       <div
         id={`invoice-preview-sheet-${invoice?.id || 'temp'}`}
         data-invoice-sheet="true"
-        className="invoice-sheet print-only bg-white text-slate-900 p-6 mx-auto leading-normal select-text relative flex flex-col justify-between overflow-hidden"
+        className="invoice-sheet print-sheet print-only bg-white text-slate-900 mx-auto select-text relative flex flex-col justify-between overflow-hidden"
         dir={lang === 'ar' ? 'rtl' : 'ltr'}
         style={{
           fontFamily: 'Arial, "Arial Arabic", "Noto Sans Arabic", sans-serif',
           width: '794px',
           minWidth: '794px',
           maxWidth: '794px',
+          height: '1123px',
           minHeight: '1123px',
+          maxHeight: '1123px',
+          boxSizing: 'border-box',
+          padding: '24px 32px',
           breakInside: 'avoid',
           pageBreakInside: 'avoid',
+          pageBreakAfter: 'avoid',
         }}
       >
         {a4SheetContent}

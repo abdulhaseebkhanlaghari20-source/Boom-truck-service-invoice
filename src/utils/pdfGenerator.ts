@@ -59,8 +59,8 @@ export async function generateInvoicePdfBlob(
 
   try {
     imgData = await toPng(element, {
-      quality: 0.98,
-      pixelRatio: 2,
+      quality: 1.0,
+      pixelRatio: 2.5,
       backgroundColor: '#ffffff',
       cacheBust: true,
       skipFonts: true, // Prevents CORS or font fetch errors on mobile devices
@@ -79,25 +79,14 @@ export async function generateInvoicePdfBlob(
 
   const pageWidth = 210;
   const pageHeight = 297;
-  const margin = 8; // 8mm margins
-  const printableWidth = pageWidth - margin * 2; // 194mm
 
   let usedVector = false;
 
   if (imgData && imgData.length > 200) {
     try {
-      const imgProps = pdf.getImageProperties(imgData);
-      const canvasRatio = imgProps.height / imgProps.width;
-      const imgHeight = printableWidth * canvasRatio;
-
-      if (imgHeight <= pageHeight - margin * 2) {
-        pdf.addImage(imgData, 'PNG', margin, margin, printableWidth, imgHeight, undefined, 'FAST');
-      } else {
-        const maxHeight = pageHeight - margin * 2;
-        const scaledWidth = maxHeight / canvasRatio;
-        const offsetX = (pageWidth - scaledWidth) / 2;
-        pdf.addImage(imgData, 'PNG', offsetX, margin, scaledWidth, maxHeight, undefined, 'FAST');
-      }
+      // The element already incorporates true print-safe margins internally,
+      // mapping 1:1 onto the exact 210 x 297 mm A4 canvas eliminates blur, distortion, and double margins.
+      pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
     } catch (addErr) {
       console.warn('Failed to place snapshot image on PDF, using direct vector layout:', addErr);
       usedVector = true;
@@ -139,20 +128,6 @@ async function renderDirectVectorInvoice(
   pdf.text('TAX INVOICE / فاتورة ضريبية', 16, 22);
   pdf.setFontSize(11);
   pdf.text(`No: ${invoice.invoiceNumber}`, 148, 22);
-
-  // Dynamic Center Watermark in background
-  if (companySettings?.logoUrl) {
-    try {
-      pdf.saveGraphicsState();
-      if ((pdf as any).setGState && (pdf as any).GState) {
-        pdf.setGState(new (pdf as any).GState({ opacity: 0.045 }));
-      }
-      pdf.addImage(companySettings.logoUrl, 'PNG', 55, 95, 100, 100, undefined, 'FAST');
-      pdf.restoreGraphicsState();
-    } catch {
-      // Continue if GState unsupported
-    }
-  }
 
   // 2. Company Details (Left) + ZATCA QR Code (Right)
   let textStartX = 12;
