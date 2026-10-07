@@ -142,14 +142,20 @@ async function renderDirectVectorInvoice(
     }
   }
 
-  pdf.setTextColor(15, 23, 42);
+  // Primary Navy: #0F2744 -> [15, 39, 68]
+  // Dark Navy: #08233F -> [8, 35, 63]
+  // Light Blue: #F0F5FA -> [240, 245, 250]
+  // Border Blue: #CBDDE8 -> [203, 221, 232]
+  // Subtle Gold Accent: #D9A62E -> [217, 166, 46]
+
+  pdf.setTextColor(15, 39, 68);
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(13);
   pdf.text(company, textStartX, 43);
 
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(9.5);
-  pdf.setTextColor(71, 85, 105);
+  pdf.setTextColor(15, 39, 68);
   pdf.text(address, textStartX, 49);
   pdf.text(`VAT No: ${vatNo} | Phone: ${phone}`, textStartX, 54);
   pdf.text(`Email: ${email}${crNo ? ` | CR: ${crNo}` : ''}`, textStartX, 59);
@@ -171,55 +177,58 @@ async function renderDirectVectorInvoice(
   }
 
   // Horizontal divider
-  pdf.setDrawColor(203, 213, 225);
+  pdf.setDrawColor(203, 221, 232);
   pdf.line(10, 65, 200, 65);
 
   // 3. Bill To (Customer) & Invoice Metadata Zone
-  pdf.setFillColor(248, 250, 252);
+  pdf.setFillColor(240, 245, 250);
   pdf.rect(10, 68, 92, 32, 'F');
   pdf.rect(106, 68, 94, 32, 'F');
+  pdf.setDrawColor(203, 221, 232);
+  pdf.rect(10, 68, 92, 32, 'S');
+  pdf.rect(106, 68, 94, 32, 'S');
 
   // Customer Details Box
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(9.5);
-  pdf.setTextColor(100, 116, 139);
+  pdf.setTextColor(15, 39, 68);
   pdf.text('BILLED TO / العميل:', 14, 74);
-  pdf.setFontSize(12);
-  pdf.setTextColor(15, 23, 42);
+  pdf.setFontSize(11);
+  pdf.setTextColor(15, 39, 68);
   pdf.text(invoice.customerName || 'Valued Customer', 14, 81);
   pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(9.5);
-  pdf.setTextColor(71, 85, 105);
+  pdf.setFontSize(9);
+  pdf.setTextColor(15, 39, 68);
   pdf.text(`Phone: ${invoice.customerPhone || 'N/A'}`, 14, 88);
   pdf.text(`VAT No: ${invoice.customerVatNumber || 'N/A'}`, 14, 94);
 
   // Invoice Details Box
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(9.5);
-  pdf.setTextColor(100, 116, 139);
+  pdf.setTextColor(15, 39, 68);
   pdf.text('INVOICE DETAILS / بيانات الفاتورة:', 110, 74);
   pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(9.5);
-  pdf.setTextColor(15, 23, 42);
+  pdf.setFontSize(9);
+  pdf.setTextColor(15, 39, 68);
   pdf.text(`Date: ${formatDate(invoice.invoiceDate)}`, 110, 81);
   pdf.text(`Due Date: ${formatDate(invoice.dueDate)}`, 110, 88);
   pdf.text(`Location: ${city} | Capacity: ${invoice.truckCapacity}`, 110, 94);
 
   // 4. Service Line Items Table
-  pdf.setFillColor(15, 23, 42);
+  pdf.setFillColor(15, 39, 68);
   pdf.rect(10, 105, 190, 9, 'F');
   pdf.setTextColor(255, 255, 255);
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(9);
   pdf.text('#', 13, 111);
-  pdf.text('Boom Truck Service Description / بيان الخدمة', 22, 111);
+  pdf.text('Service Description / بيان الخدمة', 22, 111);
   pdf.text('Capacity', 105, 111);
   pdf.text('Qty', 128, 111);
   pdf.text('Rate (SAR)', 146, 111);
   pdf.text('Amount (SAR)', 175, 111);
 
   // Table Row
-  pdf.setTextColor(15, 23, 42);
+  pdf.setTextColor(15, 39, 68);
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(9.5);
   pdf.text('1', 13, 121);
@@ -238,7 +247,7 @@ async function renderDirectVectorInvoice(
   pdf.setFont('helvetica', 'bold');
   pdf.text(`${safeSubtotal.toFixed(2)}`, 180, 121);
 
-  pdf.setDrawColor(226, 232, 240);
+  pdf.setDrawColor(203, 221, 232);
   pdf.line(10, 127, 200, 127);
 
   // 5. Notes & Bank Info (Left) + Calculations (Right)
@@ -246,29 +255,29 @@ async function renderDirectVectorInvoice(
 
   // Notes & Bank details (Left)
   if (invoice.notes) {
-    pdf.setFillColor(248, 250, 252);
+    pdf.setFillColor(240, 245, 250);
     pdf.rect(10, calcTop, 90, 18, 'F');
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(8);
-    pdf.setTextColor(100, 116, 139);
+    pdf.setTextColor(15, 39, 68);
     pdf.text('Notes / Terms:', 13, calcTop + 5);
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(8);
-    pdf.setTextColor(51, 65, 85);
+    pdf.setTextColor(15, 39, 68);
     pdf.text(invoice.notes, 13, calcTop + 11);
   }
 
   if (companySettings?.bankName) {
     const bankY = invoice.notes ? calcTop + 22 : calcTop;
-    pdf.setFillColor(248, 250, 252);
+    pdf.setFillColor(240, 245, 250);
     pdf.rect(10, bankY, 90, 16, 'F');
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(8);
-    pdf.setTextColor(100, 116, 139);
+    pdf.setTextColor(15, 39, 68);
     pdf.text('Bank Transfer Details:', 13, bankY + 5);
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(8);
-    pdf.setTextColor(51, 65, 85);
+    pdf.setTextColor(15, 39, 68);
     pdf.text(`Bank: ${companySettings.bankName}`, 13, bankY + 10);
     if (companySettings.iban) {
       pdf.text(`IBAN: ${companySettings.iban}`, 13, bankY + 14);
@@ -276,12 +285,14 @@ async function renderDirectVectorInvoice(
   }
 
   // Calculations Box (Right)
-  pdf.setFillColor(248, 250, 252);
+  pdf.setFillColor(255, 255, 255);
   pdf.rect(106, calcTop, 94, 38, 'F');
+  pdf.setDrawColor(203, 221, 232);
+  pdf.rect(106, calcTop, 94, 38, 'S');
 
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(9);
-  pdf.setTextColor(71, 85, 105);
+  pdf.setTextColor(15, 39, 68);
   pdf.text('Subtotal / المجموع الفرعي:', 110, calcTop + 8);
   pdf.text(`SAR ${safeSubtotal.toFixed(2)}`, 175, calcTop + 8);
 
@@ -289,49 +300,47 @@ async function renderDirectVectorInvoice(
   pdf.text(vatLabel, 110, calcTop + 16);
   pdf.text(`SAR ${safeVat.toFixed(2)}`, 175, calcTop + 16);
 
-  // Grand Total Highlight
-  pdf.setFillColor(240, 253, 244);
+  // Grand Total Highlight with #F0F5FA background
+  pdf.setFillColor(240, 245, 250);
   pdf.rect(108, calcTop + 22, 90, 12, 'F');
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(11);
-  pdf.setTextColor(22, 101, 52); // emerald-800
+  pdf.setTextColor(15, 39, 68);
   pdf.text('Grand Total / الإجمالي:', 112, calcTop + 30);
   pdf.text(`SAR ${safeTotal.toFixed(2)}`, 166, calcTop + 30);
 
   // 6. Signature & Stamp Footer Area
   const footerY = 186;
-  pdf.setDrawColor(203, 213, 225);
+  pdf.setDrawColor(203, 221, 232);
   pdf.line(10, footerY, 200, footerY);
 
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(8);
-  pdf.setTextColor(148, 163, 184);
+  pdf.setTextColor(15, 39, 68);
   pdf.text('Received By / توقيع المستلم:', 14, footerY + 8);
-  pdf.setDrawColor(148, 163, 184);
+  pdf.setDrawColor(203, 221, 232);
   pdf.line(14, footerY + 22, 70, footerY + 22);
 
   pdf.text('Authorized Stamp & Signature / الختم والتوقيع:', 130, footerY + 8);
   pdf.line(130, footerY + 22, 190, footerY + 22);
 
-  // Payment Status Badge & Bottom Ribbon
+  // Payment Status Badge
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(8.5);
+  pdf.setTextColor(15, 39, 68);
   if (invoice.paymentStatus === 'Paid') {
-    pdf.setTextColor(22, 101, 52);
     pdf.text('[ STATUS: PAID / مدفوعة ]', 14, footerY + 28);
   } else if (invoice.paymentStatus === 'Partially Paid') {
-    pdf.setTextColor(180, 83, 9);
     pdf.text('[ STATUS: PARTIALLY PAID ]', 14, footerY + 28);
   } else {
-    pdf.setTextColor(190, 18, 60);
     pdf.text('[ STATUS: UNPAID / غير مدفوعة ]', 14, footerY + 28);
   }
 
-  // Bottom Full-Width Dark Footer (matching application brand: slate-900 + emerald)
-  pdf.setFillColor(15, 23, 42); // slate-900
+  // Bottom Full-Width Dark Footer (#0F2744 + gold #D9A62E accent)
+  pdf.setFillColor(15, 39, 68); // #0F2744
   pdf.rect(10, footerY + 32, 190, 11, 'F');
-  // Accent emerald stripe on top of footer
-  pdf.setFillColor(16, 185, 129); // emerald-500
+  // Accent gold stripe #D9A62E on top of footer
+  pdf.setFillColor(217, 166, 46); // #D9A62E
   pdf.rect(10, footerY + 32, 190, 0.8, 'F');
   pdf.setTextColor(255, 255, 255);
   pdf.setFont('helvetica', 'normal');
@@ -339,7 +348,7 @@ async function renderDirectVectorInvoice(
   const phones = [phone, companySettings?.secondaryPhone].filter(Boolean).join(', ');
   pdf.text(`${address}  |  Mob: ${phones}  |  Mail: ${email}`, 14, footerY + 37.5);
   pdf.setFontSize(6.8);
-  pdf.setTextColor(52, 211, 153); // emerald-400
+  pdf.setTextColor(217, 166, 46); // #D9A62E
   pdf.text('Thank you for your business  |  شكراً لتعاملكم معنا', 75, footerY + 41.5);
 }
 

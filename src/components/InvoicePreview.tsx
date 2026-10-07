@@ -298,7 +298,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               <div className="col-span-5 text-start space-y-1 min-w-0" dir="ltr">
                 {companyNameEn && (
                   <h1
-                    className={`font-bold text-[#0f2744] tracking-tight leading-tight break-words ${
+                    className={`font-bold text-[#0F2744] tracking-tight leading-tight break-words ${
                       companyNameEn.length > 35
                         ? 'text-xs'
                         : companyNameEn.length > 22
@@ -310,19 +310,19 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                   </h1>
                 )}
                 {businessActivityEn && (
-                  <p className="text-[10px] font-bold text-[#1e4976] tracking-wide leading-tight">
+                  <p className="text-[10px] font-bold text-[#0F2744] tracking-wide leading-tight">
                     {businessActivityEn}
                   </p>
                 )}
                 {vatNo && (
-                  <div className="text-[10.5px] text-slate-800 leading-tight">
-                    <span className="font-bold text-[#0f2744]">VAT: </span>
+                  <div className="text-[10.5px] text-[#0F2744] leading-tight">
+                    <span className="font-bold text-[#0F2744]">VAT: </span>
                     <span className="font-mono">{vatNo}</span>
                   </div>
                 )}
                 {crNo && (
-                  <div className="text-[10.5px] text-slate-800 leading-tight">
-                    <span className="font-bold text-[#0f2744]">CR: </span>
+                  <div className="text-[10.5px] text-[#0F2744] leading-tight">
+                    <span className="font-bold text-[#0F2744]">CR: </span>
                     <span className="font-mono">{crNo}</span>
                   </div>
                 )}
@@ -348,7 +348,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               <div className="col-span-5 text-end space-y-1 min-w-0" dir="rtl">
                 {companyNameAr && (
                   <h2
-                    className={`font-bold text-[#0f2744] leading-tight break-words text-end ${
+                    className={`font-bold text-[#0F2744] leading-tight break-words text-end ${
                       companyNameAr.length > 35
                         ? 'text-sm'
                         : companyNameAr.length > 22
@@ -362,7 +362,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                 )}
                 {businessActivityAr && (
                   <div
-                    className="text-[11px] font-bold text-[#1e4976] leading-tight text-end"
+                    className="text-[11px] font-bold text-[#0F2744] leading-tight text-end"
                     style={{ direction: 'rtl', textAlign: 'right' }}
                   >
                     {businessActivityAr}
@@ -372,14 +372,14 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
             </div>
 
             {/* Subtle Divider Line */}
-            <div className="w-full h-[2px] bg-[#e2ecf3] mt-2.5" />
+            <div className="w-full h-[1.5px] bg-[#CBDDE8] mt-2.5" />
           </div>
 
           {/* ========================================================
               2. INVOICE TITLE: Master Tax Invoice Title Bar
               ======================================================== */}
           <div className="flex justify-center my-2">
-            <div className="w-full bg-[#0f2744] text-white rounded py-2 px-4 text-center shadow-xs">
+            <div className="w-full bg-[#0F2744] text-[#FFFFFF] rounded py-2 px-4 text-center shadow-xs">
               <span className="text-base font-bold tracking-wider">
                 Tax Invoice / الفاتورة الضريبية
               </span>
@@ -391,46 +391,46 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               ======================================================== */}
           <div className="grid grid-cols-2 gap-3 my-2 text-xs">
             {/* Left Column: Client Details */}
-            <div className="border border-[#cbdde8] rounded overflow-hidden bg-white">
-              <div className="bg-[#f0f5fa] border-b border-[#cbdde8] px-3 py-1.5 font-bold text-[#0f2744] flex justify-between items-center">
+            <div className="border border-[#CBDDE8] rounded overflow-hidden bg-[#FFFFFF]">
+              <div className="bg-[#F0F5FA] border-b border-[#CBDDE8] px-3 py-1.5 font-bold text-[#0F2744] flex justify-between items-center">
                 <span>Client Details</span>
                 <span dir="rtl">بيانات العميل</span>
               </div>
-              <div className="p-3 space-y-2 text-slate-800">
+              <div className="p-3 space-y-2 text-[#0F2744]">
                 {/* 1. Client Name */}
                 <div className="flex justify-between items-baseline gap-2">
-                  <span className="font-bold text-[#0f2744] whitespace-nowrap">
+                  <span className="font-bold text-[#0F2744] whitespace-nowrap">
                     Client Name / اسم العميل :
                   </span>
-                  <span className="font-bold text-slate-900 truncate text-end">
+                  <span className="font-bold text-[#0F2744] truncate text-end">
                     {invoice?.customerName || '-'}
                   </span>
                 </div>
                 {/* 2. Mobile */}
                 <div className="flex justify-between items-baseline gap-2">
-                  <span className="font-bold text-[#0f2744] whitespace-nowrap">
+                  <span className="font-bold text-[#0F2744] whitespace-nowrap">
                     Mobile / رقم الجوال :
                   </span>
-                  <span className="font-mono text-slate-900 text-end">
+                  <span className="font-mono text-[#0F2744] text-end">
                     {invoice?.customerPhone || '-'}
                   </span>
                 </div>
                 {/* 3. Address */}
                 <div className="flex justify-between items-baseline gap-2">
-                  <span className="font-bold text-[#0f2744] whitespace-nowrap">
+                  <span className="font-bold text-[#0F2744] whitespace-nowrap">
                     Address / العنوان :
                   </span>
-                  <span className="text-slate-800 truncate text-end">
+                  <span className="text-[#0F2744] truncate text-end">
                     {clientAddress || '-'}
                   </span>
                 </div>
                 {/* Optional Customer VAT */}
                 {invoice?.customerVatNumber && (
                   <div className="flex justify-between items-baseline gap-2">
-                    <span className="font-bold text-[#0f2744] whitespace-nowrap">
+                    <span className="font-bold text-[#0F2744] whitespace-nowrap">
                       VAT No. / الرقم الضريبي :
                     </span>
-                    <span className="font-mono text-slate-900 text-end">
+                    <span className="font-mono text-[#0F2744] text-end">
                       {invoice.customerVatNumber}
                     </span>
                   </div>
@@ -439,54 +439,54 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
             </div>
 
             {/* Right Column: Invoice Details */}
-            <div className="border border-[#cbdde8] rounded overflow-hidden bg-white">
-              <div className="bg-[#f0f5fa] border-b border-[#cbdde8] px-3 py-1.5 font-bold text-[#0f2744] flex justify-between items-center">
+            <div className="border border-[#CBDDE8] rounded overflow-hidden bg-[#FFFFFF]">
+              <div className="bg-[#F0F5FA] border-b border-[#CBDDE8] px-3 py-1.5 font-bold text-[#0F2744] flex justify-between items-center">
                 <span>Invoice Details</span>
                 <span dir="rtl">بيانات الفاتورة</span>
               </div>
-              <div className="p-3 space-y-2 text-slate-800">
+              <div className="p-3 space-y-2 text-[#0F2744]">
                 {/* Invoice Number */}
                 <div className="flex justify-between items-baseline gap-2">
-                  <span className="font-bold text-[#0f2744] whitespace-nowrap">
+                  <span className="font-bold text-[#0F2744] whitespace-nowrap">
                     Invoice No. / رقم الفاتورة :
                   </span>
-                  <span className="font-mono font-bold text-[#0f2744] text-end">
+                  <span className="font-mono font-bold text-[#0F2744] text-end">
                     {invoice?.invoiceNumber || '-'}
                   </span>
                 </div>
                 {/* Date */}
                 <div className="flex justify-between items-baseline gap-2">
-                  <span className="font-bold text-[#0f2744] whitespace-nowrap">
+                  <span className="font-bold text-[#0F2744] whitespace-nowrap">
                     Date / تاريخ الفاتورة :
                   </span>
-                  <span className="font-mono text-slate-900 text-end">
+                  <span className="font-mono text-[#0F2744] text-end">
                     {invoice?.invoiceDate ? formatDate(invoice.invoiceDate) : '-'}
                   </span>
                 </div>
                 {/* Due Date */}
                 <div className="flex justify-between items-baseline gap-2">
-                  <span className="font-bold text-[#0f2744] whitespace-nowrap">
+                  <span className="font-bold text-[#0F2744] whitespace-nowrap">
                     Due Date / تاريخ الاستحقاق :
                   </span>
-                  <span className="font-mono text-slate-900 text-end">
+                  <span className="font-mono text-[#0F2744] text-end">
                     {invoice?.dueDate ? formatDate(invoice.dueDate) : (invoice?.invoiceDate ? formatDate(invoice.invoiceDate) : '-')}
                   </span>
                 </div>
                 {/* Payment Method */}
                 <div className="flex justify-between items-baseline gap-2">
-                  <span className="font-bold text-[#0f2744] whitespace-nowrap">
+                  <span className="font-bold text-[#0F2744] whitespace-nowrap">
                     Payment Method / طريقة الدفع :
                   </span>
-                  <span className="font-semibold text-slate-900 text-end">
+                  <span className="font-semibold text-[#0F2744] text-end">
                     {paymentMethodLabel}
                   </span>
                 </div>
                 {/* Job Location */}
                 <div className="flex justify-between items-baseline gap-2">
-                  <span className="font-bold text-[#0f2744] whitespace-nowrap">
+                  <span className="font-bold text-[#0F2744] whitespace-nowrap">
                     Job Location / موقع العمل :
                   </span>
-                  <span className="text-slate-800 truncate text-end">
+                  <span className="text-[#0F2744] truncate text-end">
                     {invoice?.jobLocation || displayCity || '-'}
                   </span>
                 </div>
@@ -500,38 +500,38 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               - No watermark behind table
               - High readability and print clarity
               ======================================================== */}
-          <div className="my-2.5 overflow-hidden rounded border border-[#cbdde8] bg-white shadow-2xs">
+          <div className="my-2.5 overflow-hidden rounded border border-[#CBDDE8] bg-[#FFFFFF] shadow-2xs">
             <table className="relative z-10 w-full text-xs text-center border-collapse">
               <thead>
-                <tr className="bg-[#0f2744] text-white font-bold border-b border-[#0f2744]">
-                  <th className="py-2.5 px-1.5 border-r border-[#1e4976] w-9 text-center">#</th>
-                  <th className="py-2.5 px-3 border-r border-[#1e4976] text-start w-2/5">
+                <tr className="bg-[#0F2744] text-[#FFFFFF] font-bold border-b border-[#0F2744]">
+                  <th className="py-2.5 px-1.5 border-r border-[#CBDDE8]/30 w-9 text-center">#</th>
+                  <th className="py-2.5 px-3 border-r border-[#CBDDE8]/30 text-start w-2/5">
                     <div>Description</div>
-                    <div className="text-[10px] text-sky-200 font-normal">الوصف</div>
+                    <div className="text-[10px] text-white/80 font-normal">الوصف</div>
                   </th>
-                  <th className="py-2.5 px-2 border-r border-[#1e4976] w-16">
+                  <th className="py-2.5 px-2 border-r border-[#CBDDE8]/30 w-16">
                     <div>Quantity</div>
-                    <div className="text-[10px] text-sky-200 font-normal">الكمية</div>
+                    <div className="text-[10px] text-white/80 font-normal">الكمية</div>
                   </th>
-                  <th className="py-2.5 px-2 border-r border-[#1e4976] w-20">
+                  <th className="py-2.5 px-2 border-r border-[#CBDDE8]/30 w-20">
                     <div>Rate</div>
-                    <div className="text-[10px] text-sky-200 font-normal">سعر الوحدة</div>
+                    <div className="text-[10px] text-white/80 font-normal">سعر الوحدة</div>
                   </th>
-                  <th className="py-2.5 px-2 border-r border-[#1e4976] w-20">
+                  <th className="py-2.5 px-2 border-r border-[#CBDDE8]/30 w-20">
                     <div>VAT 15%</div>
-                    <div className="text-[10px] text-sky-200 font-normal">ضريبة القيمة المضافة</div>
+                    <div className="text-[10px] text-white/80 font-normal">ضريبة القيمة المضافة</div>
                   </th>
-                  <th className="py-2.5 px-2.5 border-r border-[#1e4976] w-24">
+                  <th className="py-2.5 px-2.5 border-r border-[#CBDDE8]/30 w-24">
                     <div>Subtotal</div>
-                    <div className="text-[10px] text-sky-200 font-normal">المجموع الفرعي</div>
+                    <div className="text-[10px] text-white/80 font-normal">المجموع الفرعي</div>
                   </th>
                   <th className="py-2.5 px-2.5 w-24">
                     <div>Total Amount</div>
-                    <div className="text-[10px] text-sky-200 font-normal">إجمالي المبلغ</div>
+                    <div className="text-[10px] text-white/80 font-normal">إجمالي المبلغ</div>
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#cbdde8]">
+              <tbody className="divide-y divide-[#CBDDE8]">
                 {/* Dynamic Line Items with clean white background */}
                 {rawItems.map((item, idx) => {
                   const itemQty = Math.max(0, Number(item.quantity) || 0);
@@ -547,37 +547,37 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                     : (itemSubtotal + itemVat);
 
                   return (
-                    <tr key={item.id || idx} className="bg-white font-normal text-slate-900 hover:bg-[#f8fafc]">
-                      <td className="py-2.5 px-1.5 border-r border-[#cbdde8] font-bold font-mono">
+                    <tr key={item.id || idx} className="bg-[#FFFFFF] font-normal text-[#0F2744] hover:bg-[#F0F5FA]/50">
+                      <td className="py-2.5 px-1.5 border-r border-[#CBDDE8] font-bold font-mono">
                         {idx + 1}
                       </td>
-                      <td className="py-2.5 px-3 border-r border-[#cbdde8] text-start">
+                      <td className="py-2.5 px-3 border-r border-[#CBDDE8] text-start">
                         {item.serviceName && (
-                          <div className="font-bold text-slate-900 leading-tight">
+                          <div className="font-bold text-[#0F2744] leading-tight">
                             {item.serviceName}
                           </div>
                         )}
                         {item.description ? (
-                          <div className="text-[10.5px] text-slate-700 leading-tight">
+                          <div className="text-[10.5px] text-[#0F2744] leading-tight opacity-90">
                             {item.description}
                           </div>
                         ) : !item.serviceName ? (
                           <span className="text-slate-400">-</span>
                         ) : null}
                       </td>
-                      <td className="py-2.5 px-2 border-r border-[#cbdde8] font-mono">
+                      <td className="py-2.5 px-2 border-r border-[#CBDDE8] font-mono">
                         {itemQty} {item.unit || ''}
                       </td>
-                      <td className="py-2.5 px-2 border-r border-[#cbdde8] font-mono">
+                      <td className="py-2.5 px-2 border-r border-[#CBDDE8] font-mono">
                         {itemRate.toFixed(2)}
                       </td>
-                      <td className="py-2.5 px-2 border-r border-[#cbdde8] font-mono">
+                      <td className="py-2.5 px-2 border-r border-[#CBDDE8] font-mono">
                         {itemVat.toFixed(2)}
                       </td>
-                      <td className="py-2.5 px-2.5 border-r border-[#cbdde8] font-mono">
+                      <td className="py-2.5 px-2.5 border-r border-[#CBDDE8] font-mono">
                         {itemSubtotal.toFixed(2)}
                       </td>
-                      <td className="py-2.5 px-2.5 font-mono font-bold text-[#0f2744]">
+                      <td className="py-2.5 px-2.5 font-mono font-bold text-[#0F2744]">
                         {itemTotal.toFixed(2)}
                       </td>
                     </tr>
@@ -587,13 +587,13 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                 {/* Empty Rows to replicate master reference spacing and proportions */}
                 {rawItems.length < 5 &&
                   Array.from({ length: 5 - rawItems.length }).map((_, rIdx) => (
-                    <tr key={`empty-${rIdx}`} className="h-7 bg-white">
-                      <td className="py-1 px-1.5 border-r border-[#cbdde8] font-mono text-slate-300"></td>
-                      <td className="py-1 px-3 border-r border-[#cbdde8]"></td>
-                      <td className="py-1 px-2 border-r border-[#cbdde8]"></td>
-                      <td className="py-1 px-2 border-r border-[#cbdde8]"></td>
-                      <td className="py-1 px-2 border-r border-[#cbdde8]"></td>
-                      <td className="py-1 px-2.5 border-r border-[#cbdde8]"></td>
+                    <tr key={`empty-${rIdx}`} className="h-7 bg-[#FFFFFF]">
+                      <td className="py-1 px-1.5 border-r border-[#CBDDE8] font-mono text-slate-300"></td>
+                      <td className="py-1 px-3 border-r border-[#CBDDE8]"></td>
+                      <td className="py-1 px-2 border-r border-[#CBDDE8]"></td>
+                      <td className="py-1 px-2 border-r border-[#CBDDE8]"></td>
+                      <td className="py-1 px-2 border-r border-[#CBDDE8]"></td>
+                      <td className="py-1 px-2.5 border-r border-[#CBDDE8]"></td>
                       <td className="py-1 px-2.5"></td>
                     </tr>
                   ))}
@@ -606,7 +606,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               ======================================================== */}
           <div className="flex flex-row justify-between items-center gap-4 py-2">
             {/* Left: Clean Bordered ZATCA QR Code */}
-            <div className="p-2 border border-[#cbdde8] rounded bg-white shrink-0 shadow-2xs">
+            <div className="p-2 border border-[#CBDDE8] rounded bg-[#FFFFFF] shrink-0 shadow-2xs">
               {qrCodeDataUrl ? (
                 <img
                   src={qrCodeDataUrl}
@@ -614,60 +614,60 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                   className="w-28 h-28 object-contain"
                 />
               ) : (
-                <div className="w-28 h-28 bg-[#f0f5fa] flex items-center justify-center text-xs text-slate-400">
+                <div className="w-28 h-28 bg-[#F0F5FA] flex items-center justify-center text-xs text-[#0F2744]/40">
                   QR CODE
                 </div>
               )}
             </div>
 
             {/* Right: Dynamic Totals Box */}
-            <div className="flex-1 max-w-md border border-[#cbdde8] rounded overflow-hidden text-xs bg-white">
+            <div className="flex-1 max-w-md border border-[#CBDDE8] rounded overflow-hidden text-xs bg-[#FFFFFF]">
               {/* Subtotal */}
-              <div className="flex justify-between items-center px-3 py-1.5 border-b border-[#cbdde8]">
-                <span className="font-bold text-slate-800">
+              <div className="flex justify-between items-center px-3 py-1.5 border-b border-[#CBDDE8]">
+                <span className="font-bold text-[#0F2744]">
                   Subtotal / المجموع الفرعي
                 </span>
-                <span className="font-mono font-bold text-slate-900 tabular-nums">
+                <span className="font-mono font-bold text-[#0F2744] tabular-nums">
                   {safeSubtotal.toFixed(2)} ر.س
                 </span>
               </div>
 
               {/* VAT */}
-              <div className="flex justify-between items-center px-3 py-1.5 border-b border-[#cbdde8]">
-                <span className="font-bold text-slate-800">
+              <div className="flex justify-between items-center px-3 py-1.5 border-b border-[#CBDDE8]">
+                <span className="font-bold text-[#0F2744]">
                   {is15Percent ? 'VAT 15% / ضريبة القيمة المضافة' : 'VAT / ضريبة القيمة المضافة'}
                 </span>
-                <span className="font-mono font-bold text-slate-900 tabular-nums">
+                <span className="font-mono font-bold text-[#0F2744] tabular-nums">
                   (+) {safeVatAmount.toFixed(2)} ر.س
                 </span>
               </div>
 
-              {/* Total Amount (Prominent Bold 700) */}
-              <div className="flex justify-between items-center px-3 py-2 border-b border-[#cbdde8] bg-[#f0f5fa]">
-                <span className="font-bold text-[#0f2744] text-sm">
+              {/* Total Amount (Prominent Bold 700 with Light Blue Section Background #F0F5FA) */}
+              <div className="flex justify-between items-center px-3 py-2 border-b border-[#CBDDE8] bg-[#F0F5FA]">
+                <span className="font-bold text-[#0F2744] text-sm">
                   Total Amount / إجمالي المبلغ
                 </span>
-                <span className="font-mono font-bold text-[#0f2744] tabular-nums text-base">
+                <span className="font-mono font-bold text-[#0F2744] tabular-nums text-base">
                   {safeTotal.toFixed(2)} ر.س
                 </span>
               </div>
 
               {/* Paid Amount */}
-              <div className="flex justify-between items-center px-3 py-1.5 border-b border-[#cbdde8]/50">
-                <span className="font-bold text-slate-700">
+              <div className="flex justify-between items-center px-3 py-1.5 border-b border-[#CBDDE8]/60">
+                <span className="font-bold text-[#0F2744]/90">
                   Paid Amount / المبلغ المدفوع
                 </span>
-                <span className="font-mono font-bold text-slate-800 tabular-nums">
+                <span className="font-mono font-bold text-[#0F2744] tabular-nums">
                   {paidAmount.toFixed(2)} ر.س
                 </span>
               </div>
 
               {/* Amount Due */}
-              <div className="flex justify-between items-center px-3 py-1.5 bg-[#fbfdff]">
-                <span className="font-bold text-slate-700">
+              <div className="flex justify-between items-center px-3 py-1.5 bg-[#FFFFFF]">
+                <span className="font-bold text-[#0F2744]/90">
                   Amount Due / المبلغ المستحق
                 </span>
-                <span className="font-mono font-bold text-slate-800 tabular-nums">
+                <span className="font-mono font-bold text-[#0F2744] tabular-nums">
                   {amountDue.toFixed(2)} ر.س
                 </span>
               </div>
@@ -677,11 +677,11 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           {/* ========================================================
               6. AMOUNT IN WORDS SECTION
               ======================================================== */}
-          <div className="bg-[#f0f5fa] border border-[#cbdde8] rounded px-3.5 py-2 text-xs text-slate-900 flex flex-row items-center justify-between gap-2 my-1.5">
-            <span className="font-bold text-[#0f2744] whitespace-nowrap">
+          <div className="bg-[#F0F5FA] border border-[#CBDDE8] rounded px-3.5 py-2 text-xs text-[#0F2744] flex flex-row items-center justify-between gap-2 my-1.5">
+            <span className="font-bold text-[#0F2744] whitespace-nowrap">
               Amount in Words / المبلغ بالكلمات :
             </span>
-            <span className="font-normal text-slate-800 italic text-end">
+            <span className="font-normal text-[#0F2744] italic text-end">
               {numberToWords(safeTotal, lang)}
             </span>
           </div>
@@ -689,54 +689,54 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           {/* ========================================================
               7. LOWER SECTION: Bank Details & 3 Signatures
               ======================================================== */}
-          <div className="border border-[#cbdde8] rounded text-[11px] text-slate-800 my-2 overflow-hidden bg-white">
+          <div className="border border-[#CBDDE8] rounded text-[11px] text-[#0F2744] my-2 overflow-hidden bg-[#FFFFFF]">
             {/* 4 Equal Columns: Bank Details | Prepared By | Approved By | Received By */}
-            <div className="grid grid-cols-4 divide-x divide-[#cbdde8] text-center">
+            <div className="grid grid-cols-4 divide-x divide-[#CBDDE8] text-center">
               {/* Col 1: Bank Details */}
-              <div className="text-start p-2.5 space-y-1 bg-[#f0f5fa]/40">
-                <div className="font-bold text-[#0f2744] border-b border-[#cbdde8] pb-0.5 mb-1 text-center">
+              <div className="text-start p-2.5 space-y-1 bg-[#F0F5FA]/60">
+                <div className="font-bold text-[#0F2744] border-b border-[#CBDDE8] pb-0.5 mb-1 text-center">
                   Bank Details / بيانات البنك
                 </div>
-                <div className="text-[10px] text-slate-700">
-                  <span className="font-bold text-[#0f2744]">Bank Name / اسم البنك: </span>
+                <div className="text-[10px] text-[#0F2744]">
+                  <span className="font-bold text-[#0F2744]">Bank Name / اسم البنك: </span>
                   <span>{bankNameVal || '-'}</span>
                 </div>
-                <div className="text-[10px] text-slate-700 font-mono">
-                  <span className="font-bold text-[#0f2744] font-sans">Account No. / رقم الحساب: </span>
+                <div className="text-[10px] text-[#0F2744] font-mono">
+                  <span className="font-bold text-[#0F2744] font-sans">Account No. / رقم الحساب: </span>
                   <span>{bankAccountVal || '-'}</span>
                 </div>
-                <div className="text-[10px] text-slate-700 font-mono">
-                  <span className="font-bold text-[#0f2744] font-sans">IBAN / رقم الآيبان: </span>
+                <div className="text-[10px] text-[#0F2744] font-mono">
+                  <span className="font-bold text-[#0F2744] font-sans">IBAN / رقم الآيبان: </span>
                   <span>{ibanVal || '-'}</span>
                 </div>
               </div>
 
               {/* Col 2: Prepared By */}
               <div className="p-2.5 flex flex-col justify-between h-22">
-                <div className="font-bold text-[#0f2744] border-b border-[#cbdde8] pb-0.5">
+                <div className="font-bold text-[#0F2744] border-b border-[#CBDDE8] pb-0.5">
                   Prepared By / أعدها
                 </div>
-                <div className="text-[9.5px] text-slate-400 border-t border-dashed border-[#cbdde8] pt-1">
+                <div className="text-[9.5px] text-[#0F2744]/40 border-t border-dashed border-[#CBDDE8] pt-1">
                   Sign / Stamp / التوقيع / الختم
                 </div>
               </div>
 
               {/* Col 3: Approved By */}
               <div className="p-2.5 flex flex-col justify-between h-22">
-                <div className="font-bold text-[#0f2744] border-b border-[#cbdde8] pb-0.5">
+                <div className="font-bold text-[#0F2744] border-b border-[#CBDDE8] pb-0.5">
                   Approved By / اعتمدها
                 </div>
-                <div className="text-[9.5px] text-slate-400 border-t border-dashed border-[#cbdde8] pt-1">
+                <div className="text-[9.5px] text-[#0F2744]/40 border-t border-dashed border-[#CBDDE8] pt-1">
                   Sign / Stamp / التوقيع / الختم
                 </div>
               </div>
 
               {/* Col 4: Received By */}
               <div className="p-2.5 flex flex-col justify-between h-22">
-                <div className="font-bold text-[#0f2744] border-b border-[#cbdde8] pb-0.5">
+                <div className="font-bold text-[#0F2744] border-b border-[#CBDDE8] pb-0.5">
                   Received By / استلمها
                 </div>
-                <div className="text-[9.5px] text-slate-400 border-t border-dashed border-[#cbdde8] pt-1">
+                <div className="text-[9.5px] text-[#0F2744]/40 border-t border-dashed border-[#CBDDE8] pt-1">
                   Sign / Stamp / التوقيع / الختم
                 </div>
               </div>
@@ -749,49 +749,50 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
             - Top footer row: Phone | WhatsApp | Email
             - Second footer row: Address (clear, spacious, full width)
             - Bilingual closing message: شكراً لكم | Thank You
-            - Gold accent stripe and dark navy styling
+            - Subtle Gold Accent: #D9A62E
+            - Primary Navy: #0F2744, Dark Navy: #08233F
             ======================================================== */}
-        <div className="bg-[#0f2744] text-white rounded-md shadow-sm overflow-hidden relative border border-[#0f2744] mt-2.5">
-          {/* Top Gold Accent Stripe */}
-          <div className="w-full h-[3px] bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500" />
+        <div className="bg-[#0F2744] text-[#FFFFFF] rounded-md shadow-sm overflow-hidden relative border border-[#0F2744] mt-2.5">
+          {/* Top Subtle Gold Accent Stripe #D9A62E */}
+          <div className="w-full h-[2.5px] bg-[#D9A62E]" />
 
           {/* Top Footer Row: Phone | WhatsApp | Email */}
-          <div className="py-2 px-4 flex items-center justify-around text-[11px] border-b border-sky-950/70 bg-[#0f2744]">
+          <div className="py-2 px-4 flex items-center justify-around text-[11px] border-b border-[#08233F] bg-[#0F2744]">
             {/* Phone */}
             <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
-              <Phone className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-              <span className="font-bold text-slate-200">Phone:</span>
-              <span className="font-mono text-white font-medium">{phoneVal || '-'}</span>
+              <Phone className="w-3.5 h-3.5 text-[#D9A62E] shrink-0" />
+              <span className="font-bold text-[#FFFFFF]/85">Phone:</span>
+              <span className="font-mono text-[#FFFFFF] font-medium">{phoneVal || '-'}</span>
             </div>
 
             {/* WhatsApp */}
             <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
-              <MessageSquare className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-              <span className="font-bold text-slate-200">WhatsApp:</span>
-              <span className="font-mono text-white font-medium">{whatsappVal || phoneVal || '-'}</span>
+              <MessageSquare className="w-3.5 h-3.5 text-[#D9A62E] shrink-0" />
+              <span className="font-bold text-[#FFFFFF]/85">WhatsApp:</span>
+              <span className="font-mono text-[#FFFFFF] font-medium">{whatsappVal || phoneVal || '-'}</span>
             </div>
 
             {/* Email */}
             <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
-              <Mail className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-              <span className="font-bold text-slate-200">Email:</span>
-              <span className="text-white font-medium truncate max-w-[200px]">{emailVal || '-'}</span>
+              <Mail className="w-3.5 h-3.5 text-[#D9A62E] shrink-0" />
+              <span className="font-bold text-[#FFFFFF]/85">Email:</span>
+              <span className="text-[#FFFFFF] font-medium truncate max-w-[200px]">{emailVal || '-'}</span>
             </div>
           </div>
 
           {/* Second Footer Row: Address */}
           {addressVal && (
-            <div className="py-1.5 px-4 flex items-center justify-center gap-2 text-[11px] border-b border-sky-950/50 bg-[#0d223c]" dir="ltr">
-              <MapPin className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-              <span className="font-bold text-slate-200 shrink-0">Address:</span>
-              <span className="text-white font-medium text-center">{addressVal}</span>
+            <div className="py-1.5 px-4 flex items-center justify-center gap-2 text-[11px] border-b border-[#08233F] bg-[#08233F]" dir="ltr">
+              <MapPin className="w-3.5 h-3.5 text-[#D9A62E] shrink-0" />
+              <span className="font-bold text-[#FFFFFF]/85 shrink-0">Address:</span>
+              <span className="text-[#FFFFFF] font-medium text-center">{addressVal}</span>
             </div>
           )}
 
           {/* Bilingual Closing Message */}
-          <div className="bg-[#0a1b2f] py-1.5 px-4 flex items-center justify-center gap-3 text-[11px] font-bold text-amber-200">
+          <div className="bg-[#08233F] py-1.5 px-4 flex items-center justify-center gap-3 text-[11px] font-bold text-[#FFFFFF]">
             <span dir="rtl">{companySettings.closingNoteAr || 'شكراً لكم'}</span>
-            <span className="text-amber-400/60 font-normal">|</span>
+            <span className="text-[#D9A62E] font-normal">|</span>
             <span dir="ltr">{companySettings.closingNoteEn || 'Thank You'}</span>
           </div>
         </div>
