@@ -282,35 +282,20 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
   // Inner A4 Sheet Content (100% Dynamic Content with Master Reference Layout)
   const a4SheetContent = (
     <>
-      {/* Center Background Watermark (Render only if enabled and user has uploaded watermark/logo) */}
-      {companySettings.enableWatermark !== false && (companySettings.watermarkUrl || companySettings.logoUrl) && (
-        <div
-          className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-0"
-          aria-hidden="true"
-        >
-          <img
-            src={companySettings.watermarkUrl || companySettings.logoUrl}
-            alt=""
-            referrerPolicy="no-referrer"
-            className="w-auto h-auto max-w-[420px] max-h-[420px] object-contain transition-opacity"
-            style={{
-              opacity: companySettings.watermarkOpacity !== undefined ? companySettings.watermarkOpacity : 0.05,
-              filter: 'grayscale(100%) contrast(110%)',
-            }}
-          />
-        </div>
-      )}
-
       {/* Foreground Content */}
-      <div className="relative z-10 flex flex-col justify-between flex-1 space-y-2">
-        <div>
+      <div className="relative z-10 flex flex-col justify-between flex-1 min-h-[1050px]">
+        <div className="space-y-2.5">
           {/* ========================================================
               1. MASTER HEADER: English Left, Logo Centered, Arabic Right
+              - Company Address REMOVED from English header
+              - Arabic side keeps ONLY: Arabic Company Name & Arabic Business Activity
+              - Arabic VAT, CR, Address removed from right side
+              - VAT & CR remain only once in the compact English/company info area
               ======================================================== */}
-          <div className="bg-white text-slate-900 rounded-md overflow-hidden relative border border-[#cbdde8] mb-2 p-3 sm:p-3.5">
-            <div className="grid grid-cols-12 gap-2 items-center">
+          <div className="bg-white text-slate-900 rounded-md overflow-hidden relative border border-[#cbdde8] p-3 sm:p-4">
+            <div className="grid grid-cols-12 gap-3 items-center">
               {/* Left Column: English Company Information (LTR) */}
-              <div className="col-span-5 text-start space-y-0.5 min-w-0" dir="ltr">
+              <div className="col-span-5 text-start space-y-1 min-w-0" dir="ltr">
                 {companyNameEn && (
                   <h1
                     className={`font-bold text-[#0f2744] tracking-tight leading-tight break-words ${
@@ -330,21 +315,15 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                   </p>
                 )}
                 {vatNo && (
-                  <div className="text-[10px] text-slate-800 leading-tight">
+                  <div className="text-[10.5px] text-slate-800 leading-tight">
                     <span className="font-bold text-[#0f2744]">VAT: </span>
                     <span className="font-mono">{vatNo}</span>
                   </div>
                 )}
                 {crNo && (
-                  <div className="text-[10px] text-slate-800 leading-tight">
+                  <div className="text-[10.5px] text-slate-800 leading-tight">
                     <span className="font-bold text-[#0f2744]">CR: </span>
                     <span className="font-mono">{crNo}</span>
-                  </div>
-                )}
-                {addressVal && (
-                  <div className="text-[9.5px] text-slate-700 leading-snug break-words">
-                    <span className="font-bold text-[#0f2744]">Address: </span>
-                    <span>{addressVal}</span>
                   </div>
                 )}
               </div>
@@ -365,8 +344,8 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                 )}
               </div>
 
-              {/* Right Column: Arabic Company Information (RTL) */}
-              <div className="col-span-5 text-end space-y-0.5 min-w-0" dir="rtl">
+              {/* Right Column: Arabic Company Information (RTL) - ONLY Name & Activity */}
+              <div className="col-span-5 text-end space-y-1 min-w-0" dir="rtl">
                 {companyNameAr && (
                   <h2
                     className={`font-bold text-[#0f2744] leading-tight break-words text-end ${
@@ -383,28 +362,10 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                 )}
                 {businessActivityAr && (
                   <div
-                    className="text-[10.5px] font-bold text-[#1e4976] leading-tight text-end"
+                    className="text-[11px] font-bold text-[#1e4976] leading-tight text-end"
                     style={{ direction: 'rtl', textAlign: 'right' }}
                   >
                     {businessActivityAr}
-                  </div>
-                )}
-                {vatNo && (
-                  <div className="text-[10px] text-slate-800 leading-tight text-end" style={{ direction: 'rtl', textAlign: 'right' }}>
-                    <span className="font-bold text-[#0f2744]">الرقم الضريبي: </span>
-                    <span className="font-mono">{vatNo}</span>
-                  </div>
-                )}
-                {crNo && (
-                  <div className="text-[10px] text-slate-800 leading-tight text-end" style={{ direction: 'rtl', textAlign: 'right' }}>
-                    <span className="font-bold text-[#0f2744]">السجل التجاري: </span>
-                    <span className="font-mono">{crNo}</span>
-                  </div>
-                )}
-                {(addressArVal || addressVal) && (
-                  <div className="text-[9.5px] text-slate-700 leading-snug break-words text-end" style={{ direction: 'rtl', textAlign: 'right' }}>
-                    <span className="font-bold text-[#0f2744]">العنوان: </span>
-                    <span>{addressArVal || addressVal}</span>
                   </div>
                 )}
               </div>
@@ -417,9 +378,9 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           {/* ========================================================
               2. INVOICE TITLE: Master Tax Invoice Title Bar
               ======================================================== */}
-          <div className="flex justify-center my-1.5">
-            <div className="w-full bg-[#0f2744] text-white rounded py-1.5 px-4 text-center shadow-xs">
-              <span className="text-sm sm:text-base font-bold tracking-wider">
+          <div className="flex justify-center my-2">
+            <div className="w-full bg-[#0f2744] text-white rounded py-2 px-4 text-center shadow-xs">
+              <span className="text-base font-bold tracking-wider">
                 Tax Invoice / الفاتورة الضريبية
               </span>
             </div>
@@ -431,11 +392,11 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           <div className="grid grid-cols-2 gap-3 my-2 text-xs">
             {/* Left Column: Client Details */}
             <div className="border border-[#cbdde8] rounded overflow-hidden bg-white">
-              <div className="bg-[#f0f5fa] border-b border-[#cbdde8] px-3 py-1 font-bold text-[#0f2744] flex justify-between items-center">
+              <div className="bg-[#f0f5fa] border-b border-[#cbdde8] px-3 py-1.5 font-bold text-[#0f2744] flex justify-between items-center">
                 <span>Client Details</span>
                 <span dir="rtl">بيانات العميل</span>
               </div>
-              <div className="p-2.5 space-y-1.5 text-slate-800">
+              <div className="p-3 space-y-2 text-slate-800">
                 {/* 1. Client Name */}
                 <div className="flex justify-between items-baseline gap-2">
                   <span className="font-bold text-[#0f2744] whitespace-nowrap">
@@ -479,11 +440,11 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
 
             {/* Right Column: Invoice Details */}
             <div className="border border-[#cbdde8] rounded overflow-hidden bg-white">
-              <div className="bg-[#f0f5fa] border-b border-[#cbdde8] px-3 py-1 font-bold text-[#0f2744] flex justify-between items-center">
+              <div className="bg-[#f0f5fa] border-b border-[#cbdde8] px-3 py-1.5 font-bold text-[#0f2744] flex justify-between items-center">
                 <span>Invoice Details</span>
                 <span dir="rtl">بيانات الفاتورة</span>
               </div>
-              <div className="p-2.5 space-y-1.5 text-slate-800">
+              <div className="p-3 space-y-2 text-slate-800">
                 {/* Invoice Number */}
                 <div className="flex justify-between items-baseline gap-2">
                   <span className="font-bold text-[#0f2744] whitespace-nowrap">
@@ -535,61 +496,63 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
 
           {/* ========================================================
               4. FULLY DYNAMIC ITEMS / SERVICES TABLE WITH WATERMARK
+              - Large faded company/truck logo watermark behind the table
+              - Centered horizontally and vertically across table
+              - Approximately 10-12% opacity (0.11)
+              - Text and numbers remain crisp above watermark
               ======================================================== */}
-          <div className="my-2 relative overflow-hidden rounded border border-[#cbdde8] bg-white shadow-2xs">
-            {/* Master Reference Watermark: Large faded company/truck logo watermark behind the table, centered and spread across */}
-            {companySettings.enableWatermark !== false && (
-              <div
-                className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-0"
-                aria-hidden="true"
-              >
-                {companySettings.watermarkUrl || companySettings.logoUrl ? (
-                  <img
-                    src={companySettings.watermarkUrl || companySettings.logoUrl}
-                    alt=""
-                    referrerPolicy="no-referrer"
-                    className="w-auto h-auto max-w-[520px] max-h-[220px] object-contain transition-opacity"
-                    style={{
-                      opacity: companySettings.watermarkOpacity !== undefined ? companySettings.watermarkOpacity : 0.12,
-                      filter: 'grayscale(100%) contrast(115%)',
-                    }}
-                  />
-                ) : (
-                  <TruckWatermarkSvg
-                    className="w-[520px] h-[210px] text-[#0f2744]"
-                    style={{
-                      opacity: companySettings.watermarkOpacity !== undefined ? companySettings.watermarkOpacity : 0.11,
-                    }}
-                  />
-                )}
-              </div>
-            )}
+          <div className="my-2.5 relative overflow-hidden rounded border border-[#cbdde8] bg-white shadow-2xs min-h-[180px]">
+            {/* Master Reference Central Watermark */}
+            <div
+              className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-0"
+              aria-hidden="true"
+            >
+              {companySettings.watermarkUrl || companySettings.logoUrl ? (
+                <img
+                  src={companySettings.watermarkUrl || companySettings.logoUrl}
+                  alt=""
+                  referrerPolicy="no-referrer"
+                  className="w-auto h-auto max-w-[520px] max-h-[220px] object-contain transition-opacity"
+                  style={{
+                    opacity: companySettings.watermarkOpacity !== undefined ? companySettings.watermarkOpacity : 0.11,
+                    filter: 'grayscale(100%) contrast(115%)',
+                  }}
+                />
+              ) : (
+                <TruckWatermarkSvg
+                  className="w-[520px] h-[210px] text-[#0f2744]"
+                  style={{
+                    opacity: companySettings.watermarkOpacity !== undefined ? companySettings.watermarkOpacity : 0.11,
+                  }}
+                />
+              )}
+            </div>
 
             <table className="relative z-10 w-full text-xs text-center border-collapse">
               <thead>
                 <tr className="bg-[#0f2744] text-white font-bold border-b border-[#0f2744]">
-                  <th className="py-2 px-1.5 border-r border-[#1e4976] w-9 text-center">#</th>
-                  <th className="py-2 px-3 border-r border-[#1e4976] text-start w-2/5">
+                  <th className="py-2.5 px-1.5 border-r border-[#1e4976] w-9 text-center">#</th>
+                  <th className="py-2.5 px-3 border-r border-[#1e4976] text-start w-2/5">
                     <div>Description</div>
                     <div className="text-[10px] text-sky-200 font-normal">الوصف</div>
                   </th>
-                  <th className="py-2 px-2 border-r border-[#1e4976] w-16">
+                  <th className="py-2.5 px-2 border-r border-[#1e4976] w-16">
                     <div>Quantity</div>
                     <div className="text-[10px] text-sky-200 font-normal">الكمية</div>
                   </th>
-                  <th className="py-2 px-2 border-r border-[#1e4976] w-20">
+                  <th className="py-2.5 px-2 border-r border-[#1e4976] w-20">
                     <div>Rate</div>
                     <div className="text-[10px] text-sky-200 font-normal">سعر الوحدة</div>
                   </th>
-                  <th className="py-2 px-2 border-r border-[#1e4976] w-20">
+                  <th className="py-2.5 px-2 border-r border-[#1e4976] w-20">
                     <div>VAT 15%</div>
                     <div className="text-[10px] text-sky-200 font-normal">ضريبة القيمة المضافة</div>
                   </th>
-                  <th className="py-2 px-2.5 border-r border-[#1e4976] w-24">
+                  <th className="py-2.5 px-2.5 border-r border-[#1e4976] w-24">
                     <div>Subtotal</div>
                     <div className="text-[10px] text-sky-200 font-normal">المجموع الفرعي</div>
                   </th>
-                  <th className="py-2 px-2.5 w-24">
+                  <th className="py-2.5 px-2.5 w-24">
                     <div>Total Amount</div>
                     <div className="text-[10px] text-sky-200 font-normal">إجمالي المبلغ</div>
                   </th>
@@ -612,10 +575,10 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
 
                   return (
                     <tr key={item.id || idx} className="bg-white/75 font-normal text-slate-900 hover:bg-white/90">
-                      <td className="py-2 px-1.5 border-r border-[#cbdde8] font-bold font-mono">
+                      <td className="py-2.5 px-1.5 border-r border-[#cbdde8] font-bold font-mono">
                         {idx + 1}
                       </td>
-                      <td className="py-2 px-3 border-r border-[#cbdde8] text-start">
+                      <td className="py-2.5 px-3 border-r border-[#cbdde8] text-start">
                         {item.serviceName && (
                           <div className="font-bold text-slate-900 leading-tight">
                             {item.serviceName}
@@ -629,19 +592,19 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                           <span className="text-slate-400">-</span>
                         ) : null}
                       </td>
-                      <td className="py-2 px-2 border-r border-[#cbdde8] font-mono">
+                      <td className="py-2.5 px-2 border-r border-[#cbdde8] font-mono">
                         {itemQty} {item.unit || ''}
                       </td>
-                      <td className="py-2 px-2 border-r border-[#cbdde8] font-mono">
+                      <td className="py-2.5 px-2 border-r border-[#cbdde8] font-mono">
                         {itemRate.toFixed(2)}
                       </td>
-                      <td className="py-2 px-2 border-r border-[#cbdde8] font-mono">
+                      <td className="py-2.5 px-2 border-r border-[#cbdde8] font-mono">
                         {itemVat.toFixed(2)}
                       </td>
-                      <td className="py-2 px-2.5 border-r border-[#cbdde8] font-mono">
+                      <td className="py-2.5 px-2.5 border-r border-[#cbdde8] font-mono">
                         {itemSubtotal.toFixed(2)}
                       </td>
-                      <td className="py-2 px-2.5 font-mono font-bold text-[#0f2744]">
+                      <td className="py-2.5 px-2.5 font-mono font-bold text-[#0f2744]">
                         {itemTotal.toFixed(2)}
                       </td>
                     </tr>
@@ -651,7 +614,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                 {/* Empty Rows to replicate master reference spacing and proportions */}
                 {rawItems.length < 5 &&
                   Array.from({ length: 5 - rawItems.length }).map((_, rIdx) => (
-                    <tr key={`empty-${rIdx}`} className="h-6.5 bg-white/60">
+                    <tr key={`empty-${rIdx}`} className="h-7 bg-white/60">
                       <td className="py-1 px-1.5 border-r border-[#cbdde8] font-mono text-slate-300"></td>
                       <td className="py-1 px-3 border-r border-[#cbdde8]"></td>
                       <td className="py-1 px-2 border-r border-[#cbdde8]"></td>
@@ -668,7 +631,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           {/* ========================================================
               5. QR CODE + TOTALS SECTION
               ======================================================== */}
-          <div className="flex flex-row justify-between items-center gap-4 py-1.5">
+          <div className="flex flex-row justify-between items-center gap-4 py-2">
             {/* Left: Clean Bordered ZATCA QR Code */}
             <div className="p-2 border border-[#cbdde8] rounded bg-white shrink-0 shadow-2xs">
               {qrCodeDataUrl ? (
@@ -707,11 +670,11 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               </div>
 
               {/* Total Amount (Prominent Bold 700) */}
-              <div className="flex justify-between items-center px-3 py-1.5 border-b border-[#cbdde8] bg-[#f0f5fa]">
-                <span className="font-bold text-[#0f2744]">
+              <div className="flex justify-between items-center px-3 py-2 border-b border-[#cbdde8] bg-[#f0f5fa]">
+                <span className="font-bold text-[#0f2744] text-sm">
                   Total Amount / إجمالي المبلغ
                 </span>
-                <span className="font-mono font-bold text-[#0f2744] tabular-nums text-sm">
+                <span className="font-mono font-bold text-[#0f2744] tabular-nums text-base">
                   {safeTotal.toFixed(2)} ر.س
                 </span>
               </div>
@@ -741,7 +704,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           {/* ========================================================
               6. AMOUNT IN WORDS SECTION
               ======================================================== */}
-          <div className="bg-[#f0f5fa] border border-[#cbdde8] rounded px-3 py-1.5 text-xs text-slate-900 flex flex-row items-center justify-between gap-2 my-1">
+          <div className="bg-[#f0f5fa] border border-[#cbdde8] rounded px-3.5 py-2 text-xs text-slate-900 flex flex-row items-center justify-between gap-2 my-1.5">
             <span className="font-bold text-[#0f2744] whitespace-nowrap">
               Amount in Words / المبلغ بالكلمات :
             </span>
@@ -751,13 +714,13 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           </div>
 
           {/* ========================================================
-              7. LOWER SECTION: Bank Details & 3 Signatures (NO NOTES SECTION)
+              7. LOWER SECTION: Bank Details & 3 Signatures
               ======================================================== */}
-          <div className="border border-[#cbdde8] rounded text-[11px] text-slate-800 my-1.5 overflow-hidden bg-white">
+          <div className="border border-[#cbdde8] rounded text-[11px] text-slate-800 my-2 overflow-hidden bg-white">
             {/* 4 Equal Columns: Bank Details | Prepared By | Approved By | Received By */}
             <div className="grid grid-cols-4 divide-x divide-[#cbdde8] text-center">
               {/* Col 1: Bank Details */}
-              <div className="text-start p-2 space-y-0.5 bg-[#f0f5fa]/40">
+              <div className="text-start p-2.5 space-y-1 bg-[#f0f5fa]/40">
                 <div className="font-bold text-[#0f2744] border-b border-[#cbdde8] pb-0.5 mb-1 text-center">
                   Bank Details / بيانات البنك
                 </div>
@@ -776,7 +739,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               </div>
 
               {/* Col 2: Prepared By */}
-              <div className="p-2 flex flex-col justify-between h-20">
+              <div className="p-2.5 flex flex-col justify-between h-22">
                 <div className="font-bold text-[#0f2744] border-b border-[#cbdde8] pb-0.5">
                   Prepared By / أعدها
                 </div>
@@ -786,7 +749,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               </div>
 
               {/* Col 3: Approved By */}
-              <div className="p-2 flex flex-col justify-between h-20">
+              <div className="p-2.5 flex flex-col justify-between h-22">
                 <div className="font-bold text-[#0f2744] border-b border-[#cbdde8] pb-0.5">
                   Approved By / اعتمدها
                 </div>
@@ -796,7 +759,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               </div>
 
               {/* Col 4: Received By */}
-              <div className="p-2 flex flex-col justify-between h-20">
+              <div className="p-2.5 flex flex-col justify-between h-22">
                 <div className="font-bold text-[#0f2744] border-b border-[#cbdde8] pb-0.5">
                   Received By / استلمها
                 </div>
@@ -809,28 +772,32 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
         </div>
 
         {/* ========================================================
-            8. CONTACT FOOTER: Dynamic Address, Phone, WhatsApp, Email & Thank-You Message
+            8. PROMINENT DARK NAVY FOOTER WITH GOLD ACCENT
+            - Contact row: Address, Phone, WhatsApp, Email with proper icons
+            - Address has enough horizontal space and is clearly readable
+            - Closing message: شكراً لكم | Thank You
+            - Gold accent stripe and dark navy styling
             ======================================================== */}
-        <div className="bg-[#0f2744] text-white rounded shadow-2xs overflow-hidden relative border border-[#0f2744] mt-2">
-          {/* Top Accent Stripe */}
-          <div className="w-full h-[2px] bg-sky-400" />
+        <div className="bg-[#0f2744] text-white rounded-md shadow-sm overflow-hidden relative border border-[#0f2744] mt-3">
+          {/* Top Gold Accent Stripe */}
+          <div className="w-full h-[3px] bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500" />
 
-          {/* Contact Details Bar */}
-          <div className="py-1.5 px-4 flex flex-wrap items-center justify-between gap-y-1 gap-x-4 text-[10.5px]">
-            {/* Address */}
+          {/* Contact Details Row */}
+          <div className="py-2.5 px-4 flex flex-wrap items-center justify-between gap-y-2 gap-x-5 text-[11px]">
+            {/* Address (Clean and clearly readable with adequate space) */}
             {addressVal ? (
-              <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
-                <MapPin className="w-3.5 h-3.5 text-sky-300 shrink-0" />
-                <span className="font-bold text-sky-100">Address / العنوان:</span>
-                <span className="text-white truncate max-w-[280px]">{addressVal}</span>
+              <div className="flex items-center gap-1.5 min-w-0 flex-1 max-w-[42%]" dir="ltr">
+                <MapPin className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                <span className="font-bold text-slate-200 shrink-0">Address:</span>
+                <span className="text-white truncate" title={addressVal}>{addressVal}</span>
               </div>
             ) : null}
 
-            {/* Phone / Mobile */}
+            {/* Phone */}
             {phoneVal ? (
               <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
-                <Phone className="w-3.5 h-3.5 text-sky-300 shrink-0" />
-                <span className="font-bold text-sky-100">Phone / الجوال:</span>
+                <Phone className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                <span className="font-bold text-slate-200">Phone:</span>
                 <span className="font-mono text-white">{phoneVal}</span>
               </div>
             ) : null}
@@ -839,7 +806,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
             {whatsappVal ? (
               <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
                 <MessageSquare className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span className="font-bold text-sky-100">WhatsApp / واتساب:</span>
+                <span className="font-bold text-slate-200">WhatsApp:</span>
                 <span className="font-mono text-white">{whatsappVal}</span>
               </div>
             ) : null}
@@ -847,17 +814,17 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
             {/* Email */}
             {emailVal ? (
               <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
-                <Mail className="w-3.5 h-3.5 text-sky-300 shrink-0" />
-                <span className="font-bold text-sky-100">Email / البريد:</span>
+                <Mail className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                <span className="font-bold text-slate-200">Email:</span>
                 <span className="text-white">{emailVal}</span>
               </div>
             ) : null}
           </div>
 
-          {/* Bilingual Thank-You Message */}
-          <div className="border-t border-sky-900 bg-[#091a2e] py-1 px-4 flex items-center justify-center gap-2.5 text-[11px] font-bold text-sky-200">
+          {/* Bilingual Closing Message */}
+          <div className="border-t border-sky-950/80 bg-[#0a1b2f] py-1.5 px-4 flex items-center justify-center gap-3 text-[11px] font-bold text-amber-200">
             <span dir="rtl">{companySettings.closingNoteAr || 'شكراً لكم'}</span>
-            <span className="text-sky-400/60 font-normal">|</span>
+            <span className="text-amber-400/60 font-normal">|</span>
             <span dir="ltr">{companySettings.closingNoteEn || 'Thank You'}</span>
           </div>
         </div>
