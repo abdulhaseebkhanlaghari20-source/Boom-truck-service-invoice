@@ -9,6 +9,100 @@ import {
   MessageSquare,
 } from 'lucide-react';
 
+/**
+ * Authentic Boom Truck Crane SVG Watermark representing the master reference's
+ * heavy transport & crane equipment watermark, centered and spread across the table area.
+ */
+const TruckWatermarkSvg: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className, style }) => (
+  <svg
+    viewBox="0 0 620 240"
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    style={style}
+  >
+    {/* Ground baseline */}
+    <rect x="25" y="214" width="570" height="3" rx="1.5" opacity="0.4" />
+
+    {/* Wheels: 1 front axle, 2 heavy-duty rear tandem axles */}
+    <g>
+      {/* Front Wheel */}
+      <circle cx="110" cy="202" r="23" />
+      <circle cx="110" cy="202" r="14" fill="#ffffff" opacity="0.3" />
+      <circle cx="110" cy="202" r="6" />
+
+      {/* Rear Wheel 1 */}
+      <circle cx="410" cy="202" r="23" />
+      <circle cx="410" cy="202" r="14" fill="#ffffff" opacity="0.3" />
+      <circle cx="410" cy="202" r="6" />
+
+      {/* Rear Wheel 2 */}
+      <circle cx="475" cy="202" r="23" />
+      <circle cx="475" cy="202" r="14" fill="#ffffff" opacity="0.3" />
+      <circle cx="475" cy="202" r="6" />
+    </g>
+
+    {/* Truck Heavy Frame / Chassis */}
+    <rect x="65" y="174" width="455" height="18" rx="3" />
+
+    {/* Truck Cabin (Left-facing commercial heavy truck) */}
+    <path d="M60 174 L60 138 L72 110 L130 110 L152 138 L152 174 Z" />
+    {/* Cabin windshield & window */}
+    <path d="M76 134 L84 116 L124 116 L142 134 Z" fill="#ffffff" opacity="0.35" />
+    {/* Headlight and front bumper */}
+    <rect x="52" y="158" width="10" height="24" rx="2" />
+    <rect x="48" y="172" width="18" height="14" rx="2" />
+    <circle cx="58" cy="165" r="3.5" fill="#ffffff" opacity="0.4" />
+    {/* Vertical exhaust stack */}
+    <rect x="148" y="85" width="6" height="55" rx="2" />
+    <path d="M148 85 L156 78" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+
+    {/* Fuel tank & battery box underneath */}
+    <rect x="165" y="177" width="55" height="22" rx="3" />
+    <rect x="235" y="177" width="65" height="22" rx="3" />
+    <rect x="315" y="178" width="70" height="20" rx="3" />
+
+    {/* Front & Rear Outriggers (Hydraulic stabilizer legs) */}
+    <rect x="150" y="185" width="14" height="26" rx="2" />
+    <rect x="142" y="209" width="30" height="5" rx="1.5" />
+    <rect x="515" y="185" width="14" height="26" rx="2" />
+    <rect x="507" y="209" width="30" height="5" rx="1.5" />
+
+    {/* Flatbed Deck & Rear Bumper */}
+    <rect x="160" y="162" width="370" height="14" rx="2" />
+    <rect x="528" y="152" width="8" height="24" rx="2" />
+
+    {/* Crane Turret / Swivel Pedestal */}
+    <rect x="175" y="125" width="46" height="38" rx="3" />
+    <circle cx="198" cy="120" r="15" />
+    <rect x="210" y="112" width="18" height="32" rx="2" />
+
+    {/* Hydraulic Lift Cylinders */}
+    <line x1="198" y1="126" x2="285" y2="76" stroke="currentColor" strokeWidth="11" strokeLinecap="round" />
+    <line x1="280" y1="78" x2="330" y2="52" stroke="currentColor" strokeWidth="7" strokeLinecap="round" />
+
+    {/* Telescopic Boom Assembly (Spanning diagonally upwards across the canvas) */}
+    {/* Base boom */}
+    <polygon points="190,118 205,110 395,44 386,28" />
+    {/* Second boom extension */}
+    <polygon points="380,36 392,29 480, -2 470,-12" />
+    <circle cx="484" cy="5" r="9" />
+
+    {/* Hoist Cable hanging from boom tip sheave */}
+    <line x1="484" y1="14" x2="484" y2="95" stroke="currentColor" strokeWidth="2.5" strokeDasharray="5 3" />
+
+    {/* Heavy Crane Block & Hook */}
+    <rect x="476" y="95" width="16" height="20" rx="3" />
+    <circle cx="484" cy="103" r="3.5" fill="#ffffff" opacity="0.4" />
+    <path
+      d="M484 115 C484 126 474 130 474 122 C474 118 478 117 480 120 C481 122 483 123 484 121 C485 119 484 115 484 115 Z"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      fill="currentColor"
+    />
+  </svg>
+);
+
 interface InvoicePreviewProps {
   invoice: Invoice;
   companySettings: CompanySettings;
@@ -275,36 +369,40 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               <div className="col-span-5 text-end space-y-0.5 min-w-0" dir="rtl">
                 {companyNameAr && (
                   <h2
-                    className={`font-bold text-[#0f2744] leading-tight break-words ${
+                    className={`font-bold text-[#0f2744] leading-tight break-words text-end ${
                       companyNameAr.length > 35
                         ? 'text-sm'
                         : companyNameAr.length > 22
                         ? 'text-base'
                         : 'text-lg'
                     }`}
+                    style={{ direction: 'rtl', textAlign: 'right' }}
                   >
                     {companyNameAr}
                   </h2>
                 )}
                 {businessActivityAr && (
-                  <div className="text-[10.5px] font-bold text-[#1e4976] leading-tight">
+                  <div
+                    className="text-[10.5px] font-bold text-[#1e4976] leading-tight text-end"
+                    style={{ direction: 'rtl', textAlign: 'right' }}
+                  >
                     {businessActivityAr}
                   </div>
                 )}
                 {vatNo && (
-                  <div className="text-[10px] text-slate-800 leading-tight">
+                  <div className="text-[10px] text-slate-800 leading-tight text-end" style={{ direction: 'rtl', textAlign: 'right' }}>
                     <span className="font-bold text-[#0f2744]">الرقم الضريبي: </span>
                     <span className="font-mono">{vatNo}</span>
                   </div>
                 )}
                 {crNo && (
-                  <div className="text-[10px] text-slate-800 leading-tight">
+                  <div className="text-[10px] text-slate-800 leading-tight text-end" style={{ direction: 'rtl', textAlign: 'right' }}>
                     <span className="font-bold text-[#0f2744]">السجل التجاري: </span>
                     <span className="font-mono">{crNo}</span>
                   </div>
                 )}
                 {(addressArVal || addressVal) && (
-                  <div className="text-[9.5px] text-slate-700 leading-snug break-words">
+                  <div className="text-[9.5px] text-slate-700 leading-snug break-words text-end" style={{ direction: 'rtl', textAlign: 'right' }}>
                     <span className="font-bold text-[#0f2744]">العنوان: </span>
                     <span>{addressArVal || addressVal}</span>
                   </div>
@@ -436,10 +534,38 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           </div>
 
           {/* ========================================================
-              4. FULLY DYNAMIC ITEMS / SERVICES TABLE (Supports Multiple Line Items)
+              4. FULLY DYNAMIC ITEMS / SERVICES TABLE WITH WATERMARK
               ======================================================== */}
-          <div className="my-2">
-            <table className="w-full text-xs text-center border-collapse border border-[#cbdde8]">
+          <div className="my-2 relative overflow-hidden rounded border border-[#cbdde8] bg-white shadow-2xs">
+            {/* Master Reference Watermark: Large faded company/truck logo watermark behind the table, centered and spread across */}
+            {companySettings.enableWatermark !== false && (
+              <div
+                className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-0"
+                aria-hidden="true"
+              >
+                {companySettings.watermarkUrl || companySettings.logoUrl ? (
+                  <img
+                    src={companySettings.watermarkUrl || companySettings.logoUrl}
+                    alt=""
+                    referrerPolicy="no-referrer"
+                    className="w-auto h-auto max-w-[520px] max-h-[220px] object-contain transition-opacity"
+                    style={{
+                      opacity: companySettings.watermarkOpacity !== undefined ? companySettings.watermarkOpacity : 0.12,
+                      filter: 'grayscale(100%) contrast(115%)',
+                    }}
+                  />
+                ) : (
+                  <TruckWatermarkSvg
+                    className="w-[520px] h-[210px] text-[#0f2744]"
+                    style={{
+                      opacity: companySettings.watermarkOpacity !== undefined ? companySettings.watermarkOpacity : 0.11,
+                    }}
+                  />
+                )}
+              </div>
+            )}
+
+            <table className="relative z-10 w-full text-xs text-center border-collapse">
               <thead>
                 <tr className="bg-[#0f2744] text-white font-bold border-b border-[#0f2744]">
                   <th className="py-2 px-1.5 border-r border-[#1e4976] w-9 text-center">#</th>
@@ -470,7 +596,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#cbdde8]">
-                {/* Dynamic Line Items */}
+                {/* Dynamic Line Items with semi-transparent backdrop so watermark is visible */}
                 {rawItems.map((item, idx) => {
                   const itemQty = Math.max(0, Number(item.quantity) || 0);
                   const itemRate = Math.max(0, Number(item.rate) || 0);
@@ -485,7 +611,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                     : (itemSubtotal + itemVat);
 
                   return (
-                    <tr key={item.id || idx} className="bg-white font-normal text-slate-900">
+                    <tr key={item.id || idx} className="bg-white/75 font-normal text-slate-900 hover:bg-white/90">
                       <td className="py-2 px-1.5 border-r border-[#cbdde8] font-bold font-mono">
                         {idx + 1}
                       </td>
@@ -496,7 +622,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                           </div>
                         )}
                         {item.description ? (
-                          <div className="text-[10.5px] text-slate-600 leading-tight">
+                          <div className="text-[10.5px] text-slate-700 leading-tight">
                             {item.description}
                           </div>
                         ) : !item.serviceName ? (
@@ -525,7 +651,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                 {/* Empty Rows to replicate master reference spacing and proportions */}
                 {rawItems.length < 5 &&
                   Array.from({ length: 5 - rawItems.length }).map((_, rIdx) => (
-                    <tr key={`empty-${rIdx}`} className="h-6.5 bg-[#fbfdff]">
+                    <tr key={`empty-${rIdx}`} className="h-6.5 bg-white/60">
                       <td className="py-1 px-1.5 border-r border-[#cbdde8] font-mono text-slate-300"></td>
                       <td className="py-1 px-3 border-r border-[#cbdde8]"></td>
                       <td className="py-1 px-2 border-r border-[#cbdde8]"></td>
@@ -683,52 +809,58 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
         </div>
 
         {/* ========================================================
-            8. CONTACT FOOTER: Dynamic Company Address, Phone, WhatsApp, Email
+            8. CONTACT FOOTER: Dynamic Address, Phone, WhatsApp, Email & Thank-You Message
             ======================================================== */}
-        {(addressVal || phoneVal || whatsappVal || emailVal) && (
-          <div className="bg-[#0f2744] text-white rounded shadow-2xs overflow-hidden relative border border-[#0f2744] mt-1.5">
-            {/* Top Accent Stripe */}
-            <div className="w-full h-[2px] bg-sky-400" />
+        <div className="bg-[#0f2744] text-white rounded shadow-2xs overflow-hidden relative border border-[#0f2744] mt-2">
+          {/* Top Accent Stripe */}
+          <div className="w-full h-[2px] bg-sky-400" />
 
-            <div className="py-1.5 px-4 flex flex-wrap items-center justify-between gap-y-1 gap-x-4 text-[10.5px]">
-              {/* Address */}
-              {addressVal && (
-                <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
-                  <MapPin className="w-3.5 h-3.5 text-sky-300 shrink-0" />
-                  <span className="font-bold text-sky-100">Address / العنوان:</span>
-                  <span className="text-white truncate max-w-[280px]">{addressVal}</span>
-                </div>
-              )}
+          {/* Contact Details Bar */}
+          <div className="py-1.5 px-4 flex flex-wrap items-center justify-between gap-y-1 gap-x-4 text-[10.5px]">
+            {/* Address */}
+            {addressVal ? (
+              <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
+                <MapPin className="w-3.5 h-3.5 text-sky-300 shrink-0" />
+                <span className="font-bold text-sky-100">Address / العنوان:</span>
+                <span className="text-white truncate max-w-[280px]">{addressVal}</span>
+              </div>
+            ) : null}
 
-              {/* Phone / Mobile */}
-              {phoneVal && (
-                <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
-                  <Phone className="w-3.5 h-3.5 text-sky-300 shrink-0" />
-                  <span className="font-bold text-sky-100">Phone / الجوال:</span>
-                  <span className="font-mono text-white">{phoneVal}</span>
-                </div>
-              )}
+            {/* Phone / Mobile */}
+            {phoneVal ? (
+              <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
+                <Phone className="w-3.5 h-3.5 text-sky-300 shrink-0" />
+                <span className="font-bold text-sky-100">Phone / الجوال:</span>
+                <span className="font-mono text-white">{phoneVal}</span>
+              </div>
+            ) : null}
 
-              {/* WhatsApp */}
-              {whatsappVal && (
-                <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
-                  <MessageSquare className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span className="font-bold text-sky-100">WhatsApp / واتساب:</span>
-                  <span className="font-mono text-white">{whatsappVal}</span>
-                </div>
-              )}
+            {/* WhatsApp */}
+            {whatsappVal ? (
+              <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
+                <MessageSquare className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span className="font-bold text-sky-100">WhatsApp / واتساب:</span>
+                <span className="font-mono text-white">{whatsappVal}</span>
+              </div>
+            ) : null}
 
-              {/* Email */}
-              {emailVal && (
-                <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
-                  <Mail className="w-3.5 h-3.5 text-sky-300 shrink-0" />
-                  <span className="font-bold text-sky-100">Email / البريد:</span>
-                  <span className="text-white">{emailVal}</span>
-                </div>
-              )}
-            </div>
+            {/* Email */}
+            {emailVal ? (
+              <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
+                <Mail className="w-3.5 h-3.5 text-sky-300 shrink-0" />
+                <span className="font-bold text-sky-100">Email / البريد:</span>
+                <span className="text-white">{emailVal}</span>
+              </div>
+            ) : null}
           </div>
-        )}
+
+          {/* Bilingual Thank-You Message */}
+          <div className="border-t border-sky-900 bg-[#091a2e] py-1 px-4 flex items-center justify-center gap-2.5 text-[11px] font-bold text-sky-200">
+            <span dir="rtl">{companySettings.closingNoteAr || 'شكراً لكم'}</span>
+            <span className="text-sky-400/60 font-normal">|</span>
+            <span dir="ltr">{companySettings.closingNoteEn || 'Thank You'}</span>
+          </div>
+        </div>
       </div>
     </>
   );
