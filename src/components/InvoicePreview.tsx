@@ -800,77 +800,66 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
 
         {/* ========================================================
             8. MASTER REUSABLE LIGHT/NEUTRAL INVOICE FOOTER
-            - Master Visual Reference: IMG-20261008-WA0027.jpg
-            - Clean, premium and professional light/neutral multi-company template
-            - Background: White / very light neutral (#FFFFFF / #F0F5FA / #F8FAFC)
-            - Primary text: Dark Navy #0F2744
-            - Border: Light Blue #CBDDE8
-            - Accent: Subtle Gold #D9A62E
-            - Subtle geometric corner accents
-            
-            ROW 1 — CONTACT INFORMATION:
-            - 3 balanced sections: Phone / الهاتف, WhatsApp / واتساب, Email / البريد الإلكتروني
-            
-            ROW 2 — ADDRESS:
-            - Address / العنوان followed by complete company address in one clean horizontal line
-            
-            ROW 3 — BRAND + THANK YOU:
-            - Center: Dynamically uploaded company logo
-            - Beside logo: [Dynamic Company Name] + [Dynamic Tagline / Business Activity]
-            - On other side: شكراً لكم (RTL) / Thank you for your business
+            - Master Visual Reference: Clean corporate light/neutral footer
+            - Solid clean navy divider line on top matching header (1.5px bg-[#0F2744])
+            - High-clarity, professional icons for Phone, WhatsApp, Email, and Location
+            - 3 rows: Contact Info, Address Line, Centered Closing Note
             ======================================================== */}
-        <div className="bg-[#FFFFFF] text-[#0F2744] rounded-md shadow-xs overflow-hidden relative border border-[#CBDDE8] mt-2">
-          {/* Subtle Geometric Corner Accents in Gold #D9A62E */}
-          <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-[#D9A62E] pointer-events-none z-10" />
-          <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-[#D9A62E] pointer-events-none z-10" />
-          <div className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-[#D9A62E] pointer-events-none z-10" />
-          <div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-[#D9A62E] pointer-events-none z-10" />
-
-          {/* Top Thin Navy & Gold Accent Line */}
-          <div className="w-full h-[2px] bg-gradient-to-r from-[#0F2744] via-[#D9A62E] to-[#0F2744]" />
+        <div className="bg-[#FFFFFF] text-[#0F2744] rounded-md shadow-xs overflow-hidden border border-[#CBDDE8] mt-2">
+          {/* Top Solid Navy Divider Line matching the exact header line (#0F2744) */}
+          <div className="w-full h-[1.5px] bg-[#0F2744]" />
 
           {/* ROW 1 — CONTACT INFORMATION (3 Balanced Sections) */}
           <div className="grid grid-cols-3 divide-x divide-[#CBDDE8] bg-[#F0F5FA] border-b border-[#CBDDE8] py-1.5 px-2 sm:px-3 text-[10px]">
             {/* 1. Phone / الهاتف */}
-            <div className="px-2 flex items-center justify-center gap-1.5 min-w-0" dir="ltr">
-              <span className="p-1 rounded bg-[#FFFFFF] border border-[#CBDDE8] shadow-xs flex items-center justify-center shrink-0">
-                <Phone className="w-2.5 h-2.5 text-[#0F2744]" />
+            <div className="px-2 flex items-center justify-center gap-2 min-w-0" dir="ltr">
+              <span className="w-6 h-6 rounded-full bg-[#0F2744] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                {/* Clean Professional Solid Phone Icon */}
+                <svg className="w-3 h-3 fill-white" viewBox="0 0 24 24">
+                  <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1V20a1 1 0 01-1 1C10.29 21 3 13.71 3 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z" />
+                </svg>
               </span>
               <div className="min-w-0 text-left">
-                <div className="text-[7.5px] font-bold text-[#0F2744]/70 uppercase tracking-wider leading-none">
+                <div className="text-[7.5px] font-bold text-[#0F2744]/75 uppercase tracking-wider leading-none">
                   Phone / الهاتف
                 </div>
-                <div className="font-mono text-[9.5px] font-bold text-[#0F2744] tracking-tight leading-tight truncate">
+                <div className="font-mono text-[9.5px] font-bold text-[#0F2744] tracking-tight leading-tight truncate mt-0.5">
                   {phoneVal || '-'}
                 </div>
               </div>
             </div>
 
             {/* 2. WhatsApp / واتساب */}
-            <div className="px-2 flex items-center justify-center gap-1.5 min-w-0" dir="ltr">
-              <span className="p-1 rounded bg-[#FFFFFF] border border-[#CBDDE8] shadow-xs flex items-center justify-center shrink-0">
-                <MessageSquare className="w-2.5 h-2.5 text-[#0F2744]" />
+            <div className="px-2 flex items-center justify-center gap-2 min-w-0" dir="ltr">
+              <span className="w-6 h-6 rounded-full bg-[#25D366] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                {/* Official Clean WhatsApp Silhouette Icon */}
+                <svg className="w-3.5 h-3.5 fill-white" viewBox="0 0 24 24">
+                  <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0012.04 2zm5.79 14.07c-.24.68-1.2 1.26-1.68 1.32-.45.06-1.02.1-3.29-.84-2.73-1.13-4.52-3.89-4.66-4.07-.13-.19-1.12-1.49-1.12-2.84 0-1.35.71-2.01.96-2.28.25-.26.54-.33.72-.33.18 0 .37 0 .53.01.17.01.4.06.61.57.22.53.75 1.83.82 1.96.07.14.11.3.02.48-.09.18-.14.29-.27.45-.14.16-.29.35-.41.47-.14.13-.28.28-.12.56.16.27.7 1.15 1.5 1.86 1.03.92 1.9 1.2 2.17 1.34.27.13.43.11.59-.07.16-.18.69-.8 87-1.07.18-.27.37-.22.61-.13.25.09 1.57.74 1.84.87.27.13.45.2.52.31.06.11.06.66-.18 1.34z" />
+                </svg>
               </span>
               <div className="min-w-0 text-left">
-                <div className="text-[7.5px] font-bold text-[#0F2744]/70 uppercase tracking-wider leading-none">
+                <div className="text-[7.5px] font-bold text-[#0F2744]/75 uppercase tracking-wider leading-none">
                   WhatsApp / واتساب
                 </div>
-                <div className="font-mono text-[9.5px] font-bold text-[#0F2744] tracking-tight leading-tight truncate">
+                <div className="font-mono text-[9.5px] font-bold text-[#0F2744] tracking-tight leading-tight truncate mt-0.5">
                   {whatsappVal || phoneVal || '-'}
                 </div>
               </div>
             </div>
 
-            {/* 3. Email / البريد الإلكتروني */}
-            <div className="px-2 flex items-center justify-center gap-1.5 min-w-0" dir="ltr">
-              <span className="p-1 rounded bg-[#FFFFFF] border border-[#CBDDE8] shadow-xs flex items-center justify-center shrink-0">
-                <Mail className="w-2.5 h-2.5 text-[#0F2744]" />
+            {/* 3. Email / البريد الإلكترونی */}
+            <div className="px-2 flex items-center justify-center gap-2 min-w-0" dir="ltr">
+              <span className="w-6 h-6 rounded-full bg-[#0F2744] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                {/* Clean Professional Mail / Envelope Icon */}
+                <svg className="w-3 h-3 fill-white" viewBox="0 0 24 24">
+                  <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                </svg>
               </span>
               <div className="min-w-0 text-left">
-                <div className="text-[7.5px] font-bold text-[#0F2744]/70 uppercase tracking-wider leading-none">
+                <div className="text-[7.5px] font-bold text-[#0F2744]/75 uppercase tracking-wider leading-none">
                   Email / البريد الإلكتروني
                 </div>
-                <div className="text-[9.5px] font-medium text-[#0F2744] truncate max-w-[190px] leading-tight">
+                <div className="text-[9.5px] font-medium text-[#0F2744] truncate max-w-[190px] leading-tight mt-0.5">
                   {emailVal || '-'}
                 </div>
               </div>
@@ -878,9 +867,12 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           </div>
 
           {/* ROW 2 — ADDRESS (Complete Address in One Clean Horizontal Line) */}
-          <div className="py-1 px-3 sm:px-4 flex items-center justify-center gap-2 text-[#0F2744] bg-[#FFFFFF] border-b border-[#CBDDE8]">
-            <span className="p-0.5 rounded bg-[#F0F5FA] border border-[#CBDDE8] flex items-center justify-center shrink-0">
-              <MapPin className="w-2.5 h-2.5 text-[#D9A62E]" />
+          <div className="py-1.5 px-3 sm:px-4 flex items-center justify-center gap-2 text-[#0F2744] bg-[#FFFFFF] border-b border-[#CBDDE8]">
+            <span className="w-5 h-5 rounded-full bg-[#0F2744] text-white flex items-center justify-center shrink-0 shadow-2xs">
+              {/* Clean Professional Solid Location Pin */}
+              <svg className="w-2.5 h-2.5 fill-white" viewBox="0 0 24 24">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+              </svg>
             </span>
             <span className="text-[8.5px] font-bold text-[#0F2744] shrink-0 uppercase tracking-wide">
               Address / العنوان:
