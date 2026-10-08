@@ -302,7 +302,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
   const a4SheetContent = (
     <>
       {/* Foreground Content */}
-      <div className="relative z-10 flex flex-col justify-between flex-1 h-full min-h-0">
+      <div className="relative z-10 flex flex-col flex-1 min-h-0">
         <div className="space-y-1.5">
           {/* ========================================================
               1. MASTER HEADER: English Left, Arabic Right
@@ -796,19 +796,18 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               </div>
             </div>
           </div>
-        </div>
 
-        {/* ========================================================
-            8. MASTER REUSABLE LIGHT/NEUTRAL INVOICE FOOTER
-            - Master Visual Reference: Clean corporate light/neutral footer
-            - Solid clean navy divider line on top matching header (4px bg-[#0F2744])
-            - High-clarity, professional icons for Phone, WhatsApp, Email, and Location
-            - 3 rows: Contact Info, Address Line, Centered Closing Note
-            - Solid clean navy divider line on bottom matching header (4px bg-[#0F2744])
-            ======================================================== */}
-        <div className="bg-[#FFFFFF] text-[#0F2744] rounded-md shadow-xs overflow-hidden border border-[#CBDDE8] mt-1.5">
-          {/* Top Solid Navy Divider Line matching the exact header top bar (#0F2744) */}
-          <div className="w-full h-1 bg-[#0F2744]" />
+          {/* ========================================================
+              8. MASTER REUSABLE LIGHT/NEUTRAL INVOICE FOOTER
+              - Master Visual Reference: Clean corporate light/neutral footer
+              - Solid clean navy divider line on top matching header (4px bg-[#0F2744])
+              - High-clarity, professional icons for Phone, WhatsApp, Email, and Location
+              - 3 rows: Contact Info, Address Line, Centered Closing Note
+              - Solid clean navy divider line on bottom matching header (4px bg-[#0F2744])
+              ======================================================== */}
+          <div className="bg-[#FFFFFF] text-[#0F2744] rounded-md shadow-xs overflow-hidden border border-[#CBDDE8] mt-2.5">
+            {/* Top Solid Navy Divider Line matching the exact header top bar (#0F2744) */}
+            <div className="w-full h-1 bg-[#0F2744]" />
 
           {/* ROW 1 — CONTACT INFORMATION (3 Balanced Sections) */}
           <div className="grid grid-cols-3 divide-x divide-[#CBDDE8] bg-[#F0F5FA] border-b border-[#CBDDE8] py-1.5 px-2 text-[10px]">
@@ -904,6 +903,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           <div className="w-full h-1 bg-[#0F2744]" />
         </div>
       </div>
+      </div>
     </>
   );
 
@@ -913,7 +913,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
       <div
         id={`invoice-preview-sheet-${invoice?.id || 'temp'}`}
         data-invoice-sheet="true"
-        className="invoice-sheet print-sheet print-only bg-white text-slate-900 mx-auto select-text relative flex flex-col justify-between overflow-hidden"
+        className="invoice-sheet print-sheet print-only bg-white text-slate-900 mx-auto select-text relative flex flex-col overflow-hidden"
         dir={lang === 'ar' ? 'rtl' : 'ltr'}
         style={{
           fontFamily: 'Arial, "Arial Arabic", "Noto Sans Arabic", sans-serif',
@@ -948,7 +948,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
         ref={sheetRef}
         id={`invoice-preview-sheet-${invoice?.id || 'temp'}`}
         data-invoice-sheet="true"
-        className="invoice-sheet bg-white text-slate-900 border border-slate-300 shadow-md rounded-lg p-5 w-[794px] min-h-[1123px] shrink-0 leading-normal select-text relative flex flex-col justify-between overflow-hidden"
+        className="invoice-sheet bg-white text-slate-900 border border-slate-300 shadow-md rounded-lg p-5 w-[794px] min-h-[1123px] shrink-0 leading-normal select-text relative flex flex-col overflow-hidden"
         dir={lang === 'ar' ? 'rtl' : 'ltr'}
         style={{
           fontFamily: 'Arial, "Arial Arabic", "Noto Sans Arabic", sans-serif',
