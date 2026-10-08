@@ -890,47 +890,13 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
             </span>
           </div>
 
-          {/* ROW 3 — BRAND + THANK YOU */}
-          <div className="py-1.5 px-3 sm:px-4 flex items-center justify-between bg-[#F8FAFC]">
-            {/* Left: Dynamic Company Name & Tagline */}
-            <div className="flex-1 flex flex-col justify-center items-start min-w-0 pr-2" dir="ltr">
-              <div className="font-bold text-[#0F2744] text-[10.5px] leading-tight truncate max-w-full">
-                {footerCompanyName}
-              </div>
-              {footerTagline ? (
-                <div className="text-[8px] font-medium text-[#0F2744]/70 leading-tight truncate max-w-full mt-0.5">
-                  {footerTagline}
-                </div>
-              ) : (
-                <div className="text-[8px] font-medium text-[#0F2744]/50 leading-tight truncate max-w-full mt-0.5">
-                  Commercial Invoicing System
-                </div>
-              )}
+          {/* ROW 3 — THANK YOU (Centered at the very bottom) */}
+          <div className="py-1.5 px-3 sm:px-4 flex flex-col items-center justify-center text-center bg-[#F8FAFC]">
+            <div className="font-bold text-[#0F2744] text-[11px] font-['Arial','sans-serif'] leading-tight tracking-wide" dir="rtl">
+              {footerClosingAr}
             </div>
-
-            {/* Center: Dynamically Uploaded Company Logo */}
-            <div className="shrink-0 flex items-center justify-center px-2">
-              {companySettings.logoUrl ? (
-                <img
-                  src={companySettings.logoUrl}
-                  alt={footerCompanyName}
-                  className="h-7 max-w-[90px] object-contain"
-                />
-              ) : (
-                <div className="h-7 px-2.5 rounded border border-[#CBDDE8] bg-[#FFFFFF] flex items-center justify-center text-[9px] font-bold text-[#0F2744] tracking-wider shadow-2xs">
-                  {footerCompanyName.slice(0, 3).toUpperCase()}
-                </div>
-              )}
-            </div>
-
-            {/* Right: Dynamic Bilingual Thank You / Closing Message */}
-            <div className="flex-1 flex flex-col justify-center items-end min-w-0 pl-2 text-right" dir="rtl">
-              <div className="font-bold text-[#0F2744] text-[10.5px] font-['Arial','sans-serif'] leading-tight">
-                {footerClosingAr}
-              </div>
-              <div dir="ltr" className="text-[8px] font-semibold text-[#0F2744]/70 uppercase tracking-wider leading-tight mt-0.5">
-                {footerClosingEn}
-              </div>
+            <div dir="ltr" className="text-[8.5px] font-semibold text-[#0F2744]/75 uppercase tracking-wider leading-tight mt-0.5">
+              {footerClosingEn}
             </div>
           </div>
         </div>
