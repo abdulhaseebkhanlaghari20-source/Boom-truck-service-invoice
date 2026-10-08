@@ -52,8 +52,25 @@ service cloud.firestore {
       allow write: if (isOwner(userId) && isNotSuspended(userId)) || isAdmin();
       
       // Invoices Subcollection
-      // Path: /users/{userId}/invoices/{invoiceId}
       match /invoices/{invoiceId} {
+        allow get, list: if (isOwner(userId) && isNotSuspended(userId)) || isAdmin();
+        allow write: if (isOwner(userId) && isNotSuspended(userId)) || isAdmin();
+      }
+
+      // Workspaces Subcollection
+      match /workspaces/{workspaceId} {
+        allow get, list: if (isOwner(userId) && isNotSuspended(userId)) || isAdmin();
+        allow write: if (isOwner(userId) && isNotSuspended(userId)) || isAdmin();
+      }
+
+      // Customers Subcollection
+      match /customers/{customerId} {
+        allow get, list: if (isOwner(userId) && isNotSuspended(userId)) || isAdmin();
+        allow write: if (isOwner(userId) && isNotSuspended(userId)) || isAdmin();
+      }
+
+      // Services Subcollection
+      match /services/{serviceId} {
         allow get, list: if (isOwner(userId) && isNotSuspended(userId)) || isAdmin();
         allow write: if (isOwner(userId) && isNotSuspended(userId)) || isAdmin();
       }

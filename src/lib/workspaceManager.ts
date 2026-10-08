@@ -83,10 +83,14 @@ export function createNewWorkspace(ownerUid: string, email: string, name?: strin
 }
 
 /**
- * Get active workspace ID from local storage
+ * Get active workspace ID from local storage, scoped by user ID
  */
-export function getStoredActiveWorkspaceId(): string | null {
+export function getStoredActiveWorkspaceId(userId?: string): string | null {
   try {
+    if (userId) {
+      const userScoped = localStorage.getItem(`${STORAGE_KEYS.ACTIVE_WORKSPACE}_${userId}`);
+      if (userScoped) return userScoped;
+    }
     return localStorage.getItem(STORAGE_KEYS.ACTIVE_WORKSPACE);
   } catch {
     return null;
@@ -94,10 +98,13 @@ export function getStoredActiveWorkspaceId(): string | null {
 }
 
 /**
- * Set active workspace ID
+ * Set active workspace ID, scoped by user ID
  */
-export function setStoredActiveWorkspaceId(workspaceId: string): void {
+export function setStoredActiveWorkspaceId(workspaceId: string, userId?: string): void {
   try {
+    if (userId) {
+      localStorage.setItem(`${STORAGE_KEYS.ACTIVE_WORKSPACE}_${userId}`, workspaceId);
+    }
     localStorage.setItem(STORAGE_KEYS.ACTIVE_WORKSPACE, workspaceId);
   } catch (err) {
     console.error('Failed to store active workspace ID', err);

@@ -268,10 +268,10 @@ export default function App() {
     const existingWorkspaces = loadLocalUserWorkspaces(uid);
     if (existingWorkspaces && existingWorkspaces.length > 0) {
       setWorkspaces(existingWorkspaces);
-      const storedId = getStoredActiveWorkspaceId();
+      const storedId = getStoredActiveWorkspaceId(uid);
       const matched = existingWorkspaces.find((w) => w.id === storedId) || existingWorkspaces[0];
       setActiveWorkspaceId(matched.id);
-      setStoredActiveWorkspaceId(matched.id);
+      setStoredActiveWorkspaceId(matched.id, uid);
       setCompanySettings(workspaceToCompanySettings(matched));
       setCustomers(loadCompanyCustomers(matched.id));
       setServices(loadCompanyServices(matched.id));
@@ -336,7 +336,7 @@ export default function App() {
             setWorkspaces(list);
             saveLocalUserWorkspaces(uid, list);
             setActiveWorkspaceId(migratedWs.id);
-            setStoredActiveWorkspaceId(migratedWs.id);
+            setStoredActiveWorkspaceId(migratedWs.id, uid);
             setCompanySettings(remoteSettings);
           } else {
             // Brand new business account: create clean workspace and show Setup Wizard
@@ -345,7 +345,7 @@ export default function App() {
             setWorkspaces(list);
             saveLocalUserWorkspaces(uid, list);
             setActiveWorkspaceId(brandNewWs.id);
-            setStoredActiveWorkspaceId(brandNewWs.id);
+            setStoredActiveWorkspaceId(brandNewWs.id, uid);
             setWizardWorkspace(brandNewWs);
             setShowSetupWizard(true);
           }
@@ -356,7 +356,7 @@ export default function App() {
           setWorkspaces(list);
           saveLocalUserWorkspaces(uid, list);
           setActiveWorkspaceId(brandNewWs.id);
-          setStoredActiveWorkspaceId(brandNewWs.id);
+          setStoredActiveWorkspaceId(brandNewWs.id, uid);
           setWizardWorkspace(brandNewWs);
           setShowSetupWizard(true);
         });
@@ -470,7 +470,7 @@ export default function App() {
 
   const handleSwitchWorkspace = (workspaceId: string) => {
     setActiveWorkspaceId(workspaceId);
-    setStoredActiveWorkspaceId(workspaceId);
+    setStoredActiveWorkspaceId(workspaceId, user?.uid);
     const targetWs = workspaces.find((w) => w.id === workspaceId);
     if (targetWs) {
       const wsInvoices = loadCompanyInvoices(targetWs.id);
@@ -519,7 +519,7 @@ export default function App() {
     setWorkspaces(updatedWorkspaces);
     saveLocalUserWorkspaces(user.uid, updatedWorkspaces);
     setActiveWorkspaceId(markedWs.id);
-    setStoredActiveWorkspaceId(markedWs.id);
+    setStoredActiveWorkspaceId(markedWs.id, user.uid);
 
     // Save first customer if created
     let newCustomersList = loadCompanyCustomers(markedWs.id);
