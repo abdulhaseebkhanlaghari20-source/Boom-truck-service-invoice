@@ -119,8 +119,8 @@ async function renderDirectVectorInvoice(
   const crNo = companySettings?.crNumber || '';
   const city = invoice.city === 'Other' && invoice.customCity ? invoice.customCity : invoice.city;
 
-  // 1. Top Header Bar: Slate-900 with Title
-  pdf.setFillColor(15, 23, 42); // slate-900
+  // 1. Top Header Bar: Primary Navy (#0F2744) with Title
+  pdf.setFillColor(15, 39, 68); // #0F2744
   pdf.rect(10, 10, 190, 24, 'F');
   pdf.setTextColor(255, 255, 255);
   pdf.setFont('helvetica', 'bold');
@@ -130,17 +130,7 @@ async function renderDirectVectorInvoice(
   pdf.text(`No: ${invoice.invoiceNumber}`, 148, 22);
 
   // 2. Company Details (Left) + ZATCA QR Code (Right)
-  let textStartX = 12;
-
-  // Render company logo if present
-  if (companySettings?.logoUrl) {
-    try {
-      pdf.addImage(companySettings.logoUrl, 'PNG', 12, 37, 34, 23, undefined, 'FAST');
-      textStartX = 50; // Shift company text to right of logo
-    } catch (logoErr) {
-      console.warn('Company logo skipped in vector fallback:', logoErr);
-    }
-  }
+  const textStartX = 12;
 
   // Primary Navy: #0F2744 -> [15, 39, 68]
   // Dark Navy: #08233F -> [8, 35, 63]
@@ -156,9 +146,8 @@ async function renderDirectVectorInvoice(
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(9.5);
   pdf.setTextColor(15, 39, 68);
-  pdf.text(address, textStartX, 49);
-  pdf.text(`VAT No: ${vatNo} | Phone: ${phone}`, textStartX, 54);
-  pdf.text(`Email: ${email}${crNo ? ` | CR: ${crNo}` : ''}`, textStartX, 59);
+  pdf.text(companySettings?.businessActivity || 'Heavy Equipment & Machinery Rental', textStartX, 49);
+  pdf.text(`VAT No: ${vatNo}${crNo ? ` | CR No: ${crNo}` : ''}`, textStartX, 54);
 
   // Generate & draw ZATCA QR Code on top right
   try {

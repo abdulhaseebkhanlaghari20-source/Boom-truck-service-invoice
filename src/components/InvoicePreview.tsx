@@ -289,45 +289,47 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
       <div className="relative z-10 flex flex-col justify-between flex-1 min-h-[1050px]">
         <div className="space-y-2.5">
           {/* ========================================================
-              1. MASTER HEADER: English Left, Logo Centered, Arabic Right
-              - Company Address REMOVED from English header
-              - Arabic side keeps ONLY: Arabic Company Name & Arabic Business Activity
-              - Arabic VAT, CR, Address removed from right side
-              - VAT & CR remain only once in the compact English/company info area
+              1. MASTER HEADER: English Left, Arabic Right
+              - NO company logo in the header
+              - Left side (LTR): English Company Name, Business Activity, VAT No., CR No.
+              - Right side (RTL): Arabic Company Name, Arabic Business Activity
+              - No Address, Phone, WhatsApp, or Email in header
+              - VAT & CR appear only once in the header (styled shape badges)
+              - Clean thin navy divider at bottom of header
               ======================================================== */}
-          <div className="bg-white text-slate-900 rounded-md overflow-hidden relative border border-[#CBDDE8] p-3 sm:p-4 shadow-xs">
+          <div className="bg-[#FFFFFF] text-slate-900 rounded-md overflow-hidden relative border border-[#CBDDE8] p-3.5 sm:p-4 shadow-xs">
             {/* Top Corporate Accent Bar */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-[#0F2744]" />
 
-            <div className="grid grid-cols-12 gap-3 items-center pt-0.5">
-              {/* Left Column: English Company Information (LTR) */}
-              <div className="col-span-5 text-start space-y-1.5 min-w-0" dir="ltr">
+            <div className="grid grid-cols-2 gap-4 items-start pt-1">
+              {/* Left Side: English Company Information (LTR) */}
+              <div className="text-start space-y-1.5 min-w-0" dir="ltr">
                 {companyNameEn && (
                   <h1
-                    className={`font-black text-[#0F2744] tracking-tight leading-tight break-words ${
+                    className={`font-bold text-[#0F2744] tracking-tight leading-tight break-words ${
                       companyNameEn.length > 35
-                        ? 'text-sm'
+                        ? 'text-base sm:text-lg'
                         : companyNameEn.length > 22
-                        ? 'text-base'
-                        : 'text-lg'
+                        ? 'text-lg sm:text-xl'
+                        : 'text-xl sm:text-2xl'
                     }`}
                   >
                     {toTitleCase(companyNameEn)}
                   </h1>
                 )}
                 {businessActivityEn && (
-                  <p className="text-[11px] font-semibold text-[#0F2744]/80 tracking-wide leading-tight">
+                  <p className="text-[12px] sm:text-[13px] font-normal text-[#0F2744]/85 tracking-wide leading-tight">
                     {businessActivityEn}
                   </p>
                 )}
 
-                {/* Styled Shape Badges for VAT and CR */}
+                {/* Styled Shape Badges for VAT No. and CR No. */}
                 {(vatNo || crNo) && (
-                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <div className="flex flex-wrap items-center gap-2 pt-1.5">
                     {vatNo && (
-                      <div className="inline-flex items-center rounded border border-[#CBDDE8] bg-[#F0F5FA] overflow-hidden shadow-xs">
-                        <span className="bg-[#0F2744] text-[#FFFFFF] text-[9.5px] font-bold px-2 py-0.5 tracking-wider uppercase">
-                          VAT
+                      <div className="inline-flex items-center rounded border border-[#CBDDE8] bg-[#F0F5FA] overflow-hidden shadow-2xs">
+                        <span className="bg-[#0F2744] text-[#FFFFFF] text-[10px] font-bold px-2.5 py-0.5 tracking-wider uppercase">
+                          VAT No.
                         </span>
                         <span className="font-mono text-[11px] font-bold text-[#0F2744] px-2.5 py-0.5 tracking-wide">
                           {vatNo}
@@ -335,9 +337,9 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                       </div>
                     )}
                     {crNo && (
-                      <div className="inline-flex items-center rounded border border-[#CBDDE8] bg-[#F0F5FA] overflow-hidden shadow-xs">
-                        <span className="bg-[#08233F] text-[#FFFFFF] text-[9.5px] font-bold px-2 py-0.5 tracking-wider uppercase">
-                          CR
+                      <div className="inline-flex items-center rounded border border-[#CBDDE8] bg-[#F0F5FA] overflow-hidden shadow-2xs">
+                        <span className="bg-[#08233F] text-[#FFFFFF] text-[10px] font-bold px-2.5 py-0.5 tracking-wider uppercase">
+                          CR No.
                         </span>
                         <span className="font-mono text-[11px] font-bold text-[#0F2744] px-2.5 py-0.5 tracking-wide">
                           {crNo}
@@ -348,32 +350,16 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                 )}
               </div>
 
-              {/* Center Column: Company Logo */}
-              <div className="col-span-2 flex flex-col items-center justify-center">
-                {companySettings.logoUrl ? (
-                  <div className="w-22 h-18 rounded p-1 flex items-center justify-center bg-white border border-[#CBDDE8]/60 shadow-xs">
-                    <img
-                      src={companySettings.logoUrl}
-                      alt="Company Logo"
-                      referrerPolicy="no-referrer"
-                      className="max-h-full max-w-full w-auto h-auto object-contain object-center"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-18 h-16" />
-                )}
-              </div>
-
-              {/* Right Column: Arabic Company Information (RTL) - ONLY Name & Activity */}
-              <div className="col-span-5 text-end space-y-1.5 min-w-0" dir="rtl">
+              {/* Right Side: Arabic Company Information (RTL) - ONLY Name & Activity */}
+              <div className="text-end space-y-1.5 min-w-0" dir="rtl">
                 {companyNameAr && (
                   <h2
                     className={`font-bold text-[#0F2744] leading-tight break-words text-end ${
                       companyNameAr.length > 35
-                        ? 'text-base'
+                        ? 'text-lg sm:text-xl'
                         : companyNameAr.length > 22
-                        ? 'text-lg'
-                        : 'text-xl'
+                        ? 'text-xl sm:text-2xl'
+                        : 'text-2xl sm:text-[26px]'
                     }`}
                     style={{ direction: 'rtl', textAlign: 'right' }}
                   >
@@ -381,26 +367,27 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                   </h2>
                 )}
                 {businessActivityAr && (
-                  <div
-                    className="text-[12px] font-semibold text-[#0F2744]/80 leading-tight text-end mt-0.5"
+                  <p
+                    className="text-[13px] sm:text-[14px] font-normal text-[#0F2744]/85 leading-tight text-end mt-0.5"
                     style={{ direction: 'rtl', textAlign: 'right' }}
                   >
                     {businessActivityAr}
-                  </div>
+                  </p>
                 )}
               </div>
             </div>
 
-            {/* Subtle Divider Line */}
-            <div className="w-full h-[1.5px] bg-[#CBDDE8] mt-2.5" />
+            {/* Clean thin navy divider at the bottom of the header */}
+            <div className="w-full h-[1.5px] bg-[#0F2744] mt-3.5" />
           </div>
 
           {/* ========================================================
               2. INVOICE TITLE: Master Tax Invoice Title Bar
+              Keep this title bar visually separate from the main header
               ======================================================== */}
-          <div className="flex justify-center my-2">
+          <div className="flex justify-center my-2.5">
             <div className="w-full bg-[#0F2744] text-[#FFFFFF] rounded py-2 px-4 text-center shadow-xs">
-              <span className="text-base font-bold tracking-wider">
+              <span className="text-sm sm:text-base font-bold tracking-wider">
                 Tax Invoice / الفاتورة الضريبية
               </span>
             </div>
