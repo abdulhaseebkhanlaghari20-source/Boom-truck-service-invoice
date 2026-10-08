@@ -302,8 +302,8 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
   const a4SheetContent = (
     <>
       {/* Foreground Content */}
-      <div className="relative z-10 flex flex-col justify-between flex-1 min-h-[1050px]">
-        <div className="space-y-2.5">
+      <div className="relative z-10 flex flex-col justify-between flex-1 h-full min-h-0">
+        <div className="space-y-1.5">
           {/* ========================================================
               1. MASTER HEADER: English Left, Arabic Right
               - NO company logo in the header
@@ -313,7 +313,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               - VAT & CR appear only once in the header (styled shape badges)
               - Clean thin navy divider at bottom of header
               ======================================================== */}
-          <div className="bg-[#FFFFFF] text-slate-900 rounded-md overflow-hidden relative border border-[#CBDDE8] p-3.5 sm:p-4 shadow-xs">
+          <div className="bg-[#FFFFFF] text-slate-900 rounded-md overflow-hidden relative border border-[#CBDDE8] p-3 sm:p-3.5 shadow-xs">
             {/* Top Corporate Accent Bar */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-[#0F2744]" />
 
@@ -394,15 +394,15 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
             </div>
 
             {/* Clean thin navy divider at the bottom of the header */}
-            <div className="w-full h-[1.5px] bg-[#0F2744] mt-3.5" />
+            <div className="w-full h-[1.5px] bg-[#0F2744] mt-2.5" />
           </div>
 
           {/* ========================================================
               2. INVOICE TITLE: Master Tax Invoice Title Bar
               Keep this title bar visually separate from the main header
               ======================================================== */}
-          <div className="flex justify-center my-2.5">
-            <div className="w-full bg-[#0F2744] text-[#FFFFFF] rounded py-2 px-4 text-center shadow-xs">
+          <div className="flex justify-center my-1.5">
+            <div className="w-full bg-[#0F2744] text-[#FFFFFF] rounded py-1.5 px-4 text-center shadow-xs">
               <span className="text-sm sm:text-base font-bold tracking-wider">
                 Tax Invoice / الفاتورة الضريبية
               </span>
@@ -412,14 +412,14 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           {/* ========================================================
               3. TWO-COLUMN DETAILS: Client Details (Left) + Invoice Details (Right)
               ======================================================== */}
-          <div className="grid grid-cols-2 gap-3 my-2 text-xs">
+          <div className="grid grid-cols-2 gap-2.5 my-1 text-xs">
             {/* Left Column: Client Details */}
             <div className="border border-[#CBDDE8] rounded overflow-hidden bg-[#FFFFFF]">
-              <div className="bg-[#F0F5FA] border-b border-[#CBDDE8] px-3 py-1.5 font-bold text-[#0F2744] flex justify-between items-center">
+              <div className="bg-[#F0F5FA] border-b border-[#CBDDE8] px-3 py-1 font-bold text-[#0F2744] flex justify-between items-center">
                 <span>Client Details</span>
                 <span dir="rtl">بيانات العميل</span>
               </div>
-              <div className="p-3 space-y-2 text-[#0F2744]">
+              <div className="p-2.5 space-y-1.5 text-[#0F2744]">
                 {/* 1. Client Name */}
                 <div className="flex justify-between items-baseline gap-2">
                   <span className="font-bold text-[#0F2744] whitespace-nowrap">
@@ -463,11 +463,11 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
 
             {/* Right Column: Invoice Details */}
             <div className="border border-[#CBDDE8] rounded overflow-hidden bg-[#FFFFFF]">
-              <div className="bg-[#F0F5FA] border-b border-[#CBDDE8] px-3 py-1.5 font-bold text-[#0F2744] flex justify-between items-center">
+              <div className="bg-[#F0F5FA] border-b border-[#CBDDE8] px-3 py-1 font-bold text-[#0F2744] flex justify-between items-center">
                 <span>Invoice Details</span>
                 <span dir="rtl">بيانات الفاتورة</span>
               </div>
-              <div className="p-3 space-y-2 text-[#0F2744]">
+              <div className="p-2.5 space-y-1.5 text-[#0F2744]">
                 {/* Invoice Number */}
                 <div className="flex justify-between items-baseline gap-2">
                   <span className="font-bold text-[#0F2744] whitespace-nowrap">
@@ -523,32 +523,32 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               - No watermark behind table
               - High readability and print clarity
               ======================================================== */}
-          <div className="my-2.5 overflow-hidden rounded border border-[#CBDDE8] bg-[#FFFFFF] shadow-2xs">
+          <div className="my-1.5 overflow-hidden rounded border border-[#CBDDE8] bg-[#FFFFFF] shadow-2xs">
             <table className="relative z-10 w-full text-xs text-center border-collapse">
               <thead>
                 <tr className="bg-[#0F2744] text-[#FFFFFF] font-bold border-b border-[#0F2744]">
-                  <th className="py-2.5 px-1.5 border-r border-[#CBDDE8]/30 w-9 text-center">#</th>
-                  <th className="py-2.5 px-3 border-r border-[#CBDDE8]/30 text-start w-2/5">
+                  <th className="py-1.5 px-1.5 border-r border-[#CBDDE8]/30 w-9 text-center">#</th>
+                  <th className="py-1.5 px-3 border-r border-[#CBDDE8]/30 text-start w-2/5">
                     <div>Description</div>
                     <div className="text-[10px] text-white/80 font-normal">الوصف</div>
                   </th>
-                  <th className="py-2.5 px-2 border-r border-[#CBDDE8]/30 w-16">
+                  <th className="py-1.5 px-2 border-r border-[#CBDDE8]/30 w-16">
                     <div>Quantity</div>
                     <div className="text-[10px] text-white/80 font-normal">الكمية</div>
                   </th>
-                  <th className="py-2.5 px-2 border-r border-[#CBDDE8]/30 w-20">
+                  <th className="py-1.5 px-2 border-r border-[#CBDDE8]/30 w-20">
                     <div>Rate</div>
                     <div className="text-[10px] text-white/80 font-normal">سعر الوحدة</div>
                   </th>
-                  <th className="py-2.5 px-2 border-r border-[#CBDDE8]/30 w-20">
+                  <th className="py-1.5 px-2 border-r border-[#CBDDE8]/30 w-20">
                     <div>VAT 15%</div>
                     <div className="text-[10px] text-white/80 font-normal">ضريبة القيمة المضافة</div>
                   </th>
-                  <th className="py-2.5 px-2.5 border-r border-[#CBDDE8]/30 w-24">
+                  <th className="py-1.5 px-2.5 border-r border-[#CBDDE8]/30 w-24">
                     <div>Subtotal</div>
                     <div className="text-[10px] text-white/80 font-normal">المجموع الفرعي</div>
                   </th>
-                  <th className="py-2.5 px-2.5 w-24">
+                  <th className="py-1.5 px-2.5 w-24">
                     <div>Total Amount</div>
                     <div className="text-[10px] text-white/80 font-normal">إجمالي المبلغ</div>
                   </th>
@@ -571,10 +571,10 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
 
                   return (
                     <tr key={item.id || idx} className="bg-[#FFFFFF] font-normal text-[#0F2744] hover:bg-[#F0F5FA]/50">
-                      <td className="py-2.5 px-1.5 border-r border-[#CBDDE8] font-bold font-mono">
+                      <td className="py-1.5 px-1.5 border-r border-[#CBDDE8] font-bold font-mono">
                         {idx + 1}
                       </td>
-                      <td className="py-2.5 px-3 border-r border-[#CBDDE8] text-start">
+                      <td className="py-1.5 px-3 border-r border-[#CBDDE8] text-start">
                         {item.serviceName && (
                           <div className="font-bold text-[#0F2744] leading-tight">
                             {item.serviceName}
@@ -588,19 +588,19 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                           <span className="text-slate-400">-</span>
                         ) : null}
                       </td>
-                      <td className="py-2.5 px-2 border-r border-[#CBDDE8] font-mono">
+                      <td className="py-1.5 px-2 border-r border-[#CBDDE8] font-mono">
                         {itemQty} {item.unit || ''}
                       </td>
-                      <td className="py-2.5 px-2 border-r border-[#CBDDE8] font-mono">
+                      <td className="py-1.5 px-2 border-r border-[#CBDDE8] font-mono">
                         {itemRate.toFixed(2)}
                       </td>
-                      <td className="py-2.5 px-2 border-r border-[#CBDDE8] font-mono">
+                      <td className="py-1.5 px-2 border-r border-[#CBDDE8] font-mono">
                         {itemVat.toFixed(2)}
                       </td>
-                      <td className="py-2.5 px-2.5 border-r border-[#CBDDE8] font-mono">
+                      <td className="py-1.5 px-2.5 border-r border-[#CBDDE8] font-mono">
                         {itemSubtotal.toFixed(2)}
                       </td>
-                      <td className="py-2.5 px-2.5 font-mono font-bold text-[#0F2744]">
+                      <td className="py-1.5 px-2.5 font-mono font-bold text-[#0F2744]">
                         {itemTotal.toFixed(2)}
                       </td>
                     </tr>
@@ -608,16 +608,16 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                 })}
 
                 {/* Empty Rows to replicate master reference spacing and proportions */}
-                {rawItems.length < 5 &&
-                  Array.from({ length: 5 - rawItems.length }).map((_, rIdx) => (
-                    <tr key={`empty-${rIdx}`} className="h-7 bg-[#FFFFFF]">
-                      <td className="py-1 px-1.5 border-r border-[#CBDDE8] font-mono text-slate-300"></td>
-                      <td className="py-1 px-3 border-r border-[#CBDDE8]"></td>
-                      <td className="py-1 px-2 border-r border-[#CBDDE8]"></td>
-                      <td className="py-1 px-2 border-r border-[#CBDDE8]"></td>
-                      <td className="py-1 px-2 border-r border-[#CBDDE8]"></td>
-                      <td className="py-1 px-2.5 border-r border-[#CBDDE8]"></td>
-                      <td className="py-1 px-2.5"></td>
+                {rawItems.length < 4 &&
+                  Array.from({ length: 4 - rawItems.length }).map((_, rIdx) => (
+                    <tr key={`empty-${rIdx}`} className="h-6 bg-[#FFFFFF]">
+                      <td className="py-0.5 px-1.5 border-r border-[#CBDDE8] font-mono text-slate-300"></td>
+                      <td className="py-0.5 px-3 border-r border-[#CBDDE8]"></td>
+                      <td className="py-0.5 px-2 border-r border-[#CBDDE8]"></td>
+                      <td className="py-0.5 px-2 border-r border-[#CBDDE8]"></td>
+                      <td className="py-0.5 px-2 border-r border-[#CBDDE8]"></td>
+                      <td className="py-0.5 px-2.5 border-r border-[#CBDDE8]"></td>
+                      <td className="py-0.5 px-2.5"></td>
                     </tr>
                   ))}
               </tbody>
@@ -627,17 +627,17 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           {/* ========================================================
               5. QR CODE + TOTALS SECTION
               ======================================================== */}
-          <div className="flex flex-row justify-between items-center gap-4 py-2">
+          <div className="flex flex-row justify-between items-center gap-4 py-1">
             {/* Left: Clean Bordered ZATCA QR Code */}
-            <div className="p-2 border border-[#CBDDE8] rounded bg-[#FFFFFF] shrink-0 shadow-2xs">
+            <div className="p-1.5 border border-[#CBDDE8] rounded bg-[#FFFFFF] shrink-0 shadow-2xs">
               {qrCodeDataUrl ? (
                 <img
                   src={qrCodeDataUrl}
                   alt="ZATCA QR Code"
-                  className="w-28 h-28 object-contain"
+                  className="w-24 h-24 object-contain"
                 />
               ) : (
-                <div className="w-28 h-28 bg-[#F0F5FA] flex items-center justify-center text-xs text-[#0F2744]/40">
+                <div className="w-24 h-24 bg-[#F0F5FA] flex items-center justify-center text-xs text-[#0F2744]/40">
                   QR CODE
                 </div>
               )}
@@ -646,7 +646,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
             {/* Right: Dynamic Totals Box */}
             <div className="flex-1 max-w-md border border-[#CBDDE8] rounded overflow-hidden text-xs bg-[#FFFFFF]">
               {/* Subtotal */}
-              <div className="flex justify-between items-center px-3 py-1.5 border-b border-[#CBDDE8]">
+              <div className="flex justify-between items-center px-3 py-1 border-b border-[#CBDDE8]">
                 <span className="font-bold text-[#0F2744]">
                   Subtotal / المجموع الفرعي
                 </span>
@@ -656,7 +656,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               </div>
 
               {/* VAT */}
-              <div className="flex justify-between items-center px-3 py-1.5 border-b border-[#CBDDE8]">
+              <div className="flex justify-between items-center px-3 py-1 border-b border-[#CBDDE8]">
                 <span className="font-bold text-[#0F2744]">
                   {is15Percent ? 'VAT 15% / ضريبة القيمة المضافة' : 'VAT / ضريبة القيمة المضافة'}
                 </span>
@@ -666,17 +666,17 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               </div>
 
               {/* Total Amount (Prominent Bold 700 with Light Blue Section Background #F0F5FA) */}
-              <div className="flex justify-between items-center px-3 py-2 border-b border-[#CBDDE8] bg-[#F0F5FA]">
-                <span className="font-bold text-[#0F2744] text-sm">
+              <div className="flex justify-between items-center px-3 py-1.5 border-b border-[#CBDDE8] bg-[#F0F5FA]">
+                <span className="font-bold text-[#0F2744] text-[13px]">
                   Total Amount / إجمالي المبلغ
                 </span>
-                <span className="font-mono font-bold text-[#0F2744] tabular-nums text-base">
+                <span className="font-mono font-bold text-[#0F2744] tabular-nums text-sm">
                   {safeTotal.toFixed(2)} ر.س
                 </span>
               </div>
 
               {/* Paid Amount */}
-              <div className="flex justify-between items-center px-3 py-1.5 border-b border-[#CBDDE8]/60">
+              <div className="flex justify-between items-center px-3 py-1 border-b border-[#CBDDE8]/60">
                 <span className="font-bold text-[#0F2744]/90">
                   Paid Amount / المبلغ المدفوع
                 </span>
@@ -686,7 +686,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               </div>
 
               {/* Amount Due */}
-              <div className="flex justify-between items-center px-3 py-1.5 bg-[#FFFFFF]">
+              <div className="flex justify-between items-center px-3 py-1 bg-[#FFFFFF]">
                 <span className="font-bold text-[#0F2744]/90">
                   Amount Due / المبلغ المستحق
                 </span>
@@ -700,11 +700,11 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           {/* ========================================================
               6. AMOUNT IN WORDS SECTION
               ======================================================== */}
-          <div className="bg-[#F0F5FA] border border-[#CBDDE8] rounded px-3.5 py-2 text-xs text-[#0F2744] flex flex-row items-center justify-between gap-2 my-1.5">
-            <span className="font-bold text-[#0F2744] whitespace-nowrap">
+          <div className="bg-[#F0F5FA] border border-[#CBDDE8] rounded px-3 py-1 text-xs text-[#0F2744] flex flex-row items-center justify-between gap-2 my-1">
+            <span className="font-bold text-[#0F2744] whitespace-nowrap text-[11px]">
               Amount in Words / المبلغ بالكلمات :
             </span>
-            <span className="font-normal text-[#0F2744] italic text-end">
+            <span className="font-normal text-[#0F2744] italic text-end text-[11px]">
               {numberToWords(safeTotal, lang)}
             </span>
           </div>
@@ -712,41 +712,41 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           {/* ========================================================
               7. LOWER SECTION: Bank Details (Left) & Authorizations (Right)
               ======================================================== */}
-          <div className="grid grid-cols-12 gap-3 my-2 text-xs">
+          <div className="grid grid-cols-12 gap-2.5 my-1 text-xs">
             {/* Left Panel: Bank Details (Prominent Shape Badges matching CR & VAT) */}
             <div className="col-span-6 border border-[#CBDDE8] rounded overflow-hidden bg-[#FFFFFF] shadow-xs flex flex-col justify-between">
-              <div className="bg-[#F0F5FA] border-b border-[#CBDDE8] px-3 py-1.5 font-bold text-[#0F2744] flex justify-between items-center text-xs">
+              <div className="bg-[#F0F5FA] border-b border-[#CBDDE8] px-3 py-1 font-bold text-[#0F2744] flex justify-between items-center text-xs">
                 <span>Bank Details</span>
                 <span dir="rtl">بيانات الحساب البنكي</span>
               </div>
 
-              <div className="p-2.5 space-y-1.5 flex-1 flex flex-col justify-around">
+              <div className="p-2 space-y-1 flex-1 flex flex-col justify-around">
                 {/* 1. Bank Name Shape Badge */}
                 <div className="flex items-stretch rounded border border-[#CBDDE8] bg-[#F0F5FA] overflow-hidden shadow-xs">
-                  <span className="bg-[#0F2744] text-[#FFFFFF] text-[9.5px] font-bold px-2.5 py-1 flex items-center shrink-0 uppercase tracking-wide">
+                  <span className="bg-[#0F2744] text-[#FFFFFF] text-[9px] font-bold px-2 py-0.5 flex items-center shrink-0 uppercase tracking-wide">
                     Bank / البنك
                   </span>
-                  <span className="text-[11px] font-bold text-[#0F2744] px-3 py-1 flex items-center flex-1 break-words">
+                  <span className="text-[10.5px] font-bold text-[#0F2744] px-2.5 py-0.5 flex items-center flex-1 break-words">
                     {bankNameVal || '-'}
                   </span>
                 </div>
 
                 {/* 2. Account Number Shape Badge */}
                 <div className="flex items-stretch rounded border border-[#CBDDE8] bg-[#F0F5FA] overflow-hidden shadow-xs">
-                  <span className="bg-[#0F2744] text-[#FFFFFF] text-[9.5px] font-bold px-2.5 py-1 flex items-center shrink-0 uppercase tracking-wide">
+                  <span className="bg-[#0F2744] text-[#FFFFFF] text-[9px] font-bold px-2 py-0.5 flex items-center shrink-0 uppercase tracking-wide">
                     Account / الحساب
                   </span>
-                  <span className="font-mono text-[11px] font-bold text-[#0F2744] px-3 py-1 flex items-center flex-1 tracking-wider">
+                  <span className="font-mono text-[10.5px] font-bold text-[#0F2744] px-2.5 py-0.5 flex items-center flex-1 tracking-wider">
                     {bankAccountVal || '-'}
                   </span>
                 </div>
 
                 {/* 3. IBAN Shape Badge */}
                 <div className="flex items-stretch rounded border border-[#CBDDE8] bg-[#F0F5FA] overflow-hidden shadow-xs">
-                  <span className="bg-[#08233F] text-[#FFFFFF] text-[9.5px] font-bold px-2.5 py-1 flex items-center shrink-0 uppercase tracking-wide">
+                  <span className="bg-[#08233F] text-[#FFFFFF] text-[9px] font-bold px-2 py-0.5 flex items-center shrink-0 uppercase tracking-wide">
                     IBAN / الآيبان
                   </span>
-                  <span className="font-mono text-[11px] font-black text-[#0F2744] px-3 py-1 flex items-center flex-1 tracking-wider select-all">
+                  <span className="font-mono text-[10.5px] font-black text-[#0F2744] px-2.5 py-0.5 flex items-center flex-1 tracking-wider select-all">
                     {displayIban || '-'}
                   </span>
                 </div>
@@ -755,41 +755,41 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
 
             {/* Right Panel: Signatures & Authorizations (3 Equal Boxes) */}
             <div className="col-span-6 border border-[#CBDDE8] rounded overflow-hidden bg-[#FFFFFF] shadow-xs flex flex-col justify-between">
-              <div className="bg-[#F0F5FA] border-b border-[#CBDDE8] px-3 py-1.5 font-bold text-[#0F2744] flex justify-between items-center text-xs">
+              <div className="bg-[#F0F5FA] border-b border-[#CBDDE8] px-3 py-1 font-bold text-[#0F2744] flex justify-between items-center text-xs">
                 <span>Authorizations & Signatures</span>
                 <span dir="rtl">الاعتماد والتوقيع</span>
               </div>
 
               <div className="grid grid-cols-3 divide-x divide-[#CBDDE8] flex-1 text-center">
                 {/* 1. Prepared By */}
-                <div className="p-2 flex flex-col justify-between min-h-[92px]">
-                  <div className="font-bold text-[#0F2744] text-[10px] pb-1">
+                <div className="p-1.5 flex flex-col justify-between min-h-[74px]">
+                  <div className="font-bold text-[#0F2744] text-[9.5px] pb-0.5">
                     <div>Prepared By</div>
-                    <div className="text-[9.5px]" dir="rtl">أعدها</div>
+                    <div className="text-[9px]" dir="rtl">أعدها</div>
                   </div>
-                  <div className="text-[9px] text-[#0F2744]/50 border-t border-dashed border-[#CBDDE8] pt-1">
+                  <div className="text-[8.5px] text-[#0F2744]/50 border-t border-dashed border-[#CBDDE8] pt-0.5">
                     Sign / Stamp / الختم
                   </div>
                 </div>
 
                 {/* 2. Approved By */}
-                <div className="p-2 flex flex-col justify-between min-h-[92px]">
-                  <div className="font-bold text-[#0F2744] text-[10px] pb-1">
+                <div className="p-1.5 flex flex-col justify-between min-h-[74px]">
+                  <div className="font-bold text-[#0F2744] text-[9.5px] pb-0.5">
                     <div>Approved By</div>
-                    <div className="text-[9.5px]" dir="rtl">اعتمدها</div>
+                    <div className="text-[9px]" dir="rtl">اعتمدها</div>
                   </div>
-                  <div className="text-[9px] text-[#0F2744]/50 border-t border-dashed border-[#CBDDE8] pt-1">
+                  <div className="text-[8.5px] text-[#0F2744]/50 border-t border-dashed border-[#CBDDE8] pt-0.5">
                     Sign / Stamp / الختم
                   </div>
                 </div>
 
                 {/* 3. Received By */}
-                <div className="p-2 flex flex-col justify-between min-h-[92px]">
-                  <div className="font-bold text-[#0F2744] text-[10px] pb-1">
+                <div className="p-1.5 flex flex-col justify-between min-h-[74px]">
+                  <div className="font-bold text-[#0F2744] text-[9.5px] pb-0.5">
                     <div>Received By</div>
-                    <div className="text-[9.5px]" dir="rtl">استلمها</div>
+                    <div className="text-[9px]" dir="rtl">استلمها</div>
                   </div>
-                  <div className="text-[9px] text-[#0F2744]/50 border-t border-dashed border-[#CBDDE8] pt-1">
+                  <div className="text-[8.5px] text-[#0F2744]/50 border-t border-dashed border-[#CBDDE8] pt-0.5">
                     Sign / Stamp / الختم
                   </div>
                 </div>
@@ -801,29 +801,30 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
         {/* ========================================================
             8. MASTER REUSABLE LIGHT/NEUTRAL INVOICE FOOTER
             - Master Visual Reference: Clean corporate light/neutral footer
-            - Solid clean navy divider line on top matching header (1.5px bg-[#0F2744])
+            - Solid clean navy divider line on top matching header (4px bg-[#0F2744])
             - High-clarity, professional icons for Phone, WhatsApp, Email, and Location
             - 3 rows: Contact Info, Address Line, Centered Closing Note
+            - Solid clean navy divider line on bottom matching header (4px bg-[#0F2744])
             ======================================================== */}
-        <div className="bg-[#FFFFFF] text-[#0F2744] rounded-md shadow-xs overflow-hidden border border-[#CBDDE8] mt-2">
-          {/* Top Solid Navy Divider Line matching the exact header line (#0F2744) */}
-          <div className="w-full h-[1.5px] bg-[#0F2744]" />
+        <div className="bg-[#FFFFFF] text-[#0F2744] rounded-md shadow-xs overflow-hidden border border-[#CBDDE8] mt-1.5">
+          {/* Top Solid Navy Divider Line matching the exact header top bar (#0F2744) */}
+          <div className="w-full h-1 bg-[#0F2744]" />
 
           {/* ROW 1 — CONTACT INFORMATION (3 Balanced Sections) */}
-          <div className="grid grid-cols-3 divide-x divide-[#CBDDE8] bg-[#F0F5FA] border-b border-[#CBDDE8] py-2 px-2 sm:px-3 text-[10px]">
+          <div className="grid grid-cols-3 divide-x divide-[#CBDDE8] bg-[#F0F5FA] border-b border-[#CBDDE8] py-1.5 px-2 text-[10px]">
             {/* 1. Phone / الهاتف */}
             <div className="px-2 flex items-center justify-center gap-2 min-w-0" dir="ltr">
-              <span className="w-6 h-6 rounded-full bg-[#0F2744] text-white flex items-center justify-center shrink-0 shadow-xs">
+              <span className="w-5.5 h-5.5 rounded-full bg-[#0F2744] text-white flex items-center justify-center shrink-0 shadow-xs">
                 {/* Clean Professional Solid Phone Icon */}
-                <svg className="w-3.5 h-3.5 fill-white" viewBox="0 0 24 24">
+                <svg className="w-3 h-3 fill-white" viewBox="0 0 24 24">
                   <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1V20a1 1 0 01-1 1C10.29 21 3 13.71 3 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z" />
                 </svg>
               </span>
               <div className="min-w-0 text-left">
-                <div className="text-[8px] font-extrabold text-[#0F2744] uppercase tracking-wider leading-none">
+                <div className="text-[7.5px] font-extrabold text-[#0F2744] uppercase tracking-wider leading-none">
                   Phone / الهاتف
                 </div>
-                <div className="font-mono text-[10.5px] font-extrabold text-[#0F2744] tracking-tight leading-tight truncate mt-0.5">
+                <div className="font-mono text-[10px] font-extrabold text-[#0F2744] tracking-tight leading-tight truncate mt-0.5">
                   {phoneVal || '-'}
                 </div>
               </div>
@@ -831,17 +832,17 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
 
             {/* 2. WhatsApp / واتساب */}
             <div className="px-2 flex items-center justify-center gap-2 min-w-0" dir="ltr">
-              <span className="w-6 h-6 rounded-full bg-[#25D366] text-white flex items-center justify-center shrink-0 shadow-xs">
+              <span className="w-5.5 h-5.5 rounded-full bg-[#25D366] text-white flex items-center justify-center shrink-0 shadow-xs">
                 {/* Official Clean WhatsApp Silhouette Icon */}
-                <svg className="w-3.5 h-3.5 fill-white" viewBox="0 0 24 24">
+                <svg className="w-3 h-3 fill-white" viewBox="0 0 24 24">
                   <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0012.04 2zm5.79 14.07c-.24.68-1.2 1.26-1.68 1.32-.45.06-1.02.1-3.29-.84-2.73-1.13-4.52-3.89-4.66-4.07-.13-.19-1.12-1.49-1.12-2.84 0-1.35.71-2.01.96-2.28.25-.26.54-.33.72-.33.18 0 .37 0 .53.01.17.01.4.06.61.57.22.53.75 1.83.82 1.96.07.14.11.3.02.48-.09.18-.14.29-.27.45-.14.16-.29.35-.41.47-.14.13-.28.28-.12.56.16.27.7 1.15 1.5 1.86 1.03.92 1.9 1.2 2.17 1.34.27.13.43.11.59-.07.16-.18.69-.8 87-1.07.18-.27.37-.22.61-.13.25.09 1.57.74 1.84.87.27.13.45.2.52.31.06.11.06.66-.18 1.34z" />
                 </svg>
               </span>
               <div className="min-w-0 text-left">
-                <div className="text-[8px] font-extrabold text-[#0F2744] uppercase tracking-wider leading-none">
+                <div className="text-[7.5px] font-extrabold text-[#0F2744] uppercase tracking-wider leading-none">
                   WhatsApp / واتساب
                 </div>
-                <div className="font-mono text-[10.5px] font-extrabold text-[#0F2744] tracking-tight leading-tight truncate mt-0.5">
+                <div className="font-mono text-[10px] font-extrabold text-[#0F2744] tracking-tight leading-tight truncate mt-0.5">
                   {whatsappVal || phoneVal || '-'}
                 </div>
               </div>
@@ -849,17 +850,17 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
 
             {/* 3. Email / البريد الإلكترونی */}
             <div className="px-2 flex items-center justify-center gap-2 min-w-0" dir="ltr">
-              <span className="w-6 h-6 rounded-full bg-[#0F2744] text-white flex items-center justify-center shrink-0 shadow-xs">
+              <span className="w-5.5 h-5.5 rounded-full bg-[#0F2744] text-white flex items-center justify-center shrink-0 shadow-xs">
                 {/* Clean Professional Mail / Envelope Icon */}
-                <svg className="w-3.5 h-3.5 fill-white" viewBox="0 0 24 24">
+                <svg className="w-3 h-3 fill-white" viewBox="0 0 24 24">
                   <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
                 </svg>
               </span>
               <div className="min-w-0 text-left">
-                <div className="text-[8px] font-extrabold text-[#0F2744] uppercase tracking-wider leading-none">
+                <div className="text-[7.5px] font-extrabold text-[#0F2744] uppercase tracking-wider leading-none">
                   Email / البريد الإلكتروني
                 </div>
-                <div className="text-[10px] font-extrabold text-[#0F2744] truncate max-w-[190px] leading-tight mt-0.5">
+                <div className="text-[9.5px] font-extrabold text-[#0F2744] truncate max-w-[190px] leading-tight mt-0.5">
                   {emailVal || '-'}
                 </div>
               </div>
@@ -867,25 +868,25 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           </div>
 
           {/* ROW 2 — ADDRESS (Complete Address in One Clean Horizontal Line) */}
-          <div className="py-2 px-3 sm:px-4 flex items-center justify-center gap-2 text-[#0F2744] bg-[#FFFFFF] border-b border-[#CBDDE8]">
-            <span className="w-5 h-5 rounded-full bg-[#0F2744] text-white flex items-center justify-center shrink-0 shadow-xs">
+          <div className="py-1 px-3 sm:px-4 flex items-center justify-center gap-2 text-[#0F2744] bg-[#FFFFFF] border-b border-[#CBDDE8]">
+            <span className="w-4.5 h-4.5 rounded-full bg-[#0F2744] text-white flex items-center justify-center shrink-0 shadow-xs">
               {/* Clean Professional Solid Location Pin */}
               <svg className="w-2.5 h-2.5 fill-white" viewBox="0 0 24 24">
                 <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
               </svg>
             </span>
-            <span className="text-[9px] font-extrabold text-[#0F2744] shrink-0 uppercase tracking-wide">
+            <span className="text-[8.5px] font-extrabold text-[#0F2744] shrink-0 uppercase tracking-wide">
               Address / العنوان:
             </span>
-            <span className="text-[9.5px] font-bold text-[#0F2744] truncate">
+            <span className="text-[9px] font-bold text-[#0F2744] truncate">
               {fullCompanyAddress}
             </span>
           </div>
 
           {/* ROW 3 — THANK YOU (Prominent, High-Contrast & Centered) */}
-          <div className="py-2.5 px-3 sm:px-4 flex flex-col items-center justify-center text-center bg-[#F8FAFC]">
+          <div className="py-1.5 px-3 sm:px-4 flex flex-col items-center justify-center text-center bg-[#F8FAFC]">
             <div
-              className="font-bold text-[#0F2744] text-[13px] sm:text-[14px] leading-tight tracking-wide"
+              className="font-bold text-[#0F2744] text-[12.5px] sm:text-[13px] leading-tight tracking-wide"
               dir="rtl"
               style={{ fontFamily: 'Arial, "Arial Arabic", "Noto Sans Arabic", sans-serif' }}
             >
@@ -893,7 +894,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
             </div>
             <div
               dir="ltr"
-              className="text-[10px] sm:text-[10.5px] font-bold text-[#0F2744] uppercase tracking-widest leading-tight mt-1"
+              className="text-[9.5px] sm:text-[10px] font-bold text-[#0F2744] uppercase tracking-widest leading-tight mt-0.5"
             >
               {footerClosingEn}
             </div>
@@ -923,7 +924,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           minHeight: '1123px',
           maxHeight: '1123px',
           boxSizing: 'border-box',
-          padding: '24px 32px',
+          padding: '20px 28px',
           breakInside: 'avoid',
           pageBreakInside: 'avoid',
           pageBreakAfter: 'avoid',
@@ -947,7 +948,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
         ref={sheetRef}
         id={`invoice-preview-sheet-${invoice?.id || 'temp'}`}
         data-invoice-sheet="true"
-        className="invoice-sheet bg-white text-slate-900 border border-slate-300 shadow-md rounded-lg p-6 w-[794px] min-h-[1123px] shrink-0 leading-normal select-text relative flex flex-col justify-between overflow-hidden"
+        className="invoice-sheet bg-white text-slate-900 border border-slate-300 shadow-md rounded-lg p-5 w-[794px] min-h-[1123px] shrink-0 leading-normal select-text relative flex flex-col justify-between overflow-hidden"
         dir={lang === 'ar' ? 'rtl' : 'ltr'}
         style={{
           fontFamily: 'Arial, "Arial Arabic", "Noto Sans Arabic", sans-serif',
