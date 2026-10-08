@@ -148,6 +148,9 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
   const bankNameVal = cleanVal(companySettings.bankName);
   const bankAccountVal = cleanVal(companySettings.bankAccountNumber);
   const ibanVal = cleanVal(companySettings.iban);
+  const displayIban = ibanVal
+    ? (ibanVal.includes(' ') ? ibanVal : ibanVal.replace(/(.{4})/g, '$1 ').trim())
+    : '';
 
   const is15Percent = invoice?.vatOption === 'VAT 15%';
 
@@ -704,57 +707,88 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           </div>
 
           {/* ========================================================
-              7. LOWER SECTION: Bank Details & 3 Signatures
+              7. LOWER SECTION: Bank Details (Left) & Authorizations (Right)
               ======================================================== */}
-          <div className="border border-[#CBDDE8] rounded text-[11px] text-[#0F2744] my-2 overflow-hidden bg-[#FFFFFF]">
-            {/* 4 Equal Columns: Bank Details | Prepared By | Approved By | Received By */}
-            <div className="grid grid-cols-4 divide-x divide-[#CBDDE8] text-center">
-              {/* Col 1: Bank Details */}
-              <div className="text-start p-2.5 space-y-1 bg-[#F0F5FA]/60">
-                <div className="font-bold text-[#0F2744] border-b border-[#CBDDE8] pb-0.5 mb-1 text-center">
-                  Bank Details / بيانات البنك
-                </div>
-                <div className="text-[10px] text-[#0F2744]">
-                  <span className="font-bold text-[#0F2744]">Bank Name / اسم البنك: </span>
-                  <span>{bankNameVal || '-'}</span>
-                </div>
-                <div className="text-[10px] text-[#0F2744] font-mono">
-                  <span className="font-bold text-[#0F2744] font-sans">Account No. / رقم الحساب: </span>
-                  <span>{bankAccountVal || '-'}</span>
-                </div>
-                <div className="text-[10px] text-[#0F2744] font-mono">
-                  <span className="font-bold text-[#0F2744] font-sans">IBAN / رقم الآيبان: </span>
-                  <span>{ibanVal || '-'}</span>
-                </div>
+          <div className="grid grid-cols-12 gap-3 my-2 text-xs">
+            {/* Left Panel: Bank Details (Prominent Shape Badges matching CR & VAT) */}
+            <div className="col-span-6 border border-[#CBDDE8] rounded overflow-hidden bg-[#FFFFFF] shadow-xs flex flex-col justify-between">
+              <div className="bg-[#F0F5FA] border-b border-[#CBDDE8] px-3 py-1.5 font-bold text-[#0F2744] flex justify-between items-center text-xs">
+                <span>Bank Details</span>
+                <span dir="rtl">بيانات الحساب البنكي</span>
               </div>
 
-              {/* Col 2: Prepared By */}
-              <div className="p-2.5 flex flex-col justify-between h-22">
-                <div className="font-bold text-[#0F2744] border-b border-[#CBDDE8] pb-0.5">
-                  Prepared By / أعدها
+              <div className="p-2.5 space-y-1.5 flex-1 flex flex-col justify-around">
+                {/* 1. Bank Name Shape Badge */}
+                <div className="flex items-stretch rounded border border-[#CBDDE8] bg-[#F0F5FA] overflow-hidden shadow-xs">
+                  <span className="bg-[#0F2744] text-[#FFFFFF] text-[9.5px] font-bold px-2.5 py-1 flex items-center shrink-0 uppercase tracking-wide">
+                    Bank / البنك
+                  </span>
+                  <span className="text-[11px] font-bold text-[#0F2744] px-3 py-1 flex items-center flex-1 break-words">
+                    {bankNameVal || '-'}
+                  </span>
                 </div>
-                <div className="text-[9.5px] text-[#0F2744]/40 border-t border-dashed border-[#CBDDE8] pt-1">
-                  Sign / Stamp / التوقيع / الختم
+
+                {/* 2. Account Number Shape Badge */}
+                <div className="flex items-stretch rounded border border-[#CBDDE8] bg-[#F0F5FA] overflow-hidden shadow-xs">
+                  <span className="bg-[#0F2744] text-[#FFFFFF] text-[9.5px] font-bold px-2.5 py-1 flex items-center shrink-0 uppercase tracking-wide">
+                    Account / الحساب
+                  </span>
+                  <span className="font-mono text-[11px] font-bold text-[#0F2744] px-3 py-1 flex items-center flex-1 tracking-wider">
+                    {bankAccountVal || '-'}
+                  </span>
+                </div>
+
+                {/* 3. IBAN Shape Badge */}
+                <div className="flex items-stretch rounded border border-[#CBDDE8] bg-[#F0F5FA] overflow-hidden shadow-xs">
+                  <span className="bg-[#08233F] text-[#FFFFFF] text-[9.5px] font-bold px-2.5 py-1 flex items-center shrink-0 uppercase tracking-wide">
+                    IBAN / الآيبان
+                  </span>
+                  <span className="font-mono text-[11px] font-black text-[#0F2744] px-3 py-1 flex items-center flex-1 tracking-wider select-all">
+                    {displayIban || '-'}
+                  </span>
                 </div>
               </div>
+            </div>
 
-              {/* Col 3: Approved By */}
-              <div className="p-2.5 flex flex-col justify-between h-22">
-                <div className="font-bold text-[#0F2744] border-b border-[#CBDDE8] pb-0.5">
-                  Approved By / اعتمدها
-                </div>
-                <div className="text-[9.5px] text-[#0F2744]/40 border-t border-dashed border-[#CBDDE8] pt-1">
-                  Sign / Stamp / التوقيع / الختم
-                </div>
+            {/* Right Panel: Signatures & Authorizations (3 Equal Boxes) */}
+            <div className="col-span-6 border border-[#CBDDE8] rounded overflow-hidden bg-[#FFFFFF] shadow-xs flex flex-col justify-between">
+              <div className="bg-[#F0F5FA] border-b border-[#CBDDE8] px-3 py-1.5 font-bold text-[#0F2744] flex justify-between items-center text-xs">
+                <span>Authorizations & Signatures</span>
+                <span dir="rtl">الاعتماد والتوقيع</span>
               </div>
 
-              {/* Col 4: Received By */}
-              <div className="p-2.5 flex flex-col justify-between h-22">
-                <div className="font-bold text-[#0F2744] border-b border-[#CBDDE8] pb-0.5">
-                  Received By / استلمها
+              <div className="grid grid-cols-3 divide-x divide-[#CBDDE8] flex-1 text-center">
+                {/* 1. Prepared By */}
+                <div className="p-2 flex flex-col justify-between min-h-[92px]">
+                  <div className="font-bold text-[#0F2744] text-[10px] pb-1">
+                    <div>Prepared By</div>
+                    <div className="text-[9.5px]" dir="rtl">أعدها</div>
+                  </div>
+                  <div className="text-[9px] text-[#0F2744]/50 border-t border-dashed border-[#CBDDE8] pt-1">
+                    Sign / Stamp / الختم
+                  </div>
                 </div>
-                <div className="text-[9.5px] text-[#0F2744]/40 border-t border-dashed border-[#CBDDE8] pt-1">
-                  Sign / Stamp / التوقيع / الختم
+
+                {/* 2. Approved By */}
+                <div className="p-2 flex flex-col justify-between min-h-[92px]">
+                  <div className="font-bold text-[#0F2744] text-[10px] pb-1">
+                    <div>Approved By</div>
+                    <div className="text-[9.5px]" dir="rtl">اعتمدها</div>
+                  </div>
+                  <div className="text-[9px] text-[#0F2744]/50 border-t border-dashed border-[#CBDDE8] pt-1">
+                    Sign / Stamp / الختم
+                  </div>
+                </div>
+
+                {/* 3. Received By */}
+                <div className="p-2 flex flex-col justify-between min-h-[92px]">
+                  <div className="font-bold text-[#0F2744] text-[10px] pb-1">
+                    <div>Received By</div>
+                    <div className="text-[9.5px]" dir="rtl">استلمها</div>
+                  </div>
+                  <div className="text-[9px] text-[#0F2744]/50 border-t border-dashed border-[#CBDDE8] pt-1">
+                    Sign / Stamp / الختم
+                  </div>
                 </div>
               </div>
             </div>
