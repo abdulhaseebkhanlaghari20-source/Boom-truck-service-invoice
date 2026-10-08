@@ -138,13 +138,29 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
 
   const vatNo = cleanVal(companySettings.vatNumber);
   const crNo = cleanVal(companySettings.crNumber);
-  const primaryPhone = cleanVal(companySettings.phone);
+  const primaryPhone = cleanVal(companySettings.phone) || cleanVal(invoice?.customerPhone);
   const secondaryPhone = cleanVal(companySettings.secondaryPhone);
   const phoneVal = [primaryPhone, secondaryPhone].filter(Boolean).join(', ');
-  const whatsappVal = cleanVal(companySettings.whatsapp);
+  const whatsappVal = cleanVal(companySettings.whatsapp) || primaryPhone;
   const emailVal = cleanVal(companySettings.email);
   const addressVal = cleanVal(companySettings.address);
   const addressArVal = cleanVal(companySettings.addressAr);
+  const fullCompanyAddress = [
+    addressVal,
+    addressArVal && addressArVal !== addressVal ? addressArVal : ''
+  ].filter(Boolean).join('  |  ') || addressVal || addressArVal || 'Kingdom of Saudi Arabia';
+
+  const footerCompanyName = companyNameEn || companyNameAr || 'Company Name';
+  const footerTagline = cleanVal(
+    companySettings.taglineEn ||
+    companySettings.businessActivity ||
+    companySettings.businessServiceEn ||
+    companySettings.taglineAr ||
+    companySettings.businessActivityAr
+  );
+  const footerClosingAr = cleanVal(companySettings.closingNoteAr) || 'شكراً لكم';
+  const footerClosingEn = cleanVal(companySettings.closingNoteEn) || 'Thank you for your business';
+
   const bankNameVal = cleanVal(companySettings.bankName);
   const bankAccountVal = cleanVal(companySettings.bankAccountNumber);
   const ibanVal = cleanVal(companySettings.iban);
@@ -783,79 +799,139 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
         </div>
 
         {/* ========================================================
-            8. PROMINENT ATTRACTIVE 3-LINE DARK NAVY FOOTER WITH GOLD ACCENT
-            - Line 1: Phone, WhatsApp, Email with sharp matching icons (#D9A62E)
-            - Line 2: Bilingual Address (English on left, Arabic on right with Location Pin icon)
-            - Line 3: Bilingual Closing / Thanks For Your Business (شکراً لتعاملكم معنا | Thank You For Your Business)
-            - Subtle Gold Accent: #D9A62E
-            - Primary Navy: #0F2744, Deep Navy: #08233F, Border: #CBDDE8
+            8. MASTER REUSABLE LIGHT/NEUTRAL INVOICE FOOTER
+            - Master Visual Reference: IMG-20261008-WA0027.jpg
+            - Clean, premium and professional light/neutral multi-company template
+            - Background: White / very light neutral (#FFFFFF / #F0F5FA / #F8FAFC)
+            - Primary text: Dark Navy #0F2744
+            - Border: Light Blue #CBDDE8
+            - Accent: Subtle Gold #D9A62E
+            - Subtle geometric corner accents
+            
+            ROW 1 — CONTACT INFORMATION:
+            - 3 balanced sections: Phone / الهاتف, WhatsApp / واتساب, Email / البريد الإلكتروني
+            
+            ROW 2 — ADDRESS:
+            - Address / العنوان followed by complete company address in one clean horizontal line
+            
+            ROW 3 — BRAND + THANK YOU:
+            - Center: Dynamically uploaded company logo
+            - Beside logo: [Dynamic Company Name] + [Dynamic Tagline / Business Activity]
+            - On other side: شكراً لكم (RTL) / Thank you for your business
             ======================================================== */}
-        <div className="bg-[#0F2744] text-[#FFFFFF] rounded-md shadow-sm overflow-hidden relative border border-[#0F2744] mt-2.5">
-          {/* Top Subtle Gold Accent Stripe #D9A62E */}
-          <div className="w-full h-[2.5px] bg-[#D9A62E]" />
+        <div className="bg-[#FFFFFF] text-[#0F2744] rounded-md shadow-xs overflow-hidden relative border border-[#CBDDE8] mt-2">
+          {/* Subtle Geometric Corner Accents in Gold #D9A62E */}
+          <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-[#D9A62E] pointer-events-none z-10" />
+          <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-[#D9A62E] pointer-events-none z-10" />
+          <div className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-[#D9A62E] pointer-events-none z-10" />
+          <div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-[#D9A62E] pointer-events-none z-10" />
 
-          {/* Line 1: Phone | WhatsApp | Email with distinctive icons & subtle pill highlights */}
-          <div className="py-2 px-3 sm:px-4 flex items-center justify-around text-[10.5px] border-b border-[#08233F]/80 bg-[#0F2744]">
-            {/* Phone */}
-            <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
-              <span className="p-1 rounded bg-[#08233F] border border-[#CBDDE8]/20 flex items-center justify-center shrink-0">
-                <Phone className="w-3 h-3 text-[#D9A62E]" />
+          {/* Top Thin Navy & Gold Accent Line */}
+          <div className="w-full h-[2px] bg-gradient-to-r from-[#0F2744] via-[#D9A62E] to-[#0F2744]" />
+
+          {/* ROW 1 — CONTACT INFORMATION (3 Balanced Sections) */}
+          <div className="grid grid-cols-3 divide-x divide-[#CBDDE8] bg-[#F0F5FA] border-b border-[#CBDDE8] py-1.5 px-2 sm:px-3 text-[10px]">
+            {/* 1. Phone / الهاتف */}
+            <div className="px-2 flex items-center justify-center gap-1.5 min-w-0" dir="ltr">
+              <span className="p-1 rounded bg-[#FFFFFF] border border-[#CBDDE8] shadow-xs flex items-center justify-center shrink-0">
+                <Phone className="w-2.5 h-2.5 text-[#0F2744]" />
               </span>
-              <span className="font-bold text-[#FFFFFF]/90 text-[10px] tracking-wide">TEL:</span>
-              <span className="font-mono text-[#FFFFFF] font-semibold tracking-tight">{phoneVal || '-'}</span>
+              <div className="min-w-0 text-left">
+                <div className="text-[7.5px] font-bold text-[#0F2744]/70 uppercase tracking-wider leading-none">
+                  Phone / الهاتف
+                </div>
+                <div className="font-mono text-[9.5px] font-bold text-[#0F2744] tracking-tight leading-tight truncate">
+                  {phoneVal || '-'}
+                </div>
+              </div>
             </div>
 
-            {/* WhatsApp */}
-            <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
-              <span className="p-1 rounded bg-[#08233F] border border-[#CBDDE8]/20 flex items-center justify-center shrink-0">
-                <MessageSquare className="w-3 h-3 text-[#D9A62E]" />
+            {/* 2. WhatsApp / واتساب */}
+            <div className="px-2 flex items-center justify-center gap-1.5 min-w-0" dir="ltr">
+              <span className="p-1 rounded bg-[#FFFFFF] border border-[#CBDDE8] shadow-xs flex items-center justify-center shrink-0">
+                <MessageSquare className="w-2.5 h-2.5 text-[#0F2744]" />
               </span>
-              <span className="font-bold text-[#FFFFFF]/90 text-[10px] tracking-wide">WHATSAPP:</span>
-              <span className="font-mono text-[#FFFFFF] font-semibold tracking-tight">{whatsappVal || phoneVal || '-'}</span>
+              <div className="min-w-0 text-left">
+                <div className="text-[7.5px] font-bold text-[#0F2744]/70 uppercase tracking-wider leading-none">
+                  WhatsApp / واتساب
+                </div>
+                <div className="font-mono text-[9.5px] font-bold text-[#0F2744] tracking-tight leading-tight truncate">
+                  {whatsappVal || phoneVal || '-'}
+                </div>
+              </div>
             </div>
 
-            {/* Email */}
-            <div className="flex items-center gap-1.5 min-w-0" dir="ltr">
-              <span className="p-1 rounded bg-[#08233F] border border-[#CBDDE8]/20 flex items-center justify-center shrink-0">
-                <Mail className="w-3 h-3 text-[#D9A62E]" />
+            {/* 3. Email / البريد الإلكتروني */}
+            <div className="px-2 flex items-center justify-center gap-1.5 min-w-0" dir="ltr">
+              <span className="p-1 rounded bg-[#FFFFFF] border border-[#CBDDE8] shadow-xs flex items-center justify-center shrink-0">
+                <Mail className="w-2.5 h-2.5 text-[#0F2744]" />
               </span>
-              <span className="font-bold text-[#FFFFFF]/90 text-[10px] tracking-wide">EMAIL:</span>
-              <span className="text-[#FFFFFF] font-medium tracking-tight truncate max-w-[210px]">{emailVal || '-'}</span>
+              <div className="min-w-0 text-left">
+                <div className="text-[7.5px] font-bold text-[#0F2744]/70 uppercase tracking-wider leading-none">
+                  Email / البريد الإلكتروني
+                </div>
+                <div className="text-[9.5px] font-medium text-[#0F2744] truncate max-w-[190px] leading-tight">
+                  {emailVal || '-'}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Line 2: Bilingual Address (English and Arabic with Location Icon) */}
-          <div className="py-1.5 px-3 sm:px-4 flex items-center justify-between text-[10.5px] border-b border-[#08233F] bg-[#0B2038]">
-            {/* English Address */}
-            <div className="flex items-center gap-1.5 min-w-0 flex-1 pr-2" dir="ltr">
-              <span className="p-1 rounded bg-[#08233F] border border-[#CBDDE8]/20 flex items-center justify-center shrink-0">
-                <MapPin className="w-3 h-3 text-[#D9A62E]" />
-              </span>
-              <span className="font-bold text-[#FFFFFF]/90 text-[10px] shrink-0">ADDRESS:</span>
-              <span className="text-[#FFFFFF]/95 font-medium truncate">{addressVal || 'Kingdom of Saudi Arabia'}</span>
-            </div>
-
-            {/* Arabic Address */}
-            <div className="flex items-center justify-end gap-1.5 min-w-0 flex-1 pl-2 text-right" dir="rtl">
-              <span className="font-bold text-[#FFFFFF]/90 text-[10px] shrink-0 font-['Arial','sans-serif']">العنوان:</span>
-              <span className="text-[#FFFFFF]/95 font-medium truncate font-['Arial','sans-serif']">
-                {addressArVal || (addressVal ? (SAUDI_CITIES_AR[addressVal] ? `المملكة العربية السعودية - ${SAUDI_CITIES_AR[addressVal]}` : addressVal) : 'المملكة العربية السعودية')}
-              </span>
-              <span className="p-1 rounded bg-[#08233F] border border-[#CBDDE8]/20 flex items-center justify-center shrink-0">
-                <MapPin className="w-3 h-3 text-[#D9A62E]" />
-              </span>
-            </div>
+          {/* ROW 2 — ADDRESS (Complete Address in One Clean Horizontal Line) */}
+          <div className="py-1 px-3 sm:px-4 flex items-center justify-center gap-2 text-[#0F2744] bg-[#FFFFFF] border-b border-[#CBDDE8]">
+            <span className="p-0.5 rounded bg-[#F0F5FA] border border-[#CBDDE8] flex items-center justify-center shrink-0">
+              <MapPin className="w-2.5 h-2.5 text-[#D9A62E]" />
+            </span>
+            <span className="text-[8.5px] font-bold text-[#0F2744] shrink-0 uppercase tracking-wide">
+              Address / العنوان:
+            </span>
+            <span className="text-[9px] font-medium text-[#0F2744]/90 truncate">
+              {fullCompanyAddress}
+            </span>
           </div>
 
-          {/* Line 3: Bilingual Closing / Thanks For Your Business */}
-          <div className="bg-[#08233F] py-1.5 px-4 flex items-center justify-center gap-3 text-[11px] font-bold text-[#FFFFFF]">
-            <span dir="rtl" className="tracking-wide font-['Arial','sans-serif']">
-              {companySettings.closingNoteAr || 'شكراً لتعاملكم معنا'}
-            </span>
-            <span className="text-[#D9A62E] font-bold">•</span>
-            <span dir="ltr" className="tracking-wider uppercase text-[10px] text-[#FFFFFF]/95">
-              {companySettings.closingNoteEn || 'Thank You For Your Business'}
-            </span>
+          {/* ROW 3 — BRAND + THANK YOU */}
+          <div className="py-1.5 px-3 sm:px-4 flex items-center justify-between bg-[#F8FAFC]">
+            {/* Left: Dynamic Company Name & Tagline */}
+            <div className="flex-1 flex flex-col justify-center items-start min-w-0 pr-2" dir="ltr">
+              <div className="font-bold text-[#0F2744] text-[10.5px] leading-tight truncate max-w-full">
+                {footerCompanyName}
+              </div>
+              {footerTagline ? (
+                <div className="text-[8px] font-medium text-[#0F2744]/70 leading-tight truncate max-w-full mt-0.5">
+                  {footerTagline}
+                </div>
+              ) : (
+                <div className="text-[8px] font-medium text-[#0F2744]/50 leading-tight truncate max-w-full mt-0.5">
+                  Commercial Invoicing System
+                </div>
+              )}
+            </div>
+
+            {/* Center: Dynamically Uploaded Company Logo */}
+            <div className="shrink-0 flex items-center justify-center px-2">
+              {companySettings.logoUrl ? (
+                <img
+                  src={companySettings.logoUrl}
+                  alt={footerCompanyName}
+                  className="h-7 max-w-[90px] object-contain"
+                />
+              ) : (
+                <div className="h-7 px-2.5 rounded border border-[#CBDDE8] bg-[#FFFFFF] flex items-center justify-center text-[9px] font-bold text-[#0F2744] tracking-wider shadow-2xs">
+                  {footerCompanyName.slice(0, 3).toUpperCase()}
+                </div>
+              )}
+            </div>
+
+            {/* Right: Dynamic Bilingual Thank You / Closing Message */}
+            <div className="flex-1 flex flex-col justify-center items-end min-w-0 pl-2 text-right" dir="rtl">
+              <div className="font-bold text-[#0F2744] text-[10.5px] font-['Arial','sans-serif'] leading-tight">
+                {footerClosingAr}
+              </div>
+              <div dir="ltr" className="text-[8px] font-semibold text-[#0F2744]/70 uppercase tracking-wider leading-tight mt-0.5">
+                {footerClosingEn}
+              </div>
+            </div>
           </div>
         </div>
       </div>

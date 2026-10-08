@@ -325,20 +325,25 @@ async function renderDirectVectorInvoice(
     pdf.text('[ STATUS: UNPAID / غير مدفوعة ]', 14, footerY + 28);
   }
 
-  // Bottom Full-Width Dark Footer (#0F2744 + gold #D9A62E accent)
-  pdf.setFillColor(15, 39, 68); // #0F2744
+  // Bottom Light/Neutral Multi-Company Footer (#FFFFFF + #CBDDE8 border + gold #D9A62E accent)
+  pdf.setFillColor(255, 255, 255); // #FFFFFF
   pdf.rect(10, footerY + 32, 190, 11, 'F');
+  pdf.setDrawColor(203, 221, 232); // #CBDDE8
+  pdf.setLineWidth(0.3);
+  pdf.rect(10, footerY + 32, 190, 11, 'S');
   // Accent gold stripe #D9A62E on top of footer
   pdf.setFillColor(217, 166, 46); // #D9A62E
-  pdf.rect(10, footerY + 32, 190, 0.8, 'F');
-  pdf.setTextColor(255, 255, 255);
-  pdf.setFont('helvetica', 'normal');
+  pdf.rect(10, footerY + 32, 190, 0.6, 'F');
+  pdf.setTextColor(15, 39, 68); // #0F2744
+  pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(7.2);
   const phones = [phone, companySettings?.secondaryPhone].filter(Boolean).join(', ');
-  pdf.text(`${address}  |  Mob: ${phones}  |  Mail: ${email}`, 14, footerY + 37.5);
+  pdf.text(`TEL: ${phones}   |   MAIL: ${email}`, 14, footerY + 36.5);
+  pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(6.8);
-  pdf.setTextColor(217, 166, 46); // #D9A62E
-  pdf.text('Thank you for your business  |  شكراً لتعاملكم معنا', 75, footerY + 41.5);
+  pdf.text(`${address}`, 14, footerY + 40);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(`${companySettings?.companyName || 'Company'}   •   Thank you for your business`, 115, footerY + 40);
 }
 
 /**
