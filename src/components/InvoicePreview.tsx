@@ -882,15 +882,25 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
             </span>
           </div>
 
-          {/* ROW 3 — THANK YOU (Centered at the very bottom, crisp and bold) */}
-          <div className="py-2 px-3 sm:px-4 flex flex-col items-center justify-center text-center bg-[#F8FAFC]">
-            <div className="font-extrabold text-[#0F2744] text-[12px] font-['Arial','sans-serif'] leading-tight tracking-wider" dir="rtl">
+          {/* ROW 3 — THANK YOU (Prominent, High-Contrast & Centered) */}
+          <div className="py-2.5 px-3 sm:px-4 flex flex-col items-center justify-center text-center bg-[#F8FAFC]">
+            <div
+              className="font-bold text-[#0F2744] text-[13px] sm:text-[14px] leading-tight tracking-wide"
+              dir="rtl"
+              style={{ fontFamily: 'Arial, "Arial Arabic", "Noto Sans Arabic", sans-serif' }}
+            >
               {footerClosingAr}
             </div>
-            <div dir="ltr" className="text-[9px] font-extrabold text-[#0F2744] uppercase tracking-widest leading-tight mt-0.5">
+            <div
+              dir="ltr"
+              className="text-[10px] sm:text-[10.5px] font-bold text-[#0F2744] uppercase tracking-widest leading-tight mt-1"
+            >
               {footerClosingEn}
             </div>
           </div>
+
+          {/* Bottom Solid Navy Accent Bar matching the header top bar */}
+          <div className="w-full h-1 bg-[#0F2744]" />
         </div>
       </div>
     </>
