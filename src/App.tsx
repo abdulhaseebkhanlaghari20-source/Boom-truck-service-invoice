@@ -24,6 +24,9 @@ import {
 import { Header } from './components/Header';
 import { InvoiceForm } from './components/InvoiceForm';
 import { InvoiceList } from './components/InvoiceList';
+import { CustomerManager } from './components/CustomerManager';
+import { ServiceManager } from './components/ServiceManager';
+import { SetupWizard } from './components/SetupWizard';
 import { Dashboard } from './components/Dashboard';
 import { SettingsSection } from './components/SettingsModal';
 import { WhatsAppModal } from './components/WhatsAppModal';
@@ -32,6 +35,27 @@ import { InvoicePreview } from './components/InvoicePreview';
 import { AuthScreen } from './components/AuthScreen';
 import { AdminDashboard } from './components/AdminDashboard';
 import { useFirebaseAuth, logOut } from './lib/auth';
+import {
+  CompanyWorkspace,
+  Customer,
+  ServiceCatalogItem,
+} from './types/invoice';
+import {
+  createNewWorkspace,
+  getStoredActiveWorkspaceId,
+  setStoredActiveWorkspaceId,
+  loadLocalUserWorkspaces,
+  saveLocalUserWorkspaces,
+  loadCompanyCustomers,
+  saveCompanyCustomers,
+  loadCompanyServices,
+  saveCompanyServices,
+  loadCompanyInvoices,
+  saveCompanyInvoices,
+  generateCompanyInvoiceNumber,
+  workspaceToCompanySettings,
+  companySettingsToWorkspace,
+} from './lib/workspaceManager';
 import {
   saveUserCompanySettings,
   loadUserCompanySettings,
@@ -51,55 +75,85 @@ const STORAGE_KEYS = {
   LANG: 'saudi_boom_truck_lang_v1',
 };
 
-function createEmptyInvoice(invoices: Invoice[], lang: Language): Invoice {
+function createEmptyInvoice(
+  invoices: Invoice[],
+  lang: Language,
+  workspace?: CompanyWorkspace | null,
+  customer?: Customer,
+  service?: ServiceCatalogItem
+): Invoice {
   const today = new Date().toISOString().split('T')[0];
   const due = new Date();
   due.setDate(due.getDate() + 14);
   const dueStr = due.toISOString().split('T')[0];
 
   const qty = 1;
-  const rate = 1000;
-  const { subtotal, vatAmount, total } = calculateInvoiceTotals(qty, rate, 'VAT 15%');
+  const rate = service ? service.defaultRate : 1000;
+  const vatEnabled = workspace?.taxSettings?.vatEnabled ?? true;
+  const vatPercent = workspace?.taxSettings?.vatRate ?? 15;
+  const vatOption = vatEnabled ? 'VAT 15%' : 'No VAT';
+  const { subtotal, vatAmount, total } = calculateInvoiceTotals(qty, rate, vatOption);
+
+  const invNumber = workspace
+    ? generateCompanyInvoiceNumber(invoices, workspace.numberingSettings)
+    : generateNextInvoiceNumber(invoices);
+
+  const defaultUnit = service?.defaultUnit || 'Day';
+  const defaultDesc = service
+    ? (lang === 'ar' && service.descriptionAr ? service.descriptionAr : service.description || service.name)
+    : lang === 'ar'
+    ? 'تأجير شاحنة رافعة هيدروليكية (Boom Truck) حمولة 20 طن لأعمال الرفع والنقل'
+    : '20 Ton Boom Truck lifting and transportation services';
+
+  const defaultServiceName = service
+    ? (lang === 'ar' && service.nameAr ? service.nameAr : service.name)
+    : lang === 'ar'
+    ? 'تأجير بوم ترك'
+    : 'Boom Truck Rental';
+
+  const selectedBankId =
+    workspace?.bankAccounts?.find((b) => b.isDefault)?.id ||
+    workspace?.bankAccounts?.[0]?.id;
 
   return {
     id: `inv-${Date.now()}`,
-    invoiceNumber: generateNextInvoiceNumber(invoices),
+    companyId: workspace?.id,
+    customerId: customer?.id,
+    selectedBankAccountId: selectedBankId,
+    invoiceNumber: invNumber,
     invoiceDate: today,
     dueDate: dueStr,
     paymentStatus: 'Unpaid',
-    customerName: '',
-    customerPhone: '',
-    customerAddress: '',
-    customerVatNumber: '',
+    customerName: customer?.name || '',
+    customerPhone: customer?.phone || '',
+    customerAddress: customer?.address || '',
+    customerVatNumber: customer?.vatNumber || '',
     city: 'Riyadh',
     customCity: '',
     jobLocation: 'Riyadh',
     truckCapacity: '20 Ton',
-    serviceDescription:
-      lang === 'ar'
-        ? 'تأجير شاحنة رافعة هيدروليكية (Boom Truck) حمولة 20 طن لأعمال الرفع والنقل'
-        : '20 Ton Boom Truck lifting and transportation services',
+    serviceDescription: defaultDesc,
     quantity: qty,
     rate: rate,
-    unit: 'Day',
+    unit: defaultUnit,
+    quantityColumnType: service?.defaultBillingType || 'days',
     items: [
       {
         id: `item-${Date.now()}`,
-        serviceName: lang === 'ar' ? 'تأجير بوم ترك' : 'Boom Truck Rental',
-        description:
-          lang === 'ar'
-            ? 'تأجير شاحنة رافعة هيدروليكية حمولة 20 طن'
-            : '20 Ton Boom Truck lifting and transportation services',
-        unit: 'Day',
+        serviceId: service?.id,
+        serviceName: defaultServiceName,
+        description: defaultDesc,
+        unit: defaultUnit,
         quantity: qty,
         rate: rate,
-        vatRate: 0.15,
+        vatRate: vatEnabled ? (vatPercent / 100) : 0,
         vatAmount: vatAmount,
         subtotal: subtotal,
         total: total,
       },
     ],
-    vatOption: 'VAT 15%',
+    vatOption: vatOption,
+    vatRatePercent: vatPercent,
     subtotal: subtotal,
     vatAmount: vatAmount,
     total: total,
@@ -143,16 +197,32 @@ export default function App() {
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
   }, [lang]);
 
-  // 2. Company Settings State
+  // 2. Multi-Company / Business Workspace State
+  const [workspaces, setWorkspaces] = useState<CompanyWorkspace[]>(() => {
+    if (!user) return [];
+    return loadLocalUserWorkspaces(user.uid);
+  });
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(() => {
+    return getStoredActiveWorkspaceId();
+  });
+  const [showSetupWizard, setShowSetupWizard] = useState<boolean>(false);
+  const [wizardWorkspace, setWizardWorkspace] = useState<CompanyWorkspace | null>(null);
+
+  const activeWorkspace =
+    workspaces.find((w) => w.id === activeWorkspaceId) || workspaces[0] || null;
+
+  // 3. Company Settings State (Derived from active workspace or local storage)
   const [companySettings, setCompanySettings] = useState<CompanySettings>(() => {
+    if (activeWorkspace) {
+      return workspaceToCompanySettings(activeWorkspace);
+    }
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.SETTINGS);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.companyName === '[COMPANY NAME]' || !parsed.companyName) {
-          return DEFAULT_COMPANY_SETTINGS;
+        if (parsed.companyName && parsed.companyName !== '[COMPANY NAME]') {
+          return { ...DEFAULT_COMPANY_SETTINGS, ...parsed };
         }
-        return { ...DEFAULT_COMPANY_SETTINGS, ...parsed };
       }
     } catch (e) {
       console.error('Error loading settings from localStorage', e);
@@ -160,8 +230,27 @@ export default function App() {
     return DEFAULT_COMPANY_SETTINGS;
   });
 
-  // 3. Invoices State
+  // 4. Customers & Services Catalog State (Strictly Isolated per Company Workspace)
+  const [customers, setCustomers] = useState<Customer[]>(() => {
+    if (activeWorkspace?.id) {
+      return loadCompanyCustomers(activeWorkspace.id);
+    }
+    return [];
+  });
+
+  const [services, setServices] = useState<ServiceCatalogItem[]>(() => {
+    if (activeWorkspace?.id) {
+      return loadCompanyServices(activeWorkspace.id);
+    }
+    return [];
+  });
+
+  // 5. Invoices State (Isolated per Company Workspace)
   const [invoices, setInvoices] = useState<Invoice[]>(() => {
+    if (activeWorkspace?.id) {
+      const companyInvs = loadCompanyInvoices(activeWorkspace.id);
+      if (companyInvs.length > 0) return companyInvs;
+    }
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.INVOICES);
       if (saved) return JSON.parse(saved);
@@ -171,53 +260,122 @@ export default function App() {
     return INITIAL_INVOICES;
   });
 
-  // Load and synchronize user's data from Cloud Firestore
+  // Initialize and synchronize multi-company workspaces on user authentication
   useEffect(() => {
     if (!user) return;
     const uid = user.uid;
 
-    // Load company settings from users/{uid}
-    loadUserCompanySettings(uid)
-      .then((remoteSettings) => {
-        if (remoteSettings && remoteSettings.companyName) {
-          setCompanySettings(remoteSettings);
-          localStorage.setItem(`${STORAGE_KEYS.SETTINGS}_${uid}`, JSON.stringify(remoteSettings));
-        } else {
-          // If first time with no Firestore document, initialize with default/current settings and email
-          const initial = {
-            ...companySettings,
-            email: user.email || companySettings.email,
-          };
-          saveUserCompanySettings(uid, initial).catch((err) =>
-            console.warn('Initial settings sync warning:', err)
-          );
-        }
-      })
-      .catch((err) => {
-        console.warn('Could not load company settings from Firestore:', err);
-      });
+    const existingWorkspaces = loadLocalUserWorkspaces(uid);
+    if (existingWorkspaces && existingWorkspaces.length > 0) {
+      setWorkspaces(existingWorkspaces);
+      const storedId = getStoredActiveWorkspaceId();
+      const matched = existingWorkspaces.find((w) => w.id === storedId) || existingWorkspaces[0];
+      setActiveWorkspaceId(matched.id);
+      setStoredActiveWorkspaceId(matched.id);
+      setCompanySettings(workspaceToCompanySettings(matched));
+      setCustomers(loadCompanyCustomers(matched.id));
+      setServices(loadCompanyServices(matched.id));
+      const companyInvs = loadCompanyInvoices(matched.id);
+      setInvoices(companyInvs);
 
-    // Real-time subscription to users/{uid}/invoices
+      if (!matched.isSetupComplete) {
+        setShowSetupWizard(true);
+      }
+    } else {
+      // First-time business setup detection
+      loadUserCompanySettings(uid)
+        .then((remoteSettings) => {
+          if (remoteSettings && remoteSettings.companyName && remoteSettings.companyName !== '[COMPANY NAME]') {
+            // Migrate single-company account to first workspace
+            const migratedWs: CompanyWorkspace = {
+              id: `comp-${uid.slice(0, 8)}`,
+              ownerUid: uid,
+              name: remoteSettings.companyName,
+              nameAr: remoteSettings.companyNameAr || '',
+              businessActivity: remoteSettings.businessActivity || '',
+              businessActivityAr: remoteSettings.businessActivityAr || '',
+              logoUrl: remoteSettings.logoUrl || '',
+              phone: remoteSettings.phone || '',
+              whatsapp: remoteSettings.whatsapp || '',
+              email: remoteSettings.email || user.email || '',
+              address: remoteSettings.address || '',
+              addressAr: remoteSettings.addressAr || '',
+              vatNumber: remoteSettings.vatNumber || '',
+              crNumber: remoteSettings.crNumber || '',
+              bankAccounts: remoteSettings.bankAccounts || [
+                {
+                  id: 'bank-1',
+                  bankName: remoteSettings.bankName || '',
+                  accountNumber: remoteSettings.bankAccountNumber || '',
+                  iban: remoteSettings.iban || '',
+                  isDefault: true,
+                },
+              ],
+              taxSettings: remoteSettings.taxSettings || {
+                vatEnabled: true,
+                vatRate: 15,
+                vatNumber: remoteSettings.vatNumber || '',
+              },
+              numberingSettings: remoteSettings.numberingSettings || {
+                prefix: 'INV-',
+                startingNumber: 1,
+                digits: 4,
+              },
+              invoiceTemplateSettings: {
+                showSeal: true,
+                taglineEn: remoteSettings.taglineEn || '',
+                taglineAr: remoteSettings.taglineAr || '',
+                closingNoteEn: remoteSettings.closingNoteEn || 'Thank you for your business',
+                closingNoteAr: remoteSettings.closingNoteAr || 'شكراً لتعاملكم معنا',
+              },
+              isSetupComplete: true,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            };
+            const list = [migratedWs];
+            setWorkspaces(list);
+            saveLocalUserWorkspaces(uid, list);
+            setActiveWorkspaceId(migratedWs.id);
+            setStoredActiveWorkspaceId(migratedWs.id);
+            setCompanySettings(remoteSettings);
+          } else {
+            // Brand new business account: create clean workspace and show Setup Wizard
+            const brandNewWs = createNewWorkspace(uid, user.email || '');
+            const list = [brandNewWs];
+            setWorkspaces(list);
+            saveLocalUserWorkspaces(uid, list);
+            setActiveWorkspaceId(brandNewWs.id);
+            setStoredActiveWorkspaceId(brandNewWs.id);
+            setWizardWorkspace(brandNewWs);
+            setShowSetupWizard(true);
+          }
+        })
+        .catch(() => {
+          const brandNewWs = createNewWorkspace(uid, user.email || '');
+          const list = [brandNewWs];
+          setWorkspaces(list);
+          saveLocalUserWorkspaces(uid, list);
+          setActiveWorkspaceId(brandNewWs.id);
+          setStoredActiveWorkspaceId(brandNewWs.id);
+          setWizardWorkspace(brandNewWs);
+          setShowSetupWizard(true);
+        });
+    }
+
+    // Real-time subscription to user invoices
     const unsubscribe = subscribeUserInvoices(
       uid,
       (remoteInvoices) => {
         if (remoteInvoices && remoteInvoices.length > 0) {
-          setInvoices(remoteInvoices);
-          localStorage.setItem(`${STORAGE_KEYS.INVOICES}_${uid}`, JSON.stringify(remoteInvoices));
-        } else if (remoteInvoices && remoteInvoices.length === 0) {
-          // Check local cache for migration if newly registered
-          const cached = localStorage.getItem(`${STORAGE_KEYS.INVOICES}_${uid}`);
-          if (cached) {
-            try {
-              const parsed = JSON.parse(cached);
-              if (Array.isArray(parsed) && parsed.length > 0) {
-                parsed.forEach((inv) => saveUserInvoice(uid, inv).catch(console.warn));
-                setInvoices(parsed);
-                return;
-              }
-            } catch (e) {}
+          // If active workspace is known, filter invoices belonging to this company workspace
+          const activeId = getStoredActiveWorkspaceId();
+          if (activeId) {
+            const companyOnly = remoteInvoices.filter((inv) => !inv.companyId || inv.companyId === activeId);
+            setInvoices(companyOnly);
+            saveCompanyInvoices(activeId, companyOnly);
+          } else {
+            setInvoices(remoteInvoices);
           }
-          setInvoices([]);
         }
       },
       (err) => {
@@ -271,35 +429,205 @@ export default function App() {
     const settingsToSave = { ...newSettings, email: userEmail };
     setCompanySettings(settingsToSave);
     localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settingsToSave));
+
+    if (activeWorkspace) {
+      const updatedWs = companySettingsToWorkspace(settingsToSave, activeWorkspace);
+      const nextList = workspaces.map((w) => (w.id === updatedWs.id ? updatedWs : w));
+      setWorkspaces(nextList);
+      if (user) {
+        saveLocalUserWorkspaces(user.uid, nextList);
+      }
+    }
+
     if (user) {
       localStorage.setItem(`${STORAGE_KEYS.SETTINGS}_${user.uid}`, JSON.stringify(settingsToSave));
       saveUserCompanySettings(user.uid, settingsToSave).catch((err) => {
         console.warn('Firestore save company settings notice:', err);
       });
     }
-    // If drafting a new invoice (not an existing historical invoice), update it to show new settings immediately
+
     if (!isEditingExisting) {
       setCurrentInvoice((prev) => ({
         ...prev,
       }));
     }
     showToast(
-      lang === 'ar' ? 'تم حفظ بيانات المؤسسة بنجاح' : 'Company settings saved successfully',
+      lang === 'ar' ? 'تم حفظ بيانات المنشأة بنجاح' : 'Company profile saved successfully',
       'success'
     );
   };
 
   const saveInvoicesToStorage = (updated: Invoice[]) => {
     setInvoices(updated);
+    if (activeWorkspace) {
+      saveCompanyInvoices(activeWorkspace.id, updated);
+    }
     localStorage.setItem(STORAGE_KEYS.INVOICES, JSON.stringify(updated));
     if (user) {
       localStorage.setItem(`${STORAGE_KEYS.INVOICES}_${user.uid}`, JSON.stringify(updated));
     }
   };
 
+  const handleSwitchWorkspace = (workspaceId: string) => {
+    setActiveWorkspaceId(workspaceId);
+    setStoredActiveWorkspaceId(workspaceId);
+    const targetWs = workspaces.find((w) => w.id === workspaceId);
+    if (targetWs) {
+      const wsInvoices = loadCompanyInvoices(targetWs.id);
+      const wsCustomers = loadCompanyCustomers(targetWs.id);
+      const wsServices = loadCompanyServices(targetWs.id);
+      setInvoices(wsInvoices);
+      setCustomers(wsCustomers);
+      setServices(wsServices);
+      const wsSettings = workspaceToCompanySettings(targetWs);
+      setCompanySettings(wsSettings);
+      const fresh = createEmptyInvoice(wsInvoices, lang, targetWs);
+      setCurrentInvoice(fresh);
+      setIsEditingExisting(false);
+      showToast(
+        lang === 'ar'
+          ? `تم الانتقال إلى: ${targetWs.nameAr || targetWs.name}`
+          : `Switched to workspace: ${targetWs.name || 'Company'}`,
+        'info'
+      );
+    }
+  };
+
+  const handleAddNewWorkspace = () => {
+    if (!user) return;
+    const newWs = createNewWorkspace(user.uid, user.email || '');
+    setWizardWorkspace(newWs);
+    setShowSetupWizard(true);
+  };
+
+  const handleWizardComplete = (
+    updatedWorkspace: CompanyWorkspace,
+    firstCustomer?: Customer,
+    firstService?: ServiceCatalogItem
+  ) => {
+    if (!user) return;
+    const markedWs: CompanyWorkspace = { ...updatedWorkspace, isSetupComplete: true };
+    const existingIdx = workspaces.findIndex((w) => w.id === markedWs.id);
+    let updatedWorkspaces: CompanyWorkspace[];
+    if (existingIdx >= 0) {
+      updatedWorkspaces = [...workspaces];
+      updatedWorkspaces[existingIdx] = markedWs;
+    } else {
+      updatedWorkspaces = [...workspaces, markedWs];
+    }
+
+    setWorkspaces(updatedWorkspaces);
+    saveLocalUserWorkspaces(user.uid, updatedWorkspaces);
+    setActiveWorkspaceId(markedWs.id);
+    setStoredActiveWorkspaceId(markedWs.id);
+
+    // Save first customer if created
+    let newCustomersList = loadCompanyCustomers(markedWs.id);
+    if (firstCustomer && firstCustomer.name) {
+      newCustomersList = [firstCustomer, ...newCustomersList];
+      saveCompanyCustomers(markedWs.id, newCustomersList);
+      setCustomers(newCustomersList);
+    }
+
+    // Save first service if created
+    let newServicesList = loadCompanyServices(markedWs.id);
+    if (firstService && firstService.name) {
+      newServicesList = [firstService, ...newServicesList];
+      saveCompanyServices(markedWs.id, newServicesList);
+      setServices(newServicesList);
+    }
+
+    const newSettings = workspaceToCompanySettings(markedWs);
+    setCompanySettings(newSettings);
+
+    const existingInvoices = loadCompanyInvoices(markedWs.id);
+    const freshInv = createEmptyInvoice(
+      existingInvoices,
+      lang,
+      markedWs,
+      firstCustomer,
+      firstService
+    );
+    setCurrentInvoice(freshInv);
+    setIsEditingExisting(false);
+    setActiveTab('create');
+    setShowSetupWizard(false);
+    setWizardWorkspace(null);
+
+    showToast(
+      lang === 'ar'
+        ? 'تم إعداد المنشأة بنجاح! يمكنك الآن إصدار فواتيرك فوراً.'
+        : 'Business setup complete! You can now create your invoices.',
+      'success'
+    );
+  };
+
+  const handleSaveCustomer = (customer: Customer) => {
+    if (!activeWorkspace) return;
+    const existingIdx = customers.findIndex((c) => c.id === customer.id);
+    let updated: Customer[];
+    if (existingIdx >= 0) {
+      updated = customers.map((c) => (c.id === customer.id ? customer : c));
+    } else {
+      updated = [customer, ...customers];
+    }
+    setCustomers(updated);
+    saveCompanyCustomers(activeWorkspace.id, updated);
+    showToast(
+      lang === 'ar' ? 'تم حفظ بيانات العميل بنجاح' : 'Customer saved successfully',
+      'success'
+    );
+  };
+
+  const handleDeleteCustomer = (customerId: string) => {
+    if (!activeWorkspace) return;
+    const updated = customers.filter((c) => c.id !== customerId);
+    setCustomers(updated);
+    saveCompanyCustomers(activeWorkspace.id, updated);
+    showToast(
+      lang === 'ar' ? 'تم حذف العميل' : 'Customer deleted',
+      'info'
+    );
+  };
+
+  const handleSelectCustomerForInvoice = (customer: Customer) => {
+    const fresh = createEmptyInvoice(invoices, lang, activeWorkspace, customer);
+    setCurrentInvoice(fresh);
+    setIsEditingExisting(false);
+    setActiveTab('create');
+  };
+
+  const handleSaveService = (service: ServiceCatalogItem) => {
+    if (!activeWorkspace) return;
+    const existingIdx = services.findIndex((s) => s.id === service.id);
+    let updated: ServiceCatalogItem[];
+    if (existingIdx >= 0) {
+      updated = services.map((s) => (s.id === service.id ? service : s));
+    } else {
+      updated = [service, ...services];
+    }
+    setServices(updated);
+    saveCompanyServices(activeWorkspace.id, updated);
+    showToast(
+      lang === 'ar' ? 'تم حفظ الخدمة في دليل الخدمات بنجاح' : 'Service saved to catalog successfully',
+      'success'
+    );
+  };
+
+  const handleDeleteService = (serviceId: string) => {
+    if (!activeWorkspace) return;
+    const updated = services.filter((s) => s.id !== serviceId);
+    setServices(updated);
+    saveCompanyServices(activeWorkspace.id, updated);
+    showToast(
+      lang === 'ar' ? 'تم حذف الخدمة من الدليل' : 'Service deleted from catalog',
+      'info'
+    );
+  };
+
   // 4. Current Invoice State for Form
   const [currentInvoice, setCurrentInvoice] = useState<Invoice>(() =>
-    createEmptyInvoice(invoices, lang)
+    createEmptyInvoice(invoices, lang, activeWorkspace)
   );
   const [isEditingExisting, setIsEditingExisting] = useState<boolean>(false);
 
@@ -415,6 +743,7 @@ export default function App() {
 
     const invoiceWithCompany: Invoice = {
       ...invToSave,
+      companyId: activeWorkspace?.id,
       companySnapshot,
       updatedAt: new Date().toISOString(),
     };
@@ -441,7 +770,7 @@ export default function App() {
 
   // New Invoice handler
   const handleNewInvoice = () => {
-    const fresh = createEmptyInvoice(invoices, lang);
+    const fresh = createEmptyInvoice(invoices, lang, activeWorkspace);
     setCurrentInvoice(fresh);
     setIsEditingExisting(false);
     setActiveTab('create');
@@ -696,6 +1025,10 @@ export default function App() {
         onNewInvoice={handleNewInvoice}
         onLogout={handleLogout}
         isAdmin={isAdmin}
+        workspaces={workspaces}
+        activeWorkspace={activeWorkspace}
+        onSwitchWorkspace={handleSwitchWorkspace}
+        onAddNewWorkspace={handleAddNewWorkspace}
       />
 
       {/* Main Viewport Content */}
@@ -705,6 +1038,9 @@ export default function App() {
             invoice={currentInvoice}
             setInvoice={setCurrentInvoice}
             companySettings={companySettings}
+            companyWorkspace={activeWorkspace || undefined}
+            customers={customers}
+            services={services}
             lang={lang}
             onSave={handleSaveInvoice}
             onNew={handleNewInvoice}
@@ -731,6 +1067,25 @@ export default function App() {
             onEmailPdf={handleEmailPdf}
             onShareWhatsApp={handleWhatsAppShare}
             onNew={handleNewInvoice}
+          />
+        )}
+
+        {activeTab === 'customers' && (
+          <CustomerManager
+            customers={customers}
+            onSaveCustomer={handleSaveCustomer}
+            onDeleteCustomer={handleDeleteCustomer}
+            onSelectCustomerForInvoice={handleSelectCustomerForInvoice}
+            lang={lang}
+          />
+        )}
+
+        {activeTab === 'services' && (
+          <ServiceManager
+            services={services}
+            onSaveService={handleSaveService}
+            onDeleteService={handleDeleteService}
+            lang={lang}
           />
         )}
 
@@ -779,6 +1134,20 @@ export default function App() {
           )
         )}
       </main>
+
+      {/* First-Time Setup Wizard Modal */}
+      {showSetupWizard && (wizardWorkspace || activeWorkspace) && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-in fade-in">
+          <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
+            <SetupWizard
+              workspace={wizardWorkspace || activeWorkspace!}
+              lang={lang}
+              onComplete={handleWizardComplete}
+              onSkip={workspaces.some((w) => w.isSetupComplete) ? () => setShowSetupWizard(false) : undefined}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Fullscreen Invoice Preview Modal */}
       <PreviewModal

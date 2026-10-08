@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
-import { Invoice, CompanySettings, Language, PaymentStatus, VatOption, InvoiceItem } from '../types/invoice';
+import {
+  Invoice,
+  CompanySettings,
+  CompanyWorkspace,
+  Customer,
+  ServiceCatalogItem,
+  Language,
+  PaymentStatus,
+  VatOption,
+  InvoiceItem,
+} from '../types/invoice';
 import { translations } from '../translations/i18n';
 import {
   SAUDI_CITIES,
@@ -27,12 +37,17 @@ import {
   Layers,
   Calendar,
   Clock,
+  Landmark,
+  Building,
 } from 'lucide-react';
 
 interface InvoiceFormProps {
   invoice: Invoice;
   setInvoice: React.Dispatch<React.SetStateAction<Invoice>>;
   companySettings: CompanySettings;
+  companyWorkspace?: CompanyWorkspace;
+  customers?: Customer[];
+  services?: ServiceCatalogItem[];
   lang: Language;
   onSave: (invoice: Invoice) => void;
   onNew: () => void;
@@ -88,6 +103,9 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
   invoice,
   setInvoice,
   companySettings,
+  companyWorkspace,
+  customers = [],
+  services = [],
   lang,
   onSave,
   onNew,
@@ -220,6 +238,36 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
     }));
   };
 
+  const handleAddItemFromCatalog = (srv: ServiceCatalogItem) => {
+    const list = [...getItemsList()];
+    const vatRate = (invoice.vatRatePercent ?? (invoice.vatOption === 'VAT 15%' ? 15 : 0)) / 100;
+    const newItem: InvoiceItem = {
+      id: `item-${Date.now()}`,
+      serviceId: srv.id,
+      serviceName: lang === 'ar' ? (srv.nameAr || srv.name) : srv.name,
+      description: lang === 'ar' ? (srv.descriptionAr || srv.description || '') : (srv.description || ''),
+      unit: srv.defaultUnit || 'Days',
+      quantity: 1,
+      rate: srv.defaultRate || 0,
+      vatRate: srv.vatApplicable ? vatRate : 0,
+    };
+    list.push(newItem);
+
+    const { subtotal, vatAmount, total } = calculateMultiItemTotals(list, invoice.vatOption);
+
+    setInvoice((prev) => ({
+      ...prev,
+      quantityColumnType: srv.defaultBillingType || prev.quantityColumnType || 'days',
+      items: list,
+      subtotal,
+      vatAmount,
+      total,
+      paidAmount: prev.paymentStatus === 'Paid' ? total : prev.paymentStatus === 'Unpaid' ? 0 : prev.paidAmount,
+      amountDue: prev.paymentStatus === 'Paid' ? 0 : prev.paymentStatus === 'Unpaid' ? total : Math.max(0, total - (prev.paidAmount || 0)),
+      updatedAt: new Date().toISOString(),
+    }));
+  };
+
   const handleRemoveItem = (index: number) => {
     const list = [...getItemsList()];
     if (list.length <= 1) return;
@@ -340,16 +388,53 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
 
             {/* SECTION 1: Customer (Name, Mobile, Address, VAT Number) */}
             <div className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-5 shadow-xs space-y-3.5">
-              <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100">
-                <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
-                  <User className="w-4 h-4" />
+              <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 flex-wrap gap-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+                    <User className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">{t.sectionCustomer}</h3>
+                    <p className="text-[11px] text-slate-400 font-medium">
+                      {lang === 'ar' ? 'بيانات العميل أو جهة التعاقد' : 'Customer & Contracting Party'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900">{t.sectionCustomer}</h3>
-                  <p className="text-[11px] text-slate-400 font-medium">
-                    {lang === 'ar' ? 'بيانات العميل أو جهة التعاقد' : 'Customer & Contracting Party'}
-                  </p>
-                </div>
+
+                {/* Customer Picker from Saved Company Database */}
+                {customers.length > 0 && (
+                  <div className="flex items-center gap-1.5">
+                    <select
+                      onChange={(e) => {
+                        const custId = e.target.value;
+                        if (!custId) return;
+                        const c = customers.find((item) => item.id === custId);
+                        if (c) {
+                          setInvoice((prev) => ({
+                            ...prev,
+                            customerId: c.id,
+                            customerName: c.name,
+                            customerPhone: c.phone,
+                            customerAddress: c.address || prev.customerAddress,
+                            customerVatNumber: c.vatNumber || prev.customerVatNumber,
+                            updatedAt: new Date().toISOString(),
+                          }));
+                        }
+                      }}
+                      defaultValue=""
+                      className="text-xs bg-emerald-50/70 border border-emerald-300/80 rounded-lg px-2.5 py-1.5 text-emerald-950 font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer"
+                    >
+                      <option value="">
+                        {lang === 'ar' ? '📂 اختيار من عملاء المنشأة...' : '📂 Select from Saved Customers...'}
+                      </option>
+                      {customers.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name} {c.nameAr ? `(${c.nameAr})` : ''} - {c.phone}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">
@@ -434,29 +519,52 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
                 <div className="flex items-center gap-2">
                   <select
                     onChange={(e) => {
-                      const idx = Number(e.target.value);
-                      if (!isNaN(idx) && SERVICE_PRESETS[idx]) {
-                        handleAddItem(SERVICE_PRESETS[idx]);
-                        e.target.value = '';
+                      const val = e.target.value;
+                      if (!val) return;
+                      if (val.startsWith('company_')) {
+                        const srvId = val.replace('company_', '');
+                        const found = services.find((s) => s.id === srvId);
+                        if (found) {
+                          handleAddItemFromCatalog(found);
+                        }
+                      } else if (val.startsWith('preset_')) {
+                        const idx = Number(val.replace('preset_', ''));
+                        if (!isNaN(idx) && SERVICE_PRESETS[idx]) {
+                          handleAddItem(SERVICE_PRESETS[idx]);
+                        }
                       }
+                      e.target.value = '';
                     }}
                     defaultValue=""
-                    className="text-xs bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    className="text-xs bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer"
                   >
                     <option value="" disabled>
                       {lang === 'ar' ? '+ إضافة من دليل الخدمات...' : '+ Add from Services Catalogue...'}
                     </option>
-                    {SERVICE_PRESETS.map((p, i) => (
-                      <option key={p.name} value={i}>
-                        {lang === 'ar' ? p.nameAr : p.name} ({p.rate} SAR / {p.unit})
-                      </option>
-                    ))}
+                    {services.length > 0 && (
+                      <optgroup label={lang === 'ar' ? 'خدمات المنشأة' : 'Company Catalog'}>
+                        {services
+                          .filter((s) => s.isActive)
+                          .map((s) => (
+                            <option key={s.id} value={`company_${s.id}`}>
+                              {lang === 'ar' && s.nameAr ? s.nameAr : s.name} ({s.defaultRate} SAR / {s.defaultUnit})
+                            </option>
+                          ))}
+                      </optgroup>
+                    )}
+                    <optgroup label={lang === 'ar' ? 'نماذج قياسية' : 'Standard Templates'}>
+                      {SERVICE_PRESETS.map((p, i) => (
+                        <option key={p.name} value={`preset_${i}`}>
+                          {lang === 'ar' ? p.nameAr : p.name} ({p.rate} SAR / {p.unit})
+                        </option>
+                      ))}
+                    </optgroup>
                   </select>
 
                   <button
                     type="button"
                     onClick={() => handleAddItem()}
-                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-300 transition-colors"
+                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-300 transition-colors cursor-pointer"
                   >
                     <PlusCircle className="w-3.5 h-3.5" />
                     <span>{lang === 'ar' ? 'بند جديد' : 'Add Item'}</span>

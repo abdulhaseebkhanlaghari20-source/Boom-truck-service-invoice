@@ -2,6 +2,70 @@ export type PaymentStatus = 'Unpaid' | 'Partially Paid' | 'Paid' | 'Overdue';
 
 export type VatOption = 'VAT 15%' | 'No VAT';
 
+export interface BankAccount {
+  id: string;
+  bankName: string;
+  bankNameAr?: string;
+  accountName?: string;
+  accountNumber: string;
+  iban: string;
+  isDefault?: boolean;
+}
+
+export interface Customer {
+  id: string;
+  companyId: string;
+  name: string;
+  nameAr?: string;
+  phone: string;
+  email?: string;
+  address?: string;
+  vatNumber?: string;
+  crNumber?: string;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ServiceCatalogItem {
+  id: string;
+  companyId: string;
+  name: string;
+  nameAr?: string;
+  description?: string;
+  descriptionAr?: string;
+  defaultBillingType: 'days' | 'hours' | 'trips' | 'quantity' | 'custom';
+  defaultUnit: string; // e.g. "Day", "Hour", "Trip", "Pcs"
+  defaultRate: number;
+  vatApplicable: boolean;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface InvoiceNumberingSettings {
+  prefix: string; // e.g. "INV-"
+  startingNumber: number; // e.g. 1
+  digits: number; // e.g. 4 -> "0001"
+}
+
+export interface TaxSettings {
+  vatEnabled: boolean;
+  vatRate: number; // e.g. 15 for 15%
+  vatNumber: string;
+  taxRegistrationName?: string;
+}
+
+export type UserRole = 'owner' | 'admin' | 'staff' | 'viewer';
+
+export interface WorkspaceMember {
+  uid: string;
+  email: string;
+  displayName?: string;
+  role: UserRole;
+  addedAt?: string;
+}
+
 export interface CompanySettings {
   companyName: string;
   companyNameAr?: string;
@@ -14,22 +78,25 @@ export interface CompanySettings {
   phone: string; // Primary phone / mobile (e.g. 0597330558)
   secondaryPhone?: string; // Secondary mobile / phone (e.g. 0596300922)
   whatsapp?: string; // WhatsApp number
-  email: string; // Email address (e.g. ninthgenerationtrading345@gmail.com)
+  email: string; // Email address
   address: string; // Full English address
   addressAr?: string; // Full Arabic address
   vatNumber: string; // VAT Number (e.g. 312777148100003)
   crNumber?: string; // Commercial Registration Number (e.g. 2050205810)
   bankName?: string; // Bank name (e.g. Alinma Bank)
-  bankAccountNumber?: string; // Bank Account No. (A/C: 68206151342000)
-  iban?: string; // IBAN (e.g. SA55050000068206151342000)
+  bankAccountNumber?: string; // Bank Account No.
+  iban?: string; // IBAN
   sealNote?: string; // Company Seal / Disclaimer Note
+  bankAccounts?: BankAccount[];
+  taxSettings?: TaxSettings;
+  numberingSettings?: InvoiceNumberingSettings;
   // Professional Header & Footer Branding Fields
-  businessServiceEn?: string; // e.g. "BOOM TRUCK RENTAL SERVICES"
-  businessServiceAr?: string; // e.g. "لتأجير بوم ترك"
-  taglineEn?: string; // e.g. "LIFT | TRANSPORT | HEAVY EQUIPMENT SOLUTIONS"
-  taglineAr?: string; // e.g. "خدمات رفع ونقل ومعدات متكاملة"
-  closingNoteEn?: string; // e.g. "Thank you for your business"
-  closingNoteAr?: string; // e.g. "شكراً لتعاملكم معنا"
+  businessServiceEn?: string;
+  businessServiceAr?: string;
+  taglineEn?: string;
+  taglineAr?: string;
+  closingNoteEn?: string;
+  closingNoteAr?: string;
   // Professional Email Signature & Contact Fields
   contactPerson?: string;
   jobTitle?: string;
@@ -37,8 +104,44 @@ export interface CompanySettings {
   emailClosing?: string;
 }
 
+export interface CompanyWorkspace {
+  id: string; // Workspace ID / Company ID
+  ownerUid: string;
+  name: string; // English
+  nameAr?: string; // Arabic
+  businessActivity?: string;
+  businessActivityAr?: string;
+  logoUrl?: string;
+  phone: string;
+  whatsapp?: string;
+  email: string;
+  address: string;
+  addressAr?: string;
+  vatNumber?: string;
+  crNumber?: string;
+  bankAccounts: BankAccount[];
+  taxSettings: TaxSettings;
+  numberingSettings: InvoiceNumberingSettings;
+  invoiceTemplateSettings?: {
+    primaryColor?: string;
+    accentColor?: string;
+    showSeal?: boolean;
+    sealNote?: string;
+    taglineEn?: string;
+    taglineAr?: string;
+    closingNoteEn?: string;
+    closingNoteAr?: string;
+  };
+  members?: WorkspaceMember[];
+  isSetupComplete?: boolean;
+  userRole?: UserRole; // Current active user's role in this workspace
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface InvoiceItem {
   id: string;
+  serviceId?: string; // Reference to catalog service
   serviceName?: string;
   description: string;
   unit?: string; // e.g. "Pcs", "Day", "Hour", "Month", "Trip"
@@ -52,6 +155,9 @@ export interface InvoiceItem {
 
 export interface Invoice {
   id: string;
+  companyId?: string; // The tenant/business workspace ID
+  customerId?: string; // Reference to saved customer
+  selectedBankAccountId?: string; // Reference to specific bank account
   invoiceNumber: string; // e.g. INV-001
   invoiceDate: string; // YYYY-MM-DD
   dueDate: string; // YYYY-MM-DD
@@ -85,6 +191,7 @@ export interface Invoice {
 
   // 4. Invoice & Tax Calculations
   vatOption: VatOption;
+  vatRatePercent?: number; // Configurable VAT rate from tax settings (e.g. 15)
   subtotal: number;
   vatAmount: number;
   total: number;
@@ -95,11 +202,11 @@ export interface Invoice {
   createdAt: string;
   updatedAt: string;
 
-  // 4. Company Profile Snapshot (Preserves historical company data for saved invoices)
+  // 5. Company Profile Snapshot (Preserves historical company data for saved invoices)
   companySnapshot?: CompanySettings;
 }
 
-export type ViewTab = 'create' | 'list' | 'dashboard' | 'settings' | 'admin';
+export type ViewTab = 'create' | 'list' | 'customers' | 'services' | 'dashboard' | 'settings' | 'admin';
 export type Language = 'en' | 'ar';
 
 export interface AdminUserData {

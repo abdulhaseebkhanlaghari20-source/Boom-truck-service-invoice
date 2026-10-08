@@ -6,8 +6,13 @@ export const translations = {
     appSubtitle: 'Fast & Professional Heavy Equipment Invoicing',
     navCreate: 'New Invoice',
     navInvoices: 'Invoice History',
+    navCustomers: 'Customers',
+    navServices: 'Services',
     navDashboard: 'Dashboard',
     navSettings: 'Company Settings',
+    switchWorkspace: 'Switch Business',
+    addNewWorkspace: '+ New Business Workspace',
+    activeWorkspace: 'Active Business',
 
     // 3 Fast Form Sections
     sectionCustomer: 'Customer',
@@ -156,8 +161,13 @@ export const translations = {
     appSubtitle: 'إصدار سريع واحترافي لفواتير المعدات الثقيلة',
     navCreate: 'فاتورة جديدة',
     navInvoices: 'سجل الفواتير',
+    navCustomers: 'العملاء',
+    navServices: 'دليل الخدمات',
     navDashboard: 'لوحة المؤشرات',
     navSettings: 'إعدادات المنشأة',
+    switchWorkspace: 'تبديل المنشأة',
+    addNewWorkspace: '+ إضافة منشأة جديدة',
+    activeWorkspace: 'المنشأة الحالية',
 
     // 3 Fast Form Sections
     sectionCustomer: 'بيانات العميل',

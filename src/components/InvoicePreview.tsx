@@ -161,14 +161,21 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
   const footerClosingAr = cleanVal(companySettings.closingNoteAr) || 'شكراً لكم';
   const footerClosingEn = cleanVal(companySettings.closingNoteEn) || 'Thank you for your business';
 
-  const bankNameVal = cleanVal(companySettings.bankName);
-  const bankAccountVal = cleanVal(companySettings.bankAccountNumber);
-  const ibanVal = cleanVal(companySettings.iban);
+  const selectedBank =
+    companySettings.bankAccounts?.find((b) => b.id === invoice?.selectedBankAccountId) ||
+    companySettings.bankAccounts?.find((b) => b.isDefault) ||
+    companySettings.bankAccounts?.[0];
+
+  const bankNameVal = cleanVal(selectedBank?.bankName || companySettings.bankName);
+  const bankAccountVal = cleanVal(selectedBank?.accountNumber || companySettings.bankAccountNumber);
+  const ibanVal = cleanVal(selectedBank?.iban || companySettings.iban);
   const displayIban = ibanVal
     ? (ibanVal.includes(' ') ? ibanVal : ibanVal.replace(/(.{4})/g, '$1 ').trim())
     : '';
 
-  const is15Percent = invoice?.vatOption === 'VAT 15%';
+  const vatPercentage = invoice?.vatRatePercent ?? (invoice?.vatOption === 'VAT 15%' ? 15 : 0);
+  const isVatActive = vatPercentage > 0 && invoice?.vatOption !== 'No VAT';
+  const is15Percent = isVatActive;
 
   // Resolve dynamic line items from current invoice
   const rawItems: InvoiceItem[] = (invoice?.items && invoice.items.length > 0)
@@ -317,9 +324,9 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
             {/* Top Corporate Accent Bar */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-[#0F2744]" />
 
-            <div className="grid grid-cols-2 gap-4 items-start pt-1.5">
+            <div className={`${companySettings.logoUrl ? 'grid grid-cols-12 gap-3 items-center' : 'grid grid-cols-2 gap-4 items-start'} pt-1.5`}>
               {/* Left Side: English Company Information (LTR) */}
-              <div className="text-start space-y-1.5 min-w-0" dir="ltr">
+              <div className={`${companySettings.logoUrl ? 'col-span-5' : ''} text-start space-y-1.5 min-w-0`} dir="ltr">
                 {companyNameEn && (
                   <h1
                     className={`font-bold text-[#0F2744] tracking-tight leading-tight break-words ${
@@ -366,8 +373,19 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                 )}
               </div>
 
+              {/* Dynamic Company Logo (Preserving original proportions) */}
+              {companySettings.logoUrl && (
+                <div className="col-span-2 flex items-center justify-center p-1">
+                  <img
+                    src={companySettings.logoUrl}
+                    alt={companyNameEn || 'Company Logo'}
+                    className="max-h-14 max-w-full object-contain"
+                  />
+                </div>
+              )}
+
               {/* Right Side: Arabic Company Information (RTL) - ONLY Name & Activity */}
-              <div className="text-end space-y-1.5 min-w-0" dir="rtl">
+              <div className={`${companySettings.logoUrl ? 'col-span-5' : ''} text-end space-y-1.5 min-w-0`} dir="rtl">
                 {companyNameAr && (
                   <h2
                     className={`font-bold text-[#0F2744] leading-tight break-words text-end ${
@@ -633,7 +651,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                         <div className="text-[10px] text-white/80 font-normal">{qtyColumnInfo.rateAr}</div>
                       </th>
                       <th className="py-2.5 px-2 border-r border-[#CBDDE8]/30 w-20">
-                        <div>VAT 15%</div>
+                        <div>{isVatActive ? `VAT ${vatPercentage}%` : 'VAT'}</div>
                         <div className="text-[10px] text-white/80 font-normal">ضريبة القيمة المضافة</div>
                       </th>
                       <th className="py-2.5 px-2.5 border-r border-[#CBDDE8]/30 w-24">
@@ -757,7 +775,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               {/* VAT */}
               <div className="flex justify-between items-center px-3.5 py-1.5 border-b border-[#CBDDE8]">
                 <span className="font-bold text-[#0F2744]">
-                  {is15Percent ? 'VAT 15% / ضريبة القيمة المضافة' : 'VAT / ضريبة القيمة المضافة'}
+                  {isVatActive ? `VAT ${vatPercentage}% / ضريبة القيمة المضافة` : 'VAT / ضريبة القيمة المضافة'}
                 </span>
                 <span className="font-mono font-bold text-[#0F2744] tabular-nums">
                   (+) {safeVatAmount.toFixed(2)} ر.س
