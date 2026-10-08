@@ -25,6 +25,8 @@ import {
   FileText,
   Trash2,
   Layers,
+  Calendar,
+  Clock,
 } from 'lucide-react';
 
 interface InvoiceFormProps {
@@ -412,7 +414,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
             </div>
 
             {/* SECTION 2: Dynamic Services & Multiple Line Items */}
-            <div className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-5 shadow-xs space-y-3.5">
+            <div className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-5 shadow-xs space-y-4">
               <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 flex-wrap gap-2">
                 <div className="flex items-center gap-2.5">
                   <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
@@ -420,10 +422,10 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-slate-900">
-                      {lang === 'ar' ? 'البنود والخدمات' : 'Items & Services'}
+                      {lang === 'ar' ? 'البنود والخدمات والمدة' : 'Items, Services & Duration'}
                     </h3>
                     <p className="text-[11px] text-slate-400 font-medium">
-                      {lang === 'ar' ? 'اختر خدمة جاهزة أو أضف بنوداً متعددة' : 'Select a preset service or add multiple line items'}
+                      {lang === 'ar' ? 'اختر حساب الأيام أو الساعات أو الكمية مع خيارات مخصصة' : 'Configure days, hours, quantity, or custom billing columns'}
                     </p>
                   </div>
                 </div>
@@ -462,114 +464,384 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
                 </div>
               </div>
 
-              {/* Items List */}
-              <div className="space-y-3">
-                {getItemsList().map((item, idx) => (
-                  <div
-                    key={item.id || idx}
-                    className="p-3 rounded-lg border border-slate-200 bg-slate-50/50 space-y-2.5"
+              {/* Billing Mode & Column Header Selector */}
+              <div className="bg-slate-50/80 border border-slate-200/90 rounded-xl p-3 space-y-2.5">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-700 flex-wrap gap-1">
+                  <span className="flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>{lang === 'ar' ? 'نوع الحساب / عمود الفاتورة:' : 'Billing Mode & Table Column:'}</span>
+                  </span>
+                  <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    {invoice.quantityColumnType === 'days'
+                      ? (lang === 'ar' ? '📅 حساب بالأيام (Days)' : '📅 Daily Rental (Days)')
+                      : invoice.quantityColumnType === 'hours'
+                      ? (lang === 'ar' ? '⏱️ حساب بالساعات (Hours)' : '⏱️ Hourly Billing (Hours)')
+                      : invoice.quantityColumnType === 'trips'
+                      ? (lang === 'ar' ? '🚚 حساب بالمشاوير (Trips)' : '🚚 Trip Haulage (Trips)')
+                      : invoice.quantityColumnType === 'custom'
+                      ? (lang === 'ar' ? '✍️ عمود مخصص (Custom)' : '✍️ Custom Column')
+                      : (lang === 'ar' ? '📦 كمية عادية (Quantity)' : '📦 Standard Quantity')}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {/* Mode 1: Days */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      updateField('quantityColumnType', 'days');
+                      const list = getItemsList().map((it) => ({
+                        ...it,
+                        unit: it.unit === 'Pcs' || !it.unit ? (lang === 'ar' ? 'أيام' : 'Days') : it.unit,
+                      }));
+                      setInvoice((prev) => ({ ...prev, items: list, quantityColumnType: 'days' }));
+                    }}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all flex items-center gap-1.5 ${
+                      invoice.quantityColumnType === 'days'
+                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                        : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400'
+                    }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-700">
-                        #{idx + 1} {item.serviceName ? `· ${item.serviceName}` : ''}
-                      </span>
-                      {getItemsList().length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveItem(idx)}
-                          className="text-rose-600 hover:text-rose-700 p-1 rounded hover:bg-rose-50 transition-colors"
-                          title={lang === 'ar' ? 'حذف البند' : 'Delete Item'}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
+                    <span>📅</span>
+                    <span>{lang === 'ar' ? 'أيام / Days (تأجير يومي)' : 'Days (Daily Rental)'}</span>
+                  </button>
+
+                  {/* Mode 2: Hours */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      updateField('quantityColumnType', 'hours');
+                      const list = getItemsList().map((it) => ({
+                        ...it,
+                        unit: it.unit === 'Pcs' || !it.unit ? (lang === 'ar' ? 'ساعة' : 'Hours') : it.unit,
+                      }));
+                      setInvoice((prev) => ({ ...prev, items: list, quantityColumnType: 'hours' }));
+                    }}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all flex items-center gap-1.5 ${
+                      invoice.quantityColumnType === 'hours'
+                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                        : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400'
+                    }`}
+                  >
+                    <span>⏱️</span>
+                    <span>{lang === 'ar' ? 'ساعات / Hours' : 'Hours'}</span>
+                  </button>
+
+                  {/* Mode 3: Quantity */}
+                  <button
+                    type="button"
+                    onClick={() => updateField('quantityColumnType', 'quantity')}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all flex items-center gap-1.5 ${
+                      !invoice.quantityColumnType || invoice.quantityColumnType === 'quantity'
+                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                        : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400'
+                    }`}
+                  >
+                    <span>📦</span>
+                    <span>{lang === 'ar' ? 'كمية / Quantity' : 'Quantity'}</span>
+                  </button>
+
+                  {/* Mode 4: Trips */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      updateField('quantityColumnType', 'trips');
+                      const list = getItemsList().map((it) => ({
+                        ...it,
+                        unit: it.unit === 'Pcs' || !it.unit ? (lang === 'ar' ? 'مشوار' : 'Trip') : it.unit,
+                      }));
+                      setInvoice((prev) => ({ ...prev, items: list, quantityColumnType: 'trips' }));
+                    }}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all flex items-center gap-1.5 ${
+                      invoice.quantityColumnType === 'trips'
+                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                        : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400'
+                    }`}
+                  >
+                    <span>🚚</span>
+                    <span>{lang === 'ar' ? 'مشاوير / Trips' : 'Trips'}</span>
+                  </button>
+
+                  {/* Mode 5: Custom */}
+                  <button
+                    type="button"
+                    onClick={() => updateField('quantityColumnType', 'custom')}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all flex items-center gap-1.5 ${
+                      invoice.quantityColumnType === 'custom'
+                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                        : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400'
+                    }`}
+                  >
+                    <span>✍️</span>
+                    <span>{lang === 'ar' ? 'تخصيص الاسم...' : 'Custom Column...'}</span>
+                  </button>
+                </div>
+
+                {/* Custom Column Header Inputs when 'custom' is active */}
+                {invoice.quantityColumnType === 'custom' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t border-slate-200 text-xs">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-0.5">
+                        {lang === 'ar' ? 'اسم عمود الكمية/المدة (English / عربي)' : 'Quantity/Duration Column Title (EN / AR)'}
+                      </label>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <input
+                          type="text"
+                          placeholder="e.g. Days / Duration"
+                          value={invoice.customQuantityHeaderEn || ''}
+                          onChange={(e) => updateField('customQuantityHeaderEn', e.target.value)}
+                          className="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 bg-white"
+                        />
+                        <input
+                          type="text"
+                          dir="rtl"
+                          placeholder="مثال: الأيام / المدة"
+                          value={invoice.customQuantityHeaderAr || ''}
+                          onChange={(e) => updateField('customQuantityHeaderAr', e.target.value)}
+                          className="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 bg-white"
+                        />
+                      </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 text-xs">
-                      {/* Service Name */}
-                      <div className="sm:col-span-5">
-                        <label className="block text-[11px] font-bold text-slate-600 mb-0.5">
-                          {lang === 'ar' ? 'اسم الخدمة / البند' : 'Service Name'}
-                        </label>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-0.5">
+                        {lang === 'ar' ? 'اسم عمود السعر (English / عربي)' : 'Rate Column Title (EN / AR)'}
+                      </label>
+                      <div className="grid grid-cols-2 gap-1.5">
                         <input
                           type="text"
-                          placeholder={lang === 'ar' ? 'مثال: تأجير بوم ترك' : 'e.g. Boom Truck Rental'}
-                          value={item.serviceName || ''}
-                          onChange={(e) => handleUpdateItem(idx, { serviceName: e.target.value })}
-                          className="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                          placeholder="e.g. Daily Rate"
+                          value={invoice.customRateHeaderEn || ''}
+                          onChange={(e) => updateField('customRateHeaderEn', e.target.value)}
+                          className="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 bg-white"
                         />
-                      </div>
-
-                      {/* Description */}
-                      <div className="sm:col-span-7">
-                        <label className="block text-[11px] font-bold text-slate-600 mb-0.5">
-                          {lang === 'ar' ? 'الوصف التفصيلي' : 'Description'}
-                        </label>
                         <input
                           type="text"
-                          placeholder={lang === 'ar' ? 'تفاصيل الخدمة أو الرافعة' : 'Service or equipment details'}
-                          value={item.description || ''}
-                          onChange={(e) => handleUpdateItem(idx, { description: e.target.value })}
-                          className="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                          dir="rtl"
+                          placeholder="مثال: سعر اليوم"
+                          value={invoice.customRateHeaderAr || ''}
+                          onChange={(e) => updateField('customRateHeaderAr', e.target.value)}
+                          className="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 bg-white"
                         />
-                      </div>
-
-                      {/* Unit */}
-                      <div className="sm:col-span-3">
-                        <label className="block text-[11px] font-bold text-slate-600 mb-0.5">
-                          {lang === 'ar' ? 'الوحدة' : 'Unit'}
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Day / Shift / Trip / Pcs"
-                          value={item.unit || 'Pcs'}
-                          onChange={(e) => handleUpdateItem(idx, { unit: e.target.value })}
-                          className="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                        />
-                      </div>
-
-                      {/* Quantity */}
-                      <div className="sm:col-span-3">
-                        <label className="block text-[11px] font-bold text-slate-600 mb-0.5">
-                          {lang === 'ar' ? 'الكمية' : 'Quantity'}
-                        </label>
-                        <input
-                          type="number"
-                          min="0"
-                          step="any"
-                          value={item.quantity || ''}
-                          onChange={(e) => handleUpdateItem(idx, { quantity: Math.max(0, Number(e.target.value)) })}
-                          className="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 bg-white font-mono focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                        />
-                      </div>
-
-                      {/* Rate */}
-                      <div className="sm:col-span-3">
-                        <label className="block text-[11px] font-bold text-slate-600 mb-0.5">
-                          {lang === 'ar' ? 'سعر الوحدة (ر.س)' : 'Rate (SAR)'}
-                        </label>
-                        <input
-                          type="number"
-                          min="0"
-                          step="any"
-                          value={item.rate || ''}
-                          onChange={(e) => handleUpdateItem(idx, { rate: Math.max(0, Number(e.target.value)) })}
-                          className="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 bg-white font-mono focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                        />
-                      </div>
-
-                      {/* Line Subtotal Preview */}
-                      <div className="sm:col-span-3 flex flex-col justify-end">
-                        <div className="text-[10px] text-slate-500 font-medium">
-                          {lang === 'ar' ? 'الإجمالي' : 'Total'}
-                        </div>
-                        <div className="text-xs font-bold text-[#0f2744] font-mono py-1.5">
-                          {((Number(item.quantity || 0) * Number(item.rate || 0))).toFixed(2)} SAR
-                        </div>
                       </div>
                     </div>
                   </div>
-                ))}
+                )}
+              </div>
+
+              {/* Items List */}
+              <div className="space-y-3">
+                {getItemsList().map((item, idx) => {
+                  const isDayMode =
+                    invoice.quantityColumnType === 'days' ||
+                    (item.unit || '').toLowerCase().includes('day') ||
+                    (item.unit || '').includes('يوم') ||
+                    (item.unit || '').includes('أيام');
+                  const isHourMode =
+                    invoice.quantityColumnType === 'hours' ||
+                    (item.unit || '').toLowerCase().includes('hour') ||
+                    (item.unit || '').includes('ساعة');
+                  const isTripMode =
+                    invoice.quantityColumnType === 'trips' ||
+                    (item.unit || '').toLowerCase().includes('trip') ||
+                    (item.unit || '').includes('مشوار');
+
+                  const quantityLabel = isDayMode
+                    ? (lang === 'ar' ? 'عدد الأيام (Days)' : 'Days / Duration')
+                    : isHourMode
+                    ? (lang === 'ar' ? 'عدد الساعات (Hours)' : 'Hours')
+                    : isTripMode
+                    ? (lang === 'ar' ? 'عدد المشاوير (Trips)' : 'Trips')
+                    : (lang === 'ar' ? 'الكمية (Quantity)' : 'Quantity');
+
+                  const rateLabel = isDayMode
+                    ? (lang === 'ar' ? 'سعر اليوم (ر.س)' : 'Daily Rate (SAR)')
+                    : isHourMode
+                    ? (lang === 'ar' ? 'سعر الساعة (ر.س)' : 'Hourly Rate (SAR)')
+                    : isTripMode
+                    ? (lang === 'ar' ? 'سعر المشوار (ر.س)' : 'Trip Rate (SAR)')
+                    : (lang === 'ar' ? 'سعر الوحدة (ر.س)' : 'Unit Rate (SAR)');
+
+                  return (
+                    <div
+                      key={item.id || idx}
+                      className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 space-y-3 hover:border-slate-300 transition-colors"
+                    >
+                      <div className="flex items-center justify-between border-b border-slate-200/70 pb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="w-5 h-5 rounded-full bg-[#0F2744] text-white text-[10px] font-bold flex items-center justify-center">
+                            {idx + 1}
+                          </span>
+                          <span className="text-xs font-bold text-slate-800">
+                            {item.serviceName ? item.serviceName : (lang === 'ar' ? `البند #${idx + 1}` : `Item #${idx + 1}`)}
+                          </span>
+                          {item.unit && (
+                            <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                              {item.unit}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-bold font-mono text-[#0F2744]">
+                            {(Number(item.quantity || 0) * Number(item.rate || 0)).toFixed(2)} SAR
+                          </span>
+                          {getItemsList().length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveItem(idx)}
+                              className="text-rose-600 hover:text-rose-700 p-1 rounded hover:bg-rose-50 transition-colors"
+                              title={lang === 'ar' ? 'حذف البند' : 'Delete Item'}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 text-xs">
+                        {/* Service Name */}
+                        <div className="sm:col-span-5">
+                          <label className="block text-[11px] font-bold text-slate-600 mb-0.5">
+                            {lang === 'ar' ? 'اسم الخدمة / البند' : 'Service Name'}
+                          </label>
+                          <input
+                            type="text"
+                            placeholder={lang === 'ar' ? 'مثال: تأجير بوم ترك أو رافعة' : 'e.g. Boom Truck Rental'}
+                            value={item.serviceName || ''}
+                            onChange={(e) => handleUpdateItem(idx, { serviceName: e.target.value })}
+                            className="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500 font-medium"
+                          />
+                        </div>
+
+                        {/* Description */}
+                        <div className="sm:col-span-7">
+                          <label className="block text-[11px] font-bold text-slate-600 mb-0.5">
+                            {lang === 'ar' ? 'الوصف والتفاصيل' : 'Description & Scope'}
+                          </label>
+                          <input
+                            type="text"
+                            placeholder={lang === 'ar' ? 'تفاصيل الخدمة أو موقع العمل أو السعة' : 'Service details, equipment specs, or site'}
+                            value={item.description || ''}
+                            onChange={(e) => handleUpdateItem(idx, { description: e.target.value })}
+                            className="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                          />
+                        </div>
+
+                        {/* Unit Selection & Quick Chips */}
+                        <div className="sm:col-span-12 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <label className="block text-[11px] font-bold text-slate-600">
+                              {lang === 'ar' ? 'الوحدة / خيارات المدة السريعة:' : 'Unit / Quick Period Options:'}
+                            </label>
+                            <span className="text-[10px] text-slate-400">
+                              {lang === 'ar' ? '(اختر أو اكتب ما يناسبك)' : '(Select or type custom)'}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {[
+                              { label: lang === 'ar' ? '📅 أيام (Days)' : 'Days', val: lang === 'ar' ? 'أيام' : 'Days' },
+                              { label: lang === 'ar' ? 'يوم واحد (Day)' : 'Day', val: lang === 'ar' ? 'يوم' : 'Day' },
+                              { label: lang === 'ar' ? '⏱️ ساعات (Hours)' : 'Hours', val: lang === 'ar' ? 'ساعة' : 'Hours' },
+                              { label: lang === 'ar' ? '🗓️ شهر (Month)' : 'Month', val: lang === 'ar' ? 'شهر' : 'Month' },
+                              { label: lang === 'ar' ? 'وردية (Shift)' : 'Shift', val: lang === 'ar' ? 'وردية' : 'Shift' },
+                              { label: lang === 'ar' ? '🚚 مشوار (Trip)' : 'Trip', val: lang === 'ar' ? 'مشوار' : 'Trip' },
+                              { label: lang === 'ar' ? '📦 قطعة (Pcs)' : 'Pcs', val: lang === 'ar' ? 'قطعة' : 'Pcs' },
+                            ].map((chip) => (
+                              <button
+                                key={chip.val}
+                                type="button"
+                                onClick={() => handleUpdateItem(idx, { unit: chip.val })}
+                                className={`px-2 py-0.5 text-[11px] font-semibold rounded-md border transition-colors ${
+                                  (item.unit || '').trim() === chip.val
+                                    ? 'bg-emerald-600 text-white border-emerald-600'
+                                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                                }`}
+                              >
+                                {chip.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Editable Unit Field */}
+                        <div className="sm:col-span-3">
+                          <label className="block text-[11px] font-bold text-slate-600 mb-0.5">
+                            {lang === 'ar' ? 'نص الوحدة المطبوع' : 'Printed Unit Text'}
+                          </label>
+                          <input
+                            type="text"
+                            placeholder={lang === 'ar' ? 'Days / يوم / Pcs' : 'Days / Hour / Pcs'}
+                            value={item.unit || ''}
+                            onChange={(e) => handleUpdateItem(idx, { unit: e.target.value })}
+                            className="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500 font-medium"
+                          />
+                        </div>
+
+                        {/* Quantity / Days Field */}
+                        <div className="sm:col-span-3">
+                          <label className="block text-[11px] font-bold text-slate-600 mb-0.5">
+                            {quantityLabel}
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            step="any"
+                            value={item.quantity || ''}
+                            onChange={(e) => handleUpdateItem(idx, { quantity: Math.max(0, Number(e.target.value)) })}
+                            className="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 bg-white font-mono font-bold focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                          />
+
+                          {/* Quick Days/Qty Quick Buttons */}
+                          {isDayMode && (
+                            <div className="flex items-center gap-1 mt-1 flex-wrap">
+                              {[1, 2, 3, 5, 7, 10, 15, 30].map((d) => (
+                                <button
+                                  key={d}
+                                  type="button"
+                                  onClick={() => handleUpdateItem(idx, { quantity: d })}
+                                  className={`px-1.5 py-0.5 text-[9.5px] font-mono font-bold rounded ${
+                                    item.quantity === d
+                                      ? 'bg-emerald-600 text-white'
+                                      : 'bg-slate-200/80 text-slate-700 hover:bg-slate-300'
+                                  }`}
+                                >
+                                  {d}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Rate Field */}
+                        <div className="sm:col-span-3">
+                          <label className="block text-[11px] font-bold text-slate-600 mb-0.5">
+                            {rateLabel}
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            step="any"
+                            value={item.rate || ''}
+                            onChange={(e) => handleUpdateItem(idx, { rate: Math.max(0, Number(e.target.value)) })}
+                            className="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 bg-white font-mono font-bold focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                          />
+                        </div>
+
+                        {/* Line Subtotal Preview */}
+                        <div className="sm:col-span-3 flex flex-col justify-end">
+                          <div className="text-[10px] text-slate-500 font-medium">
+                            {lang === 'ar' ? 'إجمالي البند' : 'Item Total'}
+                          </div>
+                          <div className="text-xs font-bold text-[#0f2744] font-mono py-1.5">
+                            {(Number(item.quantity || 0) * Number(item.rate || 0)).toFixed(2)} SAR
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 

@@ -520,109 +520,208 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           {/* ========================================================
               4. FULLY DYNAMIC ITEMS / SERVICES TABLE (Clean & Crisp)
               - Crisp white background with sharp borders
-              - No watermark behind table
+              - Dynamic column headers: Quantity / Days / Duration / Hours / Custom
               - High readability and print clarity
               ======================================================== */}
-          <div className="my-2 overflow-hidden rounded border border-[#CBDDE8] bg-[#FFFFFF] shadow-2xs">
-            <table className="relative z-10 w-full text-xs text-center border-collapse">
-              <thead>
-                <tr className="bg-[#0F2744] text-[#FFFFFF] font-bold border-b border-[#0F2744]">
-                  <th className="py-2.5 px-1.5 border-r border-[#CBDDE8]/30 w-9 text-center">#</th>
-                  <th className="py-2.5 px-3 border-r border-[#CBDDE8]/30 text-start w-2/5">
-                    <div>Description</div>
-                    <div className="text-[10px] text-white/80 font-normal">الوصف</div>
-                  </th>
-                  <th className="py-2.5 px-2 border-r border-[#CBDDE8]/30 w-16">
-                    <div>Quantity</div>
-                    <div className="text-[10px] text-white/80 font-normal">الكمية</div>
-                  </th>
-                  <th className="py-2.5 px-2 border-r border-[#CBDDE8]/30 w-20">
-                    <div>Rate</div>
-                    <div className="text-[10px] text-white/80 font-normal">سعر الوحدة</div>
-                  </th>
-                  <th className="py-2.5 px-2 border-r border-[#CBDDE8]/30 w-20">
-                    <div>VAT 15%</div>
-                    <div className="text-[10px] text-white/80 font-normal">ضريبة القيمة المضافة</div>
-                  </th>
-                  <th className="py-2.5 px-2.5 border-r border-[#CBDDE8]/30 w-24">
-                    <div>Subtotal</div>
-                    <div className="text-[10px] text-white/80 font-normal">المجموع الفرعي</div>
-                  </th>
-                  <th className="py-2.5 px-2.5 w-24">
-                    <div>Total Amount</div>
-                    <div className="text-[10px] text-white/80 font-normal">إجمالي المبلغ</div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#CBDDE8]">
-                {/* Dynamic Line Items with clean white background */}
-                {rawItems.map((item, idx) => {
-                  const itemQty = Math.max(0, Number(item.quantity) || 0);
-                  const itemRate = Math.max(0, Number(item.rate) || 0);
-                  const itemSubtotal = item.subtotal !== undefined
-                    ? Number(item.subtotal)
-                    : Math.round(itemQty * itemRate * 100) / 100;
-                  const itemVat = item.vatAmount !== undefined
-                    ? Number(item.vatAmount)
-                    : (is15Percent ? Math.round(itemSubtotal * 15) / 100 : 0);
-                  const itemTotal = item.total !== undefined
-                    ? Number(item.total)
-                    : (itemSubtotal + itemVat);
+          {(() => {
+            // Dynamic Quantity / Days / Duration & Rate Column Headers
+            const qtyColumnInfo = (() => {
+              if (invoice?.quantityColumnType === 'days') {
+                return {
+                  qtyEn: invoice.customQuantityHeaderEn?.trim() || 'Days / Period',
+                  qtyAr: invoice.customQuantityHeaderAr?.trim() || 'الأيام / المدة',
+                  rateEn: invoice.customRateHeaderEn?.trim() || 'Daily Rate',
+                  rateAr: invoice.customRateHeaderAr?.trim() || 'سعر اليوم',
+                };
+              }
+              if (invoice?.quantityColumnType === 'hours') {
+                return {
+                  qtyEn: invoice.customQuantityHeaderEn?.trim() || 'Hours',
+                  qtyAr: invoice.customQuantityHeaderAr?.trim() || 'الساعات',
+                  rateEn: invoice.customRateHeaderEn?.trim() || 'Hourly Rate',
+                  rateAr: invoice.customRateHeaderAr?.trim() || 'سعر الساعة',
+                };
+              }
+              if (invoice?.quantityColumnType === 'trips') {
+                return {
+                  qtyEn: invoice.customQuantityHeaderEn?.trim() || 'Trips',
+                  qtyAr: invoice.customQuantityHeaderAr?.trim() || 'المشاوير',
+                  rateEn: invoice.customRateHeaderEn?.trim() || 'Trip Rate',
+                  rateAr: invoice.customRateHeaderAr?.trim() || 'سعر المشوار',
+                };
+              }
+              if (invoice?.quantityColumnType === 'period') {
+                return {
+                  qtyEn: invoice.customQuantityHeaderEn?.trim() || 'Duration / Days',
+                  qtyAr: invoice.customQuantityHeaderAr?.trim() || 'المدة / الأيام',
+                  rateEn: invoice.customRateHeaderEn?.trim() || 'Rate',
+                  rateAr: invoice.customRateHeaderAr?.trim() || 'سعر الوحدة',
+                };
+              }
+              if (invoice?.quantityColumnType === 'custom' && (invoice?.customQuantityHeaderEn || invoice?.customQuantityHeaderAr)) {
+                return {
+                  qtyEn: invoice.customQuantityHeaderEn?.trim() || 'Quantity',
+                  qtyAr: invoice.customQuantityHeaderAr?.trim() || 'الكمية',
+                  rateEn: invoice.customRateHeaderEn?.trim() || 'Rate',
+                  rateAr: invoice.customRateHeaderAr?.trim() || 'سعر الوحدة',
+                };
+              }
 
-                  return (
-                    <tr key={item.id || idx} className="bg-[#FFFFFF] font-normal text-[#0F2744] hover:bg-[#F0F5FA]/50">
-                      <td className="py-2.5 px-1.5 border-r border-[#CBDDE8] font-bold font-mono">
-                        {idx + 1}
-                      </td>
-                      <td className="py-2.5 px-3 border-r border-[#CBDDE8] text-start">
-                        {item.serviceName && (
-                          <div className="font-bold text-[#0F2744] leading-tight">
-                            {item.serviceName}
-                          </div>
-                        )}
-                        {item.description ? (
-                          <div className="text-[10.5px] text-[#0F2744] leading-tight opacity-90 mt-0.5">
-                            {item.description}
-                          </div>
-                        ) : !item.serviceName ? (
-                          <span className="text-slate-400">-</span>
-                        ) : null}
-                      </td>
-                      <td className="py-2.5 px-2 border-r border-[#CBDDE8] font-mono">
-                        {itemQty} {item.unit || ''}
-                      </td>
-                      <td className="py-2.5 px-2 border-r border-[#CBDDE8] font-mono">
-                        {itemRate.toFixed(2)}
-                      </td>
-                      <td className="py-2.5 px-2 border-r border-[#CBDDE8] font-mono">
-                        {itemVat.toFixed(2)}
-                      </td>
-                      <td className="py-2.5 px-2.5 border-r border-[#CBDDE8] font-mono">
-                        {itemSubtotal.toFixed(2)}
-                      </td>
-                      <td className="py-2.5 px-2.5 font-mono font-bold text-[#0F2744]">
-                        {itemTotal.toFixed(2)}
-                      </td>
-                    </tr>
-                  );
-                })}
+              // Smart auto-detection based on line items' units
+              const hasDays = rawItems.some((it) => {
+                const u = (it.unit || '').toLowerCase().trim();
+                return u === 'day' || u === 'days' || u.includes('يوم') || u.includes('أيام') || u.includes('ايام');
+              });
+              const hasHours = rawItems.some((it) => {
+                const u = (it.unit || '').toLowerCase().trim();
+                return u === 'hour' || u === 'hours' || u.includes('ساعة') || u.includes('ساعات');
+              });
+              const hasTrips = rawItems.some((it) => {
+                const u = (it.unit || '').toLowerCase().trim();
+                return u === 'trip' || u === 'trips' || u.includes('مشوار') || u.includes('مشاوير') || u.includes('رحلة');
+              });
 
-                {/* Empty Rows to replicate master reference spacing and proportions */}
-                {rawItems.length < 4 &&
-                  Array.from({ length: 4 - rawItems.length }).map((_, rIdx) => (
-                    <tr key={`empty-${rIdx}`} className="h-8 bg-[#FFFFFF]">
-                      <td className="py-1 px-1.5 border-r border-[#CBDDE8] font-mono text-slate-300"></td>
-                      <td className="py-1 px-3 border-r border-[#CBDDE8]"></td>
-                      <td className="py-1 px-2 border-r border-[#CBDDE8]"></td>
-                      <td className="py-1 px-2 border-r border-[#CBDDE8]"></td>
-                      <td className="py-1 px-2 border-r border-[#CBDDE8]"></td>
-                      <td className="py-1 px-2.5 border-r border-[#CBDDE8]"></td>
-                      <td className="py-1 px-2.5"></td>
+              if (hasDays && !hasHours && !hasTrips) {
+                return {
+                  qtyEn: 'Days / Qty',
+                  qtyAr: 'الأيام / الكمية',
+                  rateEn: 'Daily Rate',
+                  rateAr: 'سعر اليوم',
+                };
+              }
+              if (hasHours && !hasDays) {
+                return {
+                  qtyEn: 'Hours / Qty',
+                  qtyAr: 'الساعات / الكمية',
+                  rateEn: 'Hourly Rate',
+                  rateAr: 'سعر الساعة',
+                };
+              }
+              if (hasTrips && !hasDays) {
+                return {
+                  qtyEn: 'Trips / Qty',
+                  qtyAr: 'المشاوير / الكمية',
+                  rateEn: 'Trip Rate',
+                  rateAr: 'سعر المشوار',
+                };
+              }
+
+              return {
+                qtyEn: 'Quantity',
+                qtyAr: 'الكمية',
+                rateEn: 'Rate',
+                rateAr: 'سعر الوحدة',
+              };
+            })();
+
+            return (
+              <div className="my-2 overflow-hidden rounded border border-[#CBDDE8] bg-[#FFFFFF] shadow-2xs">
+                <table className="relative z-10 w-full text-xs text-center border-collapse">
+                  <thead>
+                    <tr className="bg-[#0F2744] text-[#FFFFFF] font-bold border-b border-[#0F2744]">
+                      <th className="py-2.5 px-1.5 border-r border-[#CBDDE8]/30 w-9 text-center">#</th>
+                      <th className="py-2.5 px-3 border-r border-[#CBDDE8]/30 text-start w-2/5">
+                        <div>Description</div>
+                        <div className="text-[10px] text-white/80 font-normal">الوصف</div>
+                      </th>
+                      <th className="py-2.5 px-2 border-r border-[#CBDDE8]/30 w-20">
+                        <div>{qtyColumnInfo.qtyEn}</div>
+                        <div className="text-[10px] text-white/80 font-normal">{qtyColumnInfo.qtyAr}</div>
+                      </th>
+                      <th className="py-2.5 px-2 border-r border-[#CBDDE8]/30 w-20">
+                        <div>{qtyColumnInfo.rateEn}</div>
+                        <div className="text-[10px] text-white/80 font-normal">{qtyColumnInfo.rateAr}</div>
+                      </th>
+                      <th className="py-2.5 px-2 border-r border-[#CBDDE8]/30 w-20">
+                        <div>VAT 15%</div>
+                        <div className="text-[10px] text-white/80 font-normal">ضريبة القيمة المضافة</div>
+                      </th>
+                      <th className="py-2.5 px-2.5 border-r border-[#CBDDE8]/30 w-24">
+                        <div>Subtotal</div>
+                        <div className="text-[10px] text-white/80 font-normal">المجموع الفرعي</div>
+                      </th>
+                      <th className="py-2.5 px-2.5 w-24">
+                        <div>Total Amount</div>
+                        <div className="text-[10px] text-white/80 font-normal">إجمالي المبلغ</div>
+                      </th>
                     </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody className="divide-y divide-[#CBDDE8]">
+                    {/* Dynamic Line Items with clean white background */}
+                    {rawItems.map((item, idx) => {
+                      const itemQty = Math.max(0, Number(item.quantity) || 0);
+                      const itemRate = Math.max(0, Number(item.rate) || 0);
+                      const itemSubtotal = item.subtotal !== undefined
+                        ? Number(item.subtotal)
+                        : Math.round(itemQty * itemRate * 100) / 100;
+                      const itemVat = item.vatAmount !== undefined
+                        ? Number(item.vatAmount)
+                        : (is15Percent ? Math.round(itemSubtotal * 15) / 100 : 0);
+                      const itemTotal = item.total !== undefined
+                        ? Number(item.total)
+                        : (itemSubtotal + itemVat);
+
+                      return (
+                        <tr key={item.id || idx} className="bg-[#FFFFFF] font-normal text-[#0F2744] hover:bg-[#F0F5FA]/50">
+                          <td className="py-2.5 px-1.5 border-r border-[#CBDDE8] font-bold font-mono">
+                            {idx + 1}
+                          </td>
+                          <td className="py-2.5 px-3 border-r border-[#CBDDE8] text-start">
+                            {item.serviceName && (
+                              <div className="font-bold text-[#0F2744] leading-tight">
+                                {item.serviceName}
+                              </div>
+                            )}
+                            {item.description ? (
+                              <div className="text-[10.5px] text-[#0F2744] leading-tight opacity-90 mt-0.5">
+                                {item.description}
+                              </div>
+                            ) : !item.serviceName ? (
+                              <span className="text-slate-400">-</span>
+                            ) : null}
+                          </td>
+                          <td className="py-2.5 px-2 border-r border-[#CBDDE8] font-mono">
+                            <div className="font-bold text-[#0F2744] text-[11.5px]">{itemQty}</div>
+                            {item.unit && (
+                              <div className="text-[9px] text-[#0F2744]/75 font-sans font-semibold tracking-tight">
+                                {item.unit}
+                              </div>
+                            )}
+                          </td>
+                          <td className="py-2.5 px-2 border-r border-[#CBDDE8] font-mono">
+                            {itemRate.toFixed(2)}
+                          </td>
+                          <td className="py-2.5 px-2 border-r border-[#CBDDE8] font-mono">
+                            {itemVat.toFixed(2)}
+                          </td>
+                          <td className="py-2.5 px-2.5 border-r border-[#CBDDE8] font-mono">
+                            {itemSubtotal.toFixed(2)}
+                          </td>
+                          <td className="py-2.5 px-2.5 font-mono font-bold text-[#0F2744]">
+                            {itemTotal.toFixed(2)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+
+                    {/* Empty Rows to replicate master reference spacing and proportions */}
+                    {rawItems.length < 4 &&
+                      Array.from({ length: 4 - rawItems.length }).map((_, rIdx) => (
+                        <tr key={`empty-${rIdx}`} className="h-8 bg-[#FFFFFF]">
+                          <td className="py-1 px-1.5 border-r border-[#CBDDE8] font-mono text-slate-300"></td>
+                          <td className="py-1 px-3 border-r border-[#CBDDE8]"></td>
+                          <td className="py-1 px-2 border-r border-[#CBDDE8]"></td>
+                          <td className="py-1 px-2 border-r border-[#CBDDE8]"></td>
+                          <td className="py-1 px-2 border-r border-[#CBDDE8]"></td>
+                          <td className="py-1 px-2.5 border-r border-[#CBDDE8]"></td>
+                          <td className="py-1 px-2.5"></td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            );
+          })()}
 
           {/* ========================================================
               5. QR CODE + TOTALS SECTION

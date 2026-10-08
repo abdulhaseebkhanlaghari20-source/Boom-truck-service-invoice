@@ -76,7 +76,14 @@ export interface Invoice {
   // Multiple Line Items support
   items?: InvoiceItem[];
 
-  // 3. Invoice & Tax Calculations
+  // 3. Quantity / Column Header Customization (Days, Hours, Quantity, Custom)
+  quantityColumnType?: 'quantity' | 'days' | 'hours' | 'trips' | 'period' | 'custom';
+  customQuantityHeaderEn?: string; // e.g. "Days", "Duration", "Hours", "Period"
+  customQuantityHeaderAr?: string; // e.g. "الأيام", "المدة", "الساعات", "الفترة"
+  customRateHeaderEn?: string;     // e.g. "Daily Rate", "Hourly Rate", "Rate"
+  customRateHeaderAr?: string;     // e.g. "سعر اليوم", "سعر الساعة", "سعر الوحدة"
+
+  // 4. Invoice & Tax Calculations
   vatOption: VatOption;
   subtotal: number;
   vatAmount: number;
