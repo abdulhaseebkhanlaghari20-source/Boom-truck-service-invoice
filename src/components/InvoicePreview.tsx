@@ -292,38 +292,55 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               - Arabic VAT, CR, Address removed from right side
               - VAT & CR remain only once in the compact English/company info area
               ======================================================== */}
-          <div className="bg-white text-slate-900 rounded-md overflow-hidden relative border border-[#cbdde8] p-3 sm:p-4">
-            <div className="grid grid-cols-12 gap-3 items-center">
+          <div className="bg-white text-slate-900 rounded-md overflow-hidden relative border border-[#CBDDE8] p-3 sm:p-4 shadow-xs">
+            {/* Top Corporate Accent Bar */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-[#0F2744]" />
+
+            <div className="grid grid-cols-12 gap-3 items-center pt-0.5">
               {/* Left Column: English Company Information (LTR) */}
-              <div className="col-span-5 text-start space-y-1 min-w-0" dir="ltr">
+              <div className="col-span-5 text-start space-y-1.5 min-w-0" dir="ltr">
                 {companyNameEn && (
                   <h1
-                    className={`font-bold text-[#0F2744] tracking-tight leading-tight break-words ${
+                    className={`font-black text-[#0F2744] tracking-tight leading-tight break-words ${
                       companyNameEn.length > 35
-                        ? 'text-xs'
-                        : companyNameEn.length > 22
                         ? 'text-sm'
-                        : 'text-base'
+                        : companyNameEn.length > 22
+                        ? 'text-base'
+                        : 'text-lg'
                     }`}
                   >
                     {toTitleCase(companyNameEn)}
                   </h1>
                 )}
                 {businessActivityEn && (
-                  <p className="text-[10px] font-bold text-[#0F2744] tracking-wide leading-tight">
+                  <p className="text-[11px] font-semibold text-[#0F2744]/80 tracking-wide leading-tight">
                     {businessActivityEn}
                   </p>
                 )}
-                {vatNo && (
-                  <div className="text-[10.5px] text-[#0F2744] leading-tight">
-                    <span className="font-bold text-[#0F2744]">VAT: </span>
-                    <span className="font-mono">{vatNo}</span>
-                  </div>
-                )}
-                {crNo && (
-                  <div className="text-[10.5px] text-[#0F2744] leading-tight">
-                    <span className="font-bold text-[#0F2744]">CR: </span>
-                    <span className="font-mono">{crNo}</span>
+
+                {/* Styled Shape Badges for VAT and CR */}
+                {(vatNo || crNo) && (
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    {vatNo && (
+                      <div className="inline-flex items-center rounded border border-[#CBDDE8] bg-[#F0F5FA] overflow-hidden shadow-xs">
+                        <span className="bg-[#0F2744] text-[#FFFFFF] text-[9.5px] font-bold px-2 py-0.5 tracking-wider uppercase">
+                          VAT
+                        </span>
+                        <span className="font-mono text-[11px] font-bold text-[#0F2744] px-2.5 py-0.5 tracking-wide">
+                          {vatNo}
+                        </span>
+                      </div>
+                    )}
+                    {crNo && (
+                      <div className="inline-flex items-center rounded border border-[#CBDDE8] bg-[#F0F5FA] overflow-hidden shadow-xs">
+                        <span className="bg-[#08233F] text-[#FFFFFF] text-[9.5px] font-bold px-2 py-0.5 tracking-wider uppercase">
+                          CR
+                        </span>
+                        <span className="font-mono text-[11px] font-bold text-[#0F2744] px-2.5 py-0.5 tracking-wide">
+                          {crNo}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -331,7 +348,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
               {/* Center Column: Company Logo */}
               <div className="col-span-2 flex flex-col items-center justify-center">
                 {companySettings.logoUrl ? (
-                  <div className="w-20 h-16 rounded p-0.5 flex items-center justify-center">
+                  <div className="w-22 h-18 rounded p-1 flex items-center justify-center bg-white border border-[#CBDDE8]/60 shadow-xs">
                     <img
                       src={companySettings.logoUrl}
                       alt="Company Logo"
@@ -340,20 +357,20 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                     />
                   </div>
                 ) : (
-                  <div className="w-16 h-14" />
+                  <div className="w-18 h-16" />
                 )}
               </div>
 
               {/* Right Column: Arabic Company Information (RTL) - ONLY Name & Activity */}
-              <div className="col-span-5 text-end space-y-1 min-w-0" dir="rtl">
+              <div className="col-span-5 text-end space-y-1.5 min-w-0" dir="rtl">
                 {companyNameAr && (
                   <h2
                     className={`font-bold text-[#0F2744] leading-tight break-words text-end ${
                       companyNameAr.length > 35
-                        ? 'text-sm'
-                        : companyNameAr.length > 22
                         ? 'text-base'
-                        : 'text-lg'
+                        : companyNameAr.length > 22
+                        ? 'text-lg'
+                        : 'text-xl'
                     }`}
                     style={{ direction: 'rtl', textAlign: 'right' }}
                   >
@@ -362,7 +379,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                 )}
                 {businessActivityAr && (
                   <div
-                    className="text-[11px] font-bold text-[#0F2744] leading-tight text-end"
+                    className="text-[12px] font-semibold text-[#0F2744]/80 leading-tight text-end mt-0.5"
                     style={{ direction: 'rtl', textAlign: 'right' }}
                   >
                     {businessActivityAr}
